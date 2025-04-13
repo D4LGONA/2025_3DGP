@@ -24,6 +24,10 @@
 #include <DirectXColors.h>
 #include <DirectXCollision.h>
 
+// 라이브러리 추가
+#include <map>
+#include <string>
+
 using namespace DirectX;
 using namespace DirectX::PackedVector;
 

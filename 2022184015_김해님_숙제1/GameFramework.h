@@ -14,7 +14,7 @@ private:
 	HINSTANCE					m_hInstance = NULL;
 	HWND						m_hWnd = NULL;
 
-	bool						m_bActive = true;
+	bool						m_bActive = true; // ?
 
 	RECT						m_rcClient;
 
@@ -22,9 +22,8 @@ private:
     HBITMAP						m_hBitmapFrameBuffer = NULL;
     HBITMAP						m_hBitmapSelect = NULL;
 
-	CPlayer*					m_pPlayer = NULL;
-	CScene*						m_pScene = NULL;
-	CGameObject*				m_pLockedObject = NULL;
+	CScene*						m_CurrentScene = NULL;
+	CScene*						m_Scenes[4] = { NULL, NULL, NULL, NULL };
 
 	CGameTimer					m_GameTimer;
 

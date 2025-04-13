@@ -72,31 +72,31 @@ void CGameFramework::BuildObjects()
 
 	CAirplaneMesh* pAirplaneMesh = new CAirplaneMesh(6.0f, 6.0f, 1.0f);
 
-	m_pPlayer = new CAirplanePlayer();
-	m_pPlayer->SetPosition(0.0f, 0.0f, 0.0f);
-	m_pPlayer->SetMesh(pAirplaneMesh);
-	m_pPlayer->SetColor(RGB(0, 0, 255));
-	m_pPlayer->SetCamera(pCamera);
-	m_pPlayer->SetCameraOffset(XMFLOAT3(0.0f, 5.0f, -15.0f));
+	//m_pPlayer = new CAirplanePlayer();
+	//m_pPlayer->SetPosition(0.0f, 0.0f, 0.0f);
+	//m_pPlayer->SetMesh(pAirplaneMesh);
+	//m_pPlayer->SetColor(RGB(0, 0, 255));
+	//m_pPlayer->SetCamera(pCamera);
+	//m_pPlayer->SetCameraOffset(XMFLOAT3(0.0f, 5.0f, -15.0f));
 
-	m_pScene = new CScene(m_pPlayer);
-	m_pScene->BuildObjects();
+	//m_pScene = new CScene(m_pPlayer);
+	//m_pScene->BuildObjects();
 }
 
 void CGameFramework::ReleaseObjects()
 {
-	if (m_pScene)
+	if (m_CurrentScene)
 	{
-		m_pScene->ReleaseObjects();
-		delete m_pScene;
+		m_CurrentScene->ReleaseObjects();
+		delete m_CurrentScene;
 	}
 
-	if (m_pPlayer) delete m_pPlayer;
+	//if (m_pPlayer) delete m_pPlayer;
 }
 
 void CGameFramework::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
-	if (m_pScene) m_pScene->OnProcessingMouseMessage(hWnd, nMessageID, wParam, lParam);
+	if (m_CurrentScene) m_CurrentScene->OnProcessingMouseMessage(hWnd, nMessageID, wParam, lParam);
 
 	switch (nMessageID)
 	{
@@ -104,7 +104,9 @@ void CGameFramework::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM
 	case WM_LBUTTONDOWN:
 		::SetCapture(hWnd);
 		::GetCursorPos(&m_ptOldCursorPos);
-		if (nMessageID == WM_RBUTTONDOWN) m_pLockedObject = m_pScene->PickObjectPointedByCursor(LOWORD(lParam), HIWORD(lParam), m_pPlayer->m_pCamera);
+		if (nMessageID == WM_RBUTTONDOWN)
+			int k = 0; // todo: 이 자리에 피킹... 을 합니다.
+			//m_pLockedObject = m_CurrentScene->PickObjectPointedByCursor(LOWORD(lParam), HIWORD(lParam), m_pPlayer->m_pCamera);
 		break;
 	case WM_LBUTTONUP:
 	case WM_RBUTTONUP:
@@ -119,7 +121,7 @@ void CGameFramework::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM
 
 void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
-	if (m_pScene) m_pScene->OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam);
+	if (m_CurrentScene) m_CurrentScene->OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam);
 
 	switch (nMessageID)
 	{
@@ -132,11 +134,11 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 		case VK_RETURN:
 			break;
 		case VK_CONTROL:
-			((CAirplanePlayer*)m_pPlayer)->FireBullet(m_pLockedObject);
-			m_pLockedObject = NULL;
+			//((CAirplanePlayer*)m_pPlayer)->FireBullet(m_pLockedObject);
+			//m_pLockedObject = NULL;
 			break;
 		default:
-			m_pScene->OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam);
+			m_CurrentScene->OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam);
 			break;
 		}
 		break;
@@ -187,9 +189,10 @@ void CGameFramework::ProcessInput()
 		if (pKeyBuffer[VK_PRIOR] & 0xF0) dwDirection |= DIR_UP;
 		if (pKeyBuffer[VK_NEXT] & 0xF0) dwDirection |= DIR_DOWN;
 
-		if (dwDirection) m_pPlayer->Move(dwDirection, 0.15f);
+		//if (dwDirection) m_pPlayer->Move(dwDirection, 0.15f);
 	}
 
+	// todo: 여기 카메라 회전 관련인듯
 	if (GetCapture() == m_hWnd)
 	{
 		SetCursor(NULL);
@@ -200,21 +203,21 @@ void CGameFramework::ProcessInput()
 		SetCursorPos(m_ptOldCursorPos.x, m_ptOldCursorPos.y);
 		if (cxMouseDelta || cyMouseDelta)
 		{
-			if (pKeyBuffer[VK_RBUTTON] & 0xF0)
+			/*if (pKeyBuffer[VK_RBUTTON] & 0xF0)
 				m_pPlayer->Rotate(cyMouseDelta, 0.0f, -cxMouseDelta);
 			else
-				m_pPlayer->Rotate(cyMouseDelta, cxMouseDelta, 0.0f);
+				m_pPlayer->Rotate(cyMouseDelta, cxMouseDelta, 0.0f);*/
 		}
 	}
 
-	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
+	//m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
 }
 
 void CGameFramework::AnimateObjects()
 {
 	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
-	if (m_pPlayer) m_pPlayer->Animate(fTimeElapsed);
-	if (m_pScene) m_pScene->Animate(fTimeElapsed);
+	//if (m_pPlayer) m_pPlayer->Animate(fTimeElapsed);
+	if (m_CurrentScene) m_CurrentScene->Animate(fTimeElapsed);
 }
 
 void CGameFramework::FrameAdvance()
@@ -227,8 +230,9 @@ void CGameFramework::FrameAdvance()
 
     ClearFrameBuffer(RGB(255, 255, 255));
 
-	CCamera* pCamera = m_pPlayer->GetCamera();
-	if (m_pScene) m_pScene->Render(m_hDCFrameBuffer, pCamera);
+	//CCamera* pCamera = m_pPlayer->GetCamera(); 
+	CCamera* pCamera = nullptr; // 카메라가 플레이어에게 달려 있음
+	if (m_CurrentScene) m_CurrentScene->Render(m_hDCFrameBuffer, pCamera);
 
 	PresentFrameBuffer();
 
