@@ -17,11 +17,11 @@ private:
 	CGameObject					**m_ppObjects = NULL;
 	CWallsObject*				m_pWallsObject = NULL;
 
+	// player -> 포신과 헤드 / 몸체로 오브젝트 분리하여 회전 따로 먹임
 	CTankPlayer*				m_pPlayer = NULL;
 	CGameObject*				m_PlayerBody = NULL;
 
 	CGameObject*				m_pLockedObject = NULL;
-	POINT						m_ptOldCursorPos;
 
 	CCamera* CreateCamera();
 	void BuildEnemies();

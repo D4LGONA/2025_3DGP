@@ -115,15 +115,6 @@ void CGameFramework::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM
 void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
 	if (m_CurrentScene) m_CurrentScene->OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam);
-
-	//switch (nMessageID)
-	//{
-	//case WM_KEYDOWN:
-	//	m_CurrentScene->OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam);
-	//	break;
-	//default:
-	//	break;
-	//}
 }
 
 LRESULT CALLBACK CGameFramework::OnProcessingWindowMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
