@@ -16,7 +16,12 @@ private:
 	int							m_nObjects = 0;
 	CGameObject					**m_ppObjects = NULL;
 	CWallsObject*				m_pWallsObject = NULL;
-	CTankPlayer*					m_pPlayer = NULL;
+
+	CTankPlayer*				m_pPlayer = NULL;
+	CGameObject*				m_PlayerBody = NULL;
+
+	CGameObject*				m_pLockedObject = NULL;
+	POINT						m_ptOldCursorPos;
 
 	CCamera* CreateCamera();
 	void BuildEnemies();

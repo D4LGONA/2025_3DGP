@@ -176,42 +176,24 @@ void CTankPlayer::Render(HDC hDCFrameBuffer, CCamera* pCamera)
 
 void CTankPlayer::Rotate(float fPitch, float fYaw, float fRoll)
 {
-	if (fYaw != 0.0f && m_pMesh)
-	{
-		CTankMesh* pTankMesh = dynamic_cast<CTankMesh*>(m_pMesh);
-		if (pTankMesh)
-		{
-			RotateHeadYaw(fYaw);  // Pitch, Roll은 무시
-		}
-	}
+	CPlayer::Rotate(0.0f, fYaw, 0.0f);
 
-	// 카메라 회전은 여전히 동작하게 할 거면 아래 살려두기
+
+	// 카메라 회전 todo: 여기 수정
 	if (m_pCamera)
-		m_pCamera->Rotate(0.0f, fYaw, 0.0f);
-}
-
-void CTankPlayer::RotateHeadYaw(float fYaw)
-{
-	if (fYaw != 0.0f)
-	{
-		XMMATRIX mtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Up), XMConvertToRadians(fYaw));
-		m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, mtxRotate);
-		m_xmf3Right = Vector3::TransformNormal(m_xmf3Right, mtxRotate);
-	}
-	m_xmf3Look = Vector3::Normalize(m_xmf3Look);
-	m_xmf3Right = Vector3::Normalize(Vector3::CrossProduct(m_xmf3Up, m_xmf3Look));
-	m_xmf3Up = Vector3::Normalize(Vector3::CrossProduct(m_xmf3Look, m_xmf3Right));
+		m_pCamera->Rotate(fPitch, fYaw, 0.0f);
 }
 
 void CTankPlayer::FireBullet(CGameObject* pLockedObject)
 {
-/*
+	// 어차피 적이 나랑 같은 평면 상에 있을 테니 y값 회전은 무시
+	// todo: 근데 카메라가 이상.. 함
 	if (pLockedObject) 
 	{
-		LookAt(pLockedObject->GetPosition(), XMFLOAT3(0.0f, 1.0f, 0.0f));
+		auto a = XMFLOAT3(pLockedObject->GetPosition().x, this->GetPosition().y, pLockedObject->GetPosition().z);
+		LookAt(a, XMFLOAT3(0.0f, 1.0f, 0.0f));
 		OnUpdateTransform();
 	}
-*/
 
 	CBulletObject* pBulletObject = NULL;
 	for (int i = 0; i < BULLETS; i++)

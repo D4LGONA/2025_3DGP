@@ -122,8 +122,9 @@ void CScene_2::BuildEnemies()
 void CScene_2::BuildObjects()
 {
 	CExplosiveObject::PrepareExplosion();
+	BuildEnemies();
 
-	float fHalfWidth = 20.0f, fHalfHeight = 20.0f, fHalfDepth = 100.0f;
+	float fHalfWidth = 20.0f, fHalfHeight = 20.0f, fHalfDepth = 200.0f;
 	CWallMesh* pWallCubeMesh = new CWallMesh(fHalfWidth * 2.0f, fHalfHeight * 2.0f, fHalfDepth * 2.0f, 30);
 
 	// 맵 초기화
@@ -149,6 +150,12 @@ void CScene_2::BuildObjects()
 	m_pPlayer->SetCamera(CreateCamera());
 	m_pPlayer->SetCameraOffset(XMFLOAT3(0.0f, 20.0f, -20.0f));
 
+	CCubeMesh* pTankBody = new CCubeMesh(10.0f, 5.0f, 10.0f);
+	m_PlayerBody = new CGameObject();
+	m_PlayerBody->SetPosition(0.0f, -20.0f + 5.0f, 0.0f);
+	m_PlayerBody->SetMesh(pTankBody);
+	m_PlayerBody->SetColor(RGB(0, 0, 255));
+
 #ifdef _WITH_DRAW_AXIS
 	m_pWorldAxis = new CGameObject();
 	CAxisMesh* pAxisMesh = new CAxisMesh(0.5f, 0.5f, 0.5f);
@@ -172,6 +179,16 @@ void CScene_2::ReleaseObjects()
 
 void CScene_2::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
+	switch (nMessageID)
+	{
+	case WM_RBUTTONDOWN:
+		if (nMessageID == WM_RBUTTONDOWN && m_bAutoAttack) {
+			m_pLockedObject = PickObjectPointedByCursor(LOWORD(lParam), HIWORD(lParam), m_pPlayer->m_pCamera);
+		}
+		break;
+	default:
+		break;
+	}
 }
 
 void CScene_2::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
@@ -202,6 +219,13 @@ void CScene_2::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wP
 		case 'w':
 		case 'W':
 			// 여기 승리 조건이 들어가야 함
+			break;
+
+		case VK_CONTROL:
+			if (m_bAutoAttack) {
+				((CTankPlayer*)m_pPlayer)->FireBullet(m_pLockedObject);
+				m_pLockedObject = NULL;
+			}
 			break;
 		default:
 			break;
@@ -249,8 +273,10 @@ void CScene_2::ProcessInput(POINT oldCursorPos, HWND hWnd, float m_fElapsedTime)
 		if (pKeyBuffer[VK_LEFT] & 0xF0) dwDirection |= DIR_LEFT;
 		if (pKeyBuffer[VK_RIGHT] & 0xF0) dwDirection |= DIR_RIGHT;
 
-		if (dwDirection && m_pPlayer)
+		if (dwDirection && m_pPlayer) {
 			m_pPlayer->Move(dwDirection, 0.15f);
+			if (m_PlayerBody) m_PlayerBody->SetPosition(m_pPlayer->GetPosition());
+		}
 	}
 
 	if (GetCapture() == hWnd)
@@ -363,7 +389,7 @@ void CScene_2::CheckPlayerByWallCollision()
 	m_pWallsObject->m_xmOOBBPlayerMoveCheck.Transform(xmOOBBPlayerMoveCheck, XMLoadFloat4x4(&m_pWallsObject->m_xmf4x4World));
 	XMStoreFloat4(&xmOOBBPlayerMoveCheck.Orientation, XMQuaternionNormalize(XMLoadFloat4(&xmOOBBPlayerMoveCheck.Orientation)));
 
-	if (!xmOOBBPlayerMoveCheck.Intersects(m_pPlayer->m_xmOOBB)) m_pWallsObject->SetPosition(m_pPlayer->m_xmf3Position);
+	if (!xmOOBBPlayerMoveCheck.Intersects(m_pPlayer->m_xmOOBB)) m_pWallsObject->SetPosition(m_pPlayer->m_xmf3Position.x, m_pPlayer->m_xmf3Position.y + 20.0f - 5.0f, m_pPlayer->m_xmf3Position.z);
 }
 
 void CScene_2::CheckObjectByBulletCollisions()
@@ -386,6 +412,7 @@ void CScene_2::CheckObjectByBulletCollisions()
 void CScene_2::Animate(float fElapsedTime)
 {
 	if (m_pPlayer) m_pPlayer->Animate(fElapsedTime);
+	m_PlayerBody->Animate(fElapsedTime);
 	
 	m_pWallsObject->Animate(fElapsedTime);
 
@@ -410,6 +437,7 @@ void CScene_2::Render(HDC hDCFrameBuffer)
 	for (int i = 0; i < m_nObjects; i++) m_ppObjects[i]->Render(hDCFrameBuffer, pCamera);
 
 	if (m_pPlayer) m_pPlayer->Render(hDCFrameBuffer, pCamera);
+	m_PlayerBody->Render(hDCFrameBuffer, pCamera);
 
 //UI
 #ifdef _WITH_DRAW_AXIS
