@@ -86,3 +86,16 @@ public:
 
 	virtual void Render(HDC hDCFrameBuffer);
 };
+
+class CTankMesh : public CMesh
+{
+public:
+	CTankMesh(float fWidth = 10.0f, float fHeight = 10.0f, float fDepth = 10.0f);
+	virtual ~CTankMesh() {}
+
+	CMesh* m_pBodyMesh;
+	CMesh* m_pHeadMesh;
+	CMesh* m_pBarrelMesh;
+
+	virtual void Render(HDC hDCFrameBuffer);
+};

@@ -131,7 +131,7 @@ void CPlayer::Render(HDC hDCFrameBuffer, CCamera* pCamera)
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //
-CAirplanePlayer::CAirplanePlayer()
+CTankPlayer::CTankPlayer()
 {
 	CCubeMesh* pBulletMesh = new CCubeMesh(1.0f, 4.0f, 1.0f);
 	for (int i = 0; i < BULLETS; i++)
@@ -145,12 +145,12 @@ CAirplanePlayer::CAirplanePlayer()
 	}
 }
 
-CAirplanePlayer::~CAirplanePlayer()
+CTankPlayer::~CTankPlayer()
 {
 	for (int i = 0; i < BULLETS; i++) if (m_ppBullets[i]) delete m_ppBullets[i];
 }
 
-void CAirplanePlayer::Animate(float fElapsedTime)
+void CTankPlayer::Animate(float fElapsedTime)
 {
 	CPlayer::Animate(fElapsedTime);
 
@@ -160,21 +160,50 @@ void CAirplanePlayer::Animate(float fElapsedTime)
 	}
 }
 
-void CAirplanePlayer::OnUpdateTransform()
+void CTankPlayer::OnUpdateTransform()
 {
 	CPlayer::OnUpdateTransform();
 
 	m_xmf4x4World = Matrix4x4::Multiply(XMMatrixRotationRollPitchYaw(XMConvertToRadians(90.0f), 0.0f, 0.0f), m_xmf4x4World);
 }
 
-void CAirplanePlayer::Render(HDC hDCFrameBuffer, CCamera* pCamera)
+void CTankPlayer::Render(HDC hDCFrameBuffer, CCamera* pCamera)
 {
 	CPlayer::Render(hDCFrameBuffer, pCamera);
 
 	for (int i = 0; i < BULLETS; i++) if (m_ppBullets[i]->m_bActive) m_ppBullets[i]->Render(hDCFrameBuffer, pCamera);
 }
 
-void CAirplanePlayer::FireBullet(CGameObject* pLockedObject)
+void CTankPlayer::Rotate(float fPitch, float fYaw, float fRoll)
+{
+	if (fYaw != 0.0f && m_pMesh)
+	{
+		CTankMesh* pTankMesh = dynamic_cast<CTankMesh*>(m_pMesh);
+		if (pTankMesh)
+		{
+			RotateHeadYaw(fYaw);  // Pitch, Roll은 무시
+		}
+	}
+
+	// 카메라 회전은 여전히 동작하게 할 거면 아래 살려두기
+	if (m_pCamera)
+		m_pCamera->Rotate(0.0f, fYaw, 0.0f);
+}
+
+void CTankPlayer::RotateHeadYaw(float fYaw)
+{
+	if (fYaw != 0.0f)
+	{
+		XMMATRIX mtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Up), XMConvertToRadians(fYaw));
+		m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, mtxRotate);
+		m_xmf3Right = Vector3::TransformNormal(m_xmf3Right, mtxRotate);
+	}
+	m_xmf3Look = Vector3::Normalize(m_xmf3Look);
+	m_xmf3Right = Vector3::Normalize(Vector3::CrossProduct(m_xmf3Up, m_xmf3Look));
+	m_xmf3Up = Vector3::Normalize(Vector3::CrossProduct(m_xmf3Look, m_xmf3Right));
+}
+
+void CTankPlayer::FireBullet(CGameObject* pLockedObject)
 {
 /*
 	if (pLockedObject) 

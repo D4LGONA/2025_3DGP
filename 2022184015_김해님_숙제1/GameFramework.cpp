@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "GameFramework.h"
+#include "Scene2.h"
 
 void CGameFramework::OnCreate(HINSTANCE hInstance, HWND hMainWnd)
 {
@@ -70,17 +71,11 @@ void CGameFramework::BuildObjects()
 
 	pCamera->GenerateOrthographicProjectionMatrix(1.01f, 50.0f, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT);
 
-	CAirplaneMesh* pAirplaneMesh = new CAirplaneMesh(6.0f, 6.0f, 1.0f);
+	CTankMesh* pTankMesh = new CTankMesh(6.0f, 6.0f, 1.0f);
 
-	//m_pPlayer = new CAirplanePlayer();
-	//m_pPlayer->SetPosition(0.0f, 0.0f, 0.0f);
-	//m_pPlayer->SetMesh(pAirplaneMesh);
-	//m_pPlayer->SetColor(RGB(0, 0, 255));
-	//m_pPlayer->SetCamera(pCamera);
-	//m_pPlayer->SetCameraOffset(XMFLOAT3(0.0f, 5.0f, -15.0f));
-
-	//m_pScene = new CScene(m_pPlayer);
-	//m_pScene->BuildObjects();
+	// todo: 여기 고쳐야 함
+	m_CurrentScene = new CScene_2();
+	m_CurrentScene->BuildObjects();
 }
 
 void CGameFramework::ReleaseObjects()
@@ -90,8 +85,6 @@ void CGameFramework::ReleaseObjects()
 		m_CurrentScene->ReleaseObjects();
 		delete m_CurrentScene;
 	}
-
-	//if (m_pPlayer) delete m_pPlayer;
 }
 
 void CGameFramework::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
@@ -178,66 +171,29 @@ LRESULT CALLBACK CGameFramework::OnProcessingWindowMessage(HWND hWnd, UINT nMess
 
 void CGameFramework::ProcessInput()
 {
-	static UCHAR pKeyBuffer[256];
-	if (GetKeyboardState(pKeyBuffer))
-	{
-		DWORD dwDirection = 0;
-		if (pKeyBuffer[VK_UP] & 0xF0) dwDirection |= DIR_FORWARD;
-		if (pKeyBuffer[VK_DOWN] & 0xF0) dwDirection |= DIR_BACKWARD;
-		if (pKeyBuffer[VK_LEFT] & 0xF0) dwDirection |= DIR_LEFT;
-		if (pKeyBuffer[VK_RIGHT] & 0xF0) dwDirection |= DIR_RIGHT;
-		if (pKeyBuffer[VK_PRIOR] & 0xF0) dwDirection |= DIR_UP;
-		if (pKeyBuffer[VK_NEXT] & 0xF0) dwDirection |= DIR_DOWN;
-
-		//if (dwDirection) m_pPlayer->Move(dwDirection, 0.15f);
-	}
-
-	// todo: 여기 카메라 회전 관련인듯
-	if (GetCapture() == m_hWnd)
-	{
-		SetCursor(NULL);
-		POINT ptCursorPos;
-		GetCursorPos(&ptCursorPos);
-		float cxMouseDelta = (float)(ptCursorPos.x - m_ptOldCursorPos.x) / 3.0f;
-		float cyMouseDelta = (float)(ptCursorPos.y - m_ptOldCursorPos.y) / 3.0f;
-		SetCursorPos(m_ptOldCursorPos.x, m_ptOldCursorPos.y);
-		if (cxMouseDelta || cyMouseDelta)
-		{
-			/*if (pKeyBuffer[VK_RBUTTON] & 0xF0)
-				m_pPlayer->Rotate(cyMouseDelta, 0.0f, -cxMouseDelta);
-			else
-				m_pPlayer->Rotate(cyMouseDelta, cxMouseDelta, 0.0f);*/
-		}
-	}
-
-	//m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
+	m_CurrentScene->ProcessInput(m_ptOldCursorPos, m_hWnd, m_GameTimer.GetTimeElapsed());
 }
 
 void CGameFramework::AnimateObjects()
 {
 	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
-	//if (m_pPlayer) m_pPlayer->Animate(fTimeElapsed);
 	if (m_CurrentScene) m_CurrentScene->Animate(fTimeElapsed);
 }
 
 void CGameFramework::FrameAdvance()
-{    
-	m_GameTimer.Tick(60.0f);
+{
+	m_GameTimer.Tick(60.0f);                            
+	float fElapsedTime = m_GameTimer.GetTimeElapsed();  
 
-	ProcessInput();
+	ProcessInput();                                     
+	AnimateObjects();                        
 
-	AnimateObjects();
+	ClearFrameBuffer(RGB(255, 255, 255));
 
-    ClearFrameBuffer(RGB(255, 255, 255));
-
-	//CCamera* pCamera = m_pPlayer->GetCamera(); 
-	CCamera* pCamera = nullptr; // 카메라가 플레이어에게 달려 있음
-	if (m_CurrentScene) m_CurrentScene->Render(m_hDCFrameBuffer, pCamera);
+	if (m_CurrentScene)
+		m_CurrentScene->Render(m_hDCFrameBuffer);       
 
 	PresentFrameBuffer();
-
-	m_GameTimer.GetFrameRate(m_pszFrameRate + 12, 37);
-	::SetWindowText(m_hWnd, m_pszFrameRate);
 }
 
 

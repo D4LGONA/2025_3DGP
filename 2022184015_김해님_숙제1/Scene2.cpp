@@ -2,34 +2,27 @@
 #include "Scene2.h"
 #include "GraphicsPipeline.h"
 
-CScene_2::CScene_2(CPlayer* pPlayer)
+CScene_2::CScene_2()
 {
-	m_pPlayer = pPlayer;
 }
 
 CScene_2::~CScene_2()
 {
 }
 
-void CScene_2::BuildObjects()
+CCamera* CScene_2::CreateCamera()
 {
-	CExplosiveObject::PrepareExplosion();
+	CCamera* pCamera = new CCamera();
+	pCamera->SetViewport(0, 0, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT);
+	pCamera->GeneratePerspectiveProjectionMatrix(1.01f, 500.0f, 60.0f);
+	pCamera->SetFOVAngle(60.0f);
 
-	float fHalfWidth = 45.0f, fHalfHeight = 45.0f, fHalfDepth = 200.0f;
-	CWallMesh* pWallCubeMesh = new CWallMesh(fHalfWidth * 2.0f, fHalfHeight * 2.0f, fHalfDepth * 2.0f, 30);
+	pCamera->GenerateOrthographicProjectionMatrix(1.01f, 50.0f, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT);
+	return pCamera;
+}
 
-	m_pWallsObject = new CWallsObject();
-	m_pWallsObject->SetPosition(0.0f, 0.0f, 0.0f);
-	m_pWallsObject->SetMesh(pWallCubeMesh);
-	m_pWallsObject->SetColor(RGB(0, 0, 0));
-	m_pWallsObject->m_pxmf4WallPlanes[0] = XMFLOAT4(+1.0f, 0.0f, 0.0f, fHalfWidth);
-	m_pWallsObject->m_pxmf4WallPlanes[1] = XMFLOAT4(-1.0f, 0.0f, 0.0f, fHalfWidth);
-	m_pWallsObject->m_pxmf4WallPlanes[2] = XMFLOAT4(0.0f, +1.0f, 0.0f, fHalfHeight);
-	m_pWallsObject->m_pxmf4WallPlanes[3] = XMFLOAT4(0.0f, -1.0f, 0.0f, fHalfHeight);
-	m_pWallsObject->m_pxmf4WallPlanes[4] = XMFLOAT4(0.0f, 0.0f, +1.0f, fHalfDepth);
-	m_pWallsObject->m_pxmf4WallPlanes[5] = XMFLOAT4(0.0f, 0.0f, -1.0f, fHalfDepth);
-	m_pWallsObject->m_xmOOBBPlayerMoveCheck = BoundingOrientedBox(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(fHalfWidth, fHalfHeight, fHalfDepth * 0.05f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
-
+void CScene_2::BuildEnemies()
+{
 	CCubeMesh* pCubeMesh = new CCubeMesh(4.0f, 4.0f, 4.0f);
 
 	m_nObjects = 10; // 여기서 움직이는 큐브 10개를 까는군
@@ -124,6 +117,37 @@ void CScene_2::BuildObjects()
 	m_ppObjects[9]->SetRotationSpeed(90.06f);
 	m_ppObjects[9]->SetMovingDirection(XMFLOAT3(-0.0f, 0.0f, -1.0f));
 	m_ppObjects[9]->SetMovingSpeed(15.0f);
+}
+
+void CScene_2::BuildObjects()
+{
+	CExplosiveObject::PrepareExplosion();
+
+	float fHalfWidth = 20.0f, fHalfHeight = 20.0f, fHalfDepth = 100.0f;
+	CWallMesh* pWallCubeMesh = new CWallMesh(fHalfWidth * 2.0f, fHalfHeight * 2.0f, fHalfDepth * 2.0f, 30);
+
+	// 맵 초기화
+	m_pWallsObject = new CWallsObject();
+	m_pWallsObject->SetPosition(0.0f, 0.0f, 0.0f);
+	m_pWallsObject->SetMesh(pWallCubeMesh);
+	m_pWallsObject->SetColor(RGB(0, 0, 0));
+	m_pWallsObject->m_pxmf4WallPlanes[0] = XMFLOAT4(+1.0f, 0.0f, 0.0f, fHalfWidth);
+	m_pWallsObject->m_pxmf4WallPlanes[1] = XMFLOAT4(-1.0f, 0.0f, 0.0f, fHalfWidth);
+	m_pWallsObject->m_pxmf4WallPlanes[2] = XMFLOAT4(0.0f, +1.0f, 0.0f, fHalfHeight);
+	m_pWallsObject->m_pxmf4WallPlanes[3] = XMFLOAT4(0.0f, -1.0f, 0.0f, fHalfHeight);
+	m_pWallsObject->m_pxmf4WallPlanes[4] = XMFLOAT4(0.0f, 0.0f, +1.0f, fHalfDepth);
+	m_pWallsObject->m_pxmf4WallPlanes[5] = XMFLOAT4(0.0f, 0.0f, -1.0f, fHalfDepth);
+	m_pWallsObject->m_xmOOBBPlayerMoveCheck = BoundingOrientedBox(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(fHalfWidth, fHalfHeight, fHalfDepth * 0.05f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+
+	// 플레이어 초기화
+	CTankMesh* pTankMesh = new CTankMesh();
+
+	m_pPlayer = new CTankPlayer();
+	m_pPlayer->SetPosition(0.0f, -20.0f + 5.0f, 0.0f);
+	m_pPlayer->SetMesh(pTankMesh);
+	m_pPlayer->SetColor(RGB(0, 0, 255));
+	m_pPlayer->SetCamera(CreateCamera());
+	m_pPlayer->SetCameraOffset(XMFLOAT3(0.0f, 20.0f, -20.0f));
 
 #ifdef _WITH_DRAW_AXIS
 	m_pWorldAxis = new CGameObject();
@@ -166,17 +190,18 @@ void CScene_2::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wP
 		case '7':
 		case '8':
 		case '9':
-		{
-			CExplosiveObject* pExplosiveObject = (CExplosiveObject*)m_ppObjects[int(wParam - '1')];
-			pExplosiveObject->m_bBlowingUp = true;
 			break;
-		}
 		case 'A':
-			for (int i = 0; i < m_nObjects; i++)
-			{
-				CExplosiveObject* pExplosiveObject = (CExplosiveObject*)m_ppObjects[i];
-				pExplosiveObject->m_bBlowingUp = true;
-			}
+		case 'a':
+			m_bAutoAttack = !m_bAutoAttack;
+			break;
+		case 'S':
+		case 's':
+			m_bShieldOn = !m_bShieldOn;
+			break;
+		case 'w':
+		case 'W':
+			// 여기 승리 조건이 들어가야 함
 			break;
 		default:
 			break;
@@ -211,6 +236,42 @@ CGameObject* CScene_2::PickObjectPointedByCursor(int xClient, int yClient, CCame
 		}
 	}
 	return(pNearestObject);
+}
+
+void CScene_2::ProcessInput(POINT oldCursorPos, HWND hWnd, float m_fElapsedTime)
+{
+	static UCHAR pKeyBuffer[256];
+	if (GetKeyboardState(pKeyBuffer))
+	{
+		DWORD dwDirection = 0;
+		if (pKeyBuffer[VK_UP] & 0xF0) dwDirection |= DIR_FORWARD;
+		if (pKeyBuffer[VK_DOWN] & 0xF0) dwDirection |= DIR_BACKWARD;
+		if (pKeyBuffer[VK_LEFT] & 0xF0) dwDirection |= DIR_LEFT;
+		if (pKeyBuffer[VK_RIGHT] & 0xF0) dwDirection |= DIR_RIGHT;
+
+		if (dwDirection && m_pPlayer)
+			m_pPlayer->Move(dwDirection, 0.15f);
+	}
+
+	if (GetCapture() == hWnd)
+	{
+		SetCursor(NULL);
+		POINT ptCursorPos;
+		GetCursorPos(&ptCursorPos);
+		float cxMouseDelta = (float)(ptCursorPos.x - oldCursorPos.x) / 3.0f;
+		float cyMouseDelta = (float)(ptCursorPos.y - oldCursorPos.y) / 3.0f;
+		SetCursorPos(oldCursorPos.x, oldCursorPos.y);
+		if (cxMouseDelta || cyMouseDelta)
+		{
+			if (pKeyBuffer[VK_RBUTTON] & 0xF0)
+				m_pPlayer->Rotate(cyMouseDelta, 0.0f, -cxMouseDelta);
+			else
+				m_pPlayer->Rotate(cyMouseDelta, cxMouseDelta, 0.0f);
+		}
+	}
+
+	if (m_pPlayer)
+		m_pPlayer->Update(m_fElapsedTime);  
 }
 
 void CScene_2::CheckObjectByObjectCollisions()
@@ -307,7 +368,7 @@ void CScene_2::CheckPlayerByWallCollision()
 
 void CScene_2::CheckObjectByBulletCollisions()
 {
-	CBulletObject** ppBullets = ((CAirplanePlayer*)m_pPlayer)->m_ppBullets;
+	CBulletObject** ppBullets = ((CTankPlayer*)m_pPlayer)->m_ppBullets;
 	for (int i = 0; i < m_nObjects; i++)
 	{
 		for (int j = 0; j < BULLETS; j++)
@@ -324,6 +385,8 @@ void CScene_2::CheckObjectByBulletCollisions()
 
 void CScene_2::Animate(float fElapsedTime)
 {
+	if (m_pPlayer) m_pPlayer->Animate(fElapsedTime);
+	
 	m_pWallsObject->Animate(fElapsedTime);
 
 	for (int i = 0; i < m_nObjects; i++) m_ppObjects[i]->Animate(fElapsedTime);
@@ -337,8 +400,9 @@ void CScene_2::Animate(float fElapsedTime)
 	CheckObjectByBulletCollisions();
 }
 
-void CScene_2::Render(HDC hDCFrameBuffer, CCamera* pCamera)
+void CScene_2::Render(HDC hDCFrameBuffer)
 {
+	auto pCamera = m_pPlayer->GetCamera();
 	CGraphicsPipeline::SetViewport(&pCamera->m_Viewport);
 
 	CGraphicsPipeline::SetViewPerspectiveProjectTransform(&pCamera->m_xmf4x4ViewPerspectiveProject);

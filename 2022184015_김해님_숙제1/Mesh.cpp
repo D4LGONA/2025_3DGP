@@ -473,3 +473,186 @@ void CAxisMesh::Render(HDC hDCFrameBuffer)
 	::SelectObject(hDCFrameBuffer, hOldPen);
 	::DeleteObject(hPen);
 }
+
+////
+
+CTankMesh::CTankMesh(float fWidth, float fHeight, float fDepth)
+{
+	int i = 0;
+	CPolygon* pFace = nullptr;
+
+	// ======= 몸통 =======
+	float fx = fWidth / 2.0f, fy = fHeight / 2.0f, fz = fDepth / 4.0f;
+	float ox = 0.0f, oy = 0.0f, oz = 0.0f;
+
+	m_pBodyMesh = new CMesh(6);
+	// Front
+	pFace = new CPolygon(4);
+	pFace->SetVertex(0, CVertex(-fx + ox, -fy + oy, -fz + oz));
+	pFace->SetVertex(1, CVertex(+fx + ox, -fy + oy, -fz + oz));
+	pFace->SetVertex(2, CVertex(+fx + ox, +fy + oy, -fz + oz));
+	pFace->SetVertex(3, CVertex(-fx + ox, +fy + oy, -fz + oz));
+	m_pBodyMesh->SetPolygon(i++, pFace);
+
+	// Back
+	pFace = new CPolygon(4);
+	pFace->SetVertex(0, CVertex(-fx + ox, -fy + oy, +fz + oz));
+	pFace->SetVertex(1, CVertex(+fx + ox, -fy + oy, +fz + oz));
+	pFace->SetVertex(2, CVertex(+fx + ox, +fy + oy, +fz + oz));
+	pFace->SetVertex(3, CVertex(-fx + ox, +fy + oy, +fz + oz));
+	m_pBodyMesh->SetPolygon(i++, pFace);
+
+	// Left
+	pFace = new CPolygon(4);
+	pFace->SetVertex(0, CVertex(-fx + ox, -fy + oy, -fz + oz));
+	pFace->SetVertex(1, CVertex(-fx + ox, -fy + oy, +fz + oz));
+	pFace->SetVertex(2, CVertex(-fx + ox, +fy + oy, +fz + oz));
+	pFace->SetVertex(3, CVertex(-fx + ox, +fy + oy, -fz + oz));
+	m_pBodyMesh->SetPolygon(i++, pFace);
+
+	// Right
+	pFace = new CPolygon(4);
+	pFace->SetVertex(0, CVertex(+fx + ox, -fy + oy, -fz + oz));
+	pFace->SetVertex(1, CVertex(+fx + ox, -fy + oy, +fz + oz));
+	pFace->SetVertex(2, CVertex(+fx + ox, +fy + oy, +fz + oz));
+	pFace->SetVertex(3, CVertex(+fx + ox, +fy + oy, -fz + oz));
+	m_pBodyMesh->SetPolygon(i++, pFace);
+
+	// Top
+	pFace = new CPolygon(4);
+	pFace->SetVertex(0, CVertex(-fx + ox, +fy + oy, -fz + oz));
+	pFace->SetVertex(1, CVertex(+fx + ox, +fy + oy, -fz + oz));
+	pFace->SetVertex(2, CVertex(+fx + ox, +fy + oy, +fz + oz));
+	pFace->SetVertex(3, CVertex(-fx + ox, +fy + oy, +fz + oz));
+	m_pBodyMesh->SetPolygon(i++, pFace);
+
+	// Bottom
+	pFace = new CPolygon(4);
+	pFace->SetVertex(0, CVertex(-fx + ox, -fy + oy, -fz + oz));
+	pFace->SetVertex(1, CVertex(+fx + ox, -fy + oy, -fz + oz));
+	pFace->SetVertex(2, CVertex(+fx + ox, -fy + oy, +fz + oz));
+	pFace->SetVertex(3, CVertex(-fx + ox, -fy + oy, +fz + oz));
+	m_pBodyMesh->SetPolygon(i++, pFace);
+
+	// === 머리 ===
+	fx = fWidth / 4.0f, fy = fHeight / 4.0f, fz = fDepth / 8.0f;
+	ox = 0.0f, oy = 0.0f, oz = -(fDepth / 8.0f + fDepth / 4.0f);
+	
+	i = 0;
+	m_pHeadMesh = new CMesh(6);
+
+	pFace = new CPolygon(4);
+	pFace->SetVertex(0, CVertex(-fx + ox, -fy + oy, -fz + oz));
+	pFace->SetVertex(1, CVertex(+fx + ox, -fy + oy, -fz + oz));
+	pFace->SetVertex(2, CVertex(+fx + ox, +fy + oy, -fz + oz));
+	pFace->SetVertex(3, CVertex(-fx + ox, +fy + oy, -fz + oz));
+	m_pHeadMesh->SetPolygon(i++, pFace);
+
+	// Back
+	pFace = new CPolygon(4);
+	pFace->SetVertex(0, CVertex(-fx + ox, -fy + oy, +fz + oz));
+	pFace->SetVertex(1, CVertex(+fx + ox, -fy + oy, +fz + oz));
+	pFace->SetVertex(2, CVertex(+fx + ox, +fy + oy, +fz + oz));
+	pFace->SetVertex(3, CVertex(-fx + ox, +fy + oy, +fz + oz));
+	m_pHeadMesh->SetPolygon(i++, pFace);
+
+	// Left
+	pFace = new CPolygon(4);
+	pFace->SetVertex(0, CVertex(-fx + ox, -fy + oy, -fz + oz));
+	pFace->SetVertex(1, CVertex(-fx + ox, -fy + oy, +fz + oz));
+	pFace->SetVertex(2, CVertex(-fx + ox, +fy + oy, +fz + oz));
+	pFace->SetVertex(3, CVertex(-fx + ox, +fy + oy, -fz + oz));
+	m_pHeadMesh->SetPolygon(i++, pFace);
+
+	// Right
+	pFace = new CPolygon(4);
+	pFace->SetVertex(0, CVertex(+fx + ox, -fy + oy, -fz + oz));
+	pFace->SetVertex(1, CVertex(+fx + ox, -fy + oy, +fz + oz));
+	pFace->SetVertex(2, CVertex(+fx + ox, +fy + oy, +fz + oz));
+	pFace->SetVertex(3, CVertex(+fx + ox, +fy + oy, -fz + oz));
+	m_pHeadMesh->SetPolygon(i++, pFace);
+
+	// Top
+	pFace = new CPolygon(4);
+	pFace->SetVertex(0, CVertex(-fx + ox, +fy + oy, -fz + oz));
+	pFace->SetVertex(1, CVertex(+fx + ox, +fy + oy, -fz + oz));
+	pFace->SetVertex(2, CVertex(+fx + ox, +fy + oy, +fz + oz));
+	pFace->SetVertex(3, CVertex(-fx + ox, +fy + oy, +fz + oz));
+	m_pHeadMesh->SetPolygon(i++, pFace);
+
+	// Bottom
+	pFace = new CPolygon(4);
+	pFace->SetVertex(0, CVertex(-fx + ox, -fy + oy, -fz + oz));
+	pFace->SetVertex(1, CVertex(+fx + ox, -fy + oy, -fz + oz));
+	pFace->SetVertex(2, CVertex(+fx + ox, -fy + oy, +fz + oz));
+	pFace->SetVertex(3, CVertex(-fx + ox, -fy + oy, +fz + oz));
+	m_pHeadMesh->SetPolygon(i++, pFace);
+
+	// === 포신 ===
+	fy = fHeight / 5.0f;
+	fx = fy * 0.5f;  fz = fy * 0.5f;
+	ox = 0.0f; oy = (fHeight / 10.0f + fHeight / 4.0f); oz = -(fDepth / 8.0f + fDepth / 4.0f);
+
+	i = 0;
+	m_pBarrelMesh = new CMesh(6);
+
+	pFace = new CPolygon(4);
+	pFace->SetVertex(0, CVertex(-fx + ox, -fy + oy, -fz + oz));
+	pFace->SetVertex(1, CVertex(+fx + ox, -fy + oy, -fz + oz));
+	pFace->SetVertex(2, CVertex(+fx + ox, +fy + oy, -fz + oz));
+	pFace->SetVertex(3, CVertex(-fx + ox, +fy + oy, -fz + oz));
+	m_pBarrelMesh->SetPolygon(i++, pFace);
+
+	// Back
+	pFace = new CPolygon(4);
+	pFace->SetVertex(0, CVertex(-fx + ox, -fy + oy, +fz + oz));
+	pFace->SetVertex(1, CVertex(+fx + ox, -fy + oy, +fz + oz));
+	pFace->SetVertex(2, CVertex(+fx + ox, +fy + oy, +fz + oz));
+	pFace->SetVertex(3, CVertex(-fx + ox, +fy + oy, +fz + oz));
+	m_pBarrelMesh->SetPolygon(i++, pFace);
+
+	// Left
+	pFace = new CPolygon(4);
+	pFace->SetVertex(0, CVertex(-fx + ox, -fy + oy, -fz + oz));
+	pFace->SetVertex(1, CVertex(-fx + ox, -fy + oy, +fz + oz));
+	pFace->SetVertex(2, CVertex(-fx + ox, +fy + oy, +fz + oz));
+	pFace->SetVertex(3, CVertex(-fx + ox, +fy + oy, -fz + oz));
+	m_pBarrelMesh->SetPolygon(i++, pFace);
+
+	// Right
+	pFace = new CPolygon(4);
+	pFace->SetVertex(0, CVertex(+fx + ox, -fy + oy, -fz + oz));
+	pFace->SetVertex(1, CVertex(+fx + ox, -fy + oy, +fz + oz));
+	pFace->SetVertex(2, CVertex(+fx + ox, +fy + oy, +fz + oz));
+	pFace->SetVertex(3, CVertex(+fx + ox, +fy + oy, -fz + oz));
+	m_pBarrelMesh->SetPolygon(i++, pFace);
+
+	// Top
+	pFace = new CPolygon(4);
+	pFace->SetVertex(0, CVertex(-fx + ox, +fy + oy, -fz + oz));
+	pFace->SetVertex(1, CVertex(+fx + ox, +fy + oy, -fz + oz));
+	pFace->SetVertex(2, CVertex(+fx + ox, +fy + oy, +fz + oz));
+	pFace->SetVertex(3, CVertex(-fx + ox, +fy + oy, +fz + oz));
+	m_pBarrelMesh->SetPolygon(i++, pFace);
+
+	// Bottom
+	pFace = new CPolygon(4);
+	pFace->SetVertex(0, CVertex(-fx + ox, -fy + oy, -fz + oz));
+	pFace->SetVertex(1, CVertex(+fx + ox, -fy + oy, -fz + oz));
+	pFace->SetVertex(2, CVertex(+fx + ox, -fy + oy, +fz + oz));
+	pFace->SetVertex(3, CVertex(-fx + ox, -fy + oy, +fz + oz));
+	m_pBarrelMesh->SetPolygon(i++, pFace);
+
+	m_xmOOBB = BoundingOrientedBox(
+		XMFLOAT3(0.0f, fHeight * 0.2f, -fDepth * 0.25f),            
+		XMFLOAT3(fWidth * 0.5f, fHeight * 0.9f, fDepth * 0.75f),    
+		XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f)                            
+	);
+}
+
+void CTankMesh::Render(HDC hDCFrameBuffer)
+{
+	m_pBodyMesh->Render(hDCFrameBuffer);
+	m_pHeadMesh->Render(hDCFrameBuffer);
+	m_pBarrelMesh->Render(hDCFrameBuffer);
+}

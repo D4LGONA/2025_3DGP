@@ -52,11 +52,11 @@ public:
 
 #define BULLETS					50
 
-class CAirplanePlayer : public CPlayer
+class CTankPlayer : public CPlayer
 {
 public:
-	CAirplanePlayer();
-	virtual ~CAirplanePlayer();
+	CTankPlayer();
+	virtual ~CTankPlayer();
 
 	float						m_fBulletEffectiveRange = 150.0f;
 	CBulletObject*				m_ppBullets[BULLETS];
@@ -66,5 +66,7 @@ public:
 	virtual void OnUpdateTransform();
 	virtual void Animate(float fElapsedTime);
 	virtual void Render(HDC hDCFrameBuffer, CCamera* pCamera);
+	void Rotate(float fPitch = 0.0f, float fYaw = 0.0f, float fRoll = 0.0f);
+	void RotateHeadYaw(float fYaw);
 };
 
