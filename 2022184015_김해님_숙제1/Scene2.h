@@ -4,6 +4,7 @@
 #include "Camera.h"
 #include "Player.h"
 #include "Scene.h"
+#include "EnemyTank.h"
 
 class CScene_2 : public CScene // tank game scene
 {
@@ -14,17 +15,25 @@ public:
 private:
 
 	int							m_nObjects = 0;
-	CGameObject					**m_ppObjects = NULL;
+	CGameObject					**m_ppObjects = NULL; // 장애물
+	int							m_nEnemies = 0;
+	CEnemyTank					** m_pEnemyTanks = nullptr; // 적들
+	int							m_remainCount = 10;
+
 	CWallsObject*				m_pWallsObject = NULL;
 
-	// player -> 포신과 헤드 / 몸체로 오브젝트 분리하여 회전 따로 먹임
 	CTankPlayer*				m_pPlayer = NULL;
 	CGameObject*				m_PlayerBody = NULL;
 
+
+
 	CGameObject*				m_pLockedObject = NULL;
+
+	CGameObject* m_YouWinObject = nullptr;
 
 	CCamera* CreateCamera();
 	void BuildEnemies();
+	void BuildObstacles();
 
 	bool m_bAutoAttack = false;  
 	bool m_bShieldOn = false;    
@@ -41,6 +50,8 @@ public:
 	void CheckObjectByWallCollisions();
 	void CheckPlayerByWallCollision();
 	void CheckObjectByBulletCollisions();
+	void CheckEnemyByBulletCollisions();
+	void CheckEnemyTankCollisions();
 
 	virtual void Animate(float fElapsedTime);
 	virtual void Render(HDC hDCFrameBuffer);

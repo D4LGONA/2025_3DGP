@@ -98,3 +98,11 @@ public:
 
 	virtual void Render(HDC hDCFrameBuffer);
 };
+
+class CWinMesh : public CMesh
+{
+public:
+
+	CWinMesh();
+	virtual ~CWinMesh() {}
+};

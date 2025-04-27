@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Scene2.h"
 #include "GraphicsPipeline.h"
+#include "GameObject.h"
 
 CScene_2::CScene_2()
 {
@@ -21,14 +22,14 @@ CCamera* CScene_2::CreateCamera()
 	return pCamera;
 }
 
-void CScene_2::BuildEnemies()
+void CScene_2::BuildObstacles()
 {
 	CCubeMesh* pCubeMesh = new CCubeMesh(4.0f, 4.0f, 4.0f);
 
-	m_nObjects = 10; // 여기서 움직이는 큐브 10개를 까는군
+	m_nObjects = 5;
 	m_ppObjects = new CGameObject * [m_nObjects];
 
-	m_ppObjects[0] = new CExplosiveObject();
+	m_ppObjects[0] = new CGameObject();
 	m_ppObjects[0]->SetMesh(pCubeMesh);
 	m_ppObjects[0]->SetColor(RGB(255, 0, 0));
 	m_ppObjects[0]->SetPosition(-13.5f, 0.0f, -14.0f);
@@ -37,7 +38,7 @@ void CScene_2::BuildEnemies()
 	m_ppObjects[0]->SetMovingDirection(XMFLOAT3(1.0f, 0.0f, 0.0f));
 	m_ppObjects[0]->SetMovingSpeed(10.5f);
 
-	m_ppObjects[1] = new CExplosiveObject();
+	m_ppObjects[1] = new CGameObject();
 	m_ppObjects[1]->SetMesh(pCubeMesh);
 	m_ppObjects[1]->SetColor(RGB(0, 0, 255));
 	m_ppObjects[1]->SetPosition(+13.5f, 0.0f, -14.0f);
@@ -46,7 +47,7 @@ void CScene_2::BuildEnemies()
 	m_ppObjects[1]->SetMovingDirection(XMFLOAT3(-1.0f, 0.0f, 0.0f));
 	m_ppObjects[1]->SetMovingSpeed(8.8f);
 
-	m_ppObjects[2] = new CExplosiveObject();
+	m_ppObjects[2] = new CGameObject();
 	m_ppObjects[2]->SetMesh(pCubeMesh);
 	m_ppObjects[2]->SetColor(RGB(0, 255, 0));
 	m_ppObjects[2]->SetPosition(0.0f, +5.0f, 20.0f);
@@ -55,7 +56,7 @@ void CScene_2::BuildEnemies()
 	m_ppObjects[2]->SetMovingDirection(XMFLOAT3(1.0f, -1.0f, 0.0f));
 	m_ppObjects[2]->SetMovingSpeed(5.2f);
 
-	m_ppObjects[3] = new CExplosiveObject();
+	m_ppObjects[3] = new CGameObject();
 	m_ppObjects[3]->SetMesh(pCubeMesh);
 	m_ppObjects[3]->SetColor(RGB(0, 255, 255));
 	m_ppObjects[3]->SetPosition(0.0f, 0.0f, 0.0f);
@@ -64,7 +65,7 @@ void CScene_2::BuildEnemies()
 	m_ppObjects[3]->SetMovingDirection(XMFLOAT3(0.0f, 0.0f, 1.0f));
 	m_ppObjects[3]->SetMovingSpeed(20.4f);
 
-	m_ppObjects[4] = new CExplosiveObject();
+	m_ppObjects[4] = new CGameObject();
 	m_ppObjects[4]->SetMesh(pCubeMesh);
 	m_ppObjects[4]->SetColor(RGB(128, 0, 255));
 	m_ppObjects[4]->SetPosition(10.0f, 0.0f, 0.0f);
@@ -72,59 +73,45 @@ void CScene_2::BuildEnemies()
 	m_ppObjects[4]->SetRotationSpeed(50.06f);
 	m_ppObjects[4]->SetMovingDirection(XMFLOAT3(0.0f, 1.0f, 1.0f));
 	m_ppObjects[4]->SetMovingSpeed(6.4f);
+}
 
-	m_ppObjects[5] = new CExplosiveObject();
-	m_ppObjects[5]->SetMesh(pCubeMesh);
-	m_ppObjects[5]->SetColor(RGB(255, 0, 255));
-	m_ppObjects[5]->SetPosition(-10.0f, 0.0f, -10.0f);
-	m_ppObjects[5]->SetRotationAxis(XMFLOAT3(0.0f, 1.0f, 0.0f));
-	m_ppObjects[5]->SetRotationSpeed(60.06f);
-	m_ppObjects[5]->SetMovingDirection(XMFLOAT3(1.0f, 0.0f, 1.0f));
-	m_ppObjects[5]->SetMovingSpeed(8.9f);
+void CScene_2::BuildEnemies()
+{
+	CTankMesh* pTankMesh = new CTankMesh();
+	CCubeMesh* pTankBody = new CCubeMesh(10.0f, 5.0f, 10.0f);
 
-	m_ppObjects[6] = new CExplosiveObject();
-	m_ppObjects[6]->SetMesh(pCubeMesh);
-	m_ppObjects[6]->SetColor(RGB(255, 0, 255));
-	m_ppObjects[6]->SetPosition(-10.0f, 10.0f, -10.0f);
-	m_ppObjects[6]->SetRotationAxis(XMFLOAT3(0.0f, 1.0f, 0.0f));
-	m_ppObjects[6]->SetRotationSpeed(60.06f);
-	m_ppObjects[6]->SetMovingDirection(XMFLOAT3(1.0f, 1.0f, 1.0f));
-	m_ppObjects[6]->SetMovingSpeed(9.7f);
+	m_nEnemies = 10;
+	m_remainCount = m_nEnemies;
+	m_pEnemyTanks = new CEnemyTank * [m_nEnemies];
 
-	m_ppObjects[7] = new CExplosiveObject();
-	m_ppObjects[7]->SetMesh(pCubeMesh);
-	m_ppObjects[7]->SetColor(RGB(255, 0, 128));
-	m_ppObjects[7]->SetPosition(-10.0f, 10.0f, -20.0f);
-	m_ppObjects[7]->SetRotationAxis(XMFLOAT3(0.0f, 1.0f, 0.0f));
-	m_ppObjects[7]->SetRotationSpeed(70.06f);
-	m_ppObjects[7]->SetMovingDirection(XMFLOAT3(-1.0f, 1.0f, 1.0f));
-	m_ppObjects[7]->SetMovingSpeed(15.6f);
+	for (int i = 0; i < m_nEnemies; i++)
+	{
+		m_pEnemyTanks[i] = new CEnemyTank();
 
-	m_ppObjects[8] = new CExplosiveObject();
-	m_ppObjects[8]->SetMesh(pCubeMesh);
-	m_ppObjects[8]->SetColor(RGB(128, 0, 255));
-	m_ppObjects[8]->SetPosition(-15.0f, 10.0f, -30.0f);
-	m_ppObjects[8]->SetRotationAxis(XMFLOAT3(1.0f, 1.0f, 0.0f));
-	m_ppObjects[8]->SetRotationSpeed(90.06f);
-	m_ppObjects[8]->SetMovingDirection(XMFLOAT3(0.0f, 0.0f, -1.0f));
-	m_ppObjects[8]->SetMovingSpeed(15.0f);
+		// 메쉬, 색깔
+		m_pEnemyTanks[i]->SetMesh(pTankMesh);
+		m_pEnemyTanks[i]->SetColor(RGB(255, 0, 0));
 
-	m_ppObjects[9] = new CExplosiveObject();
-	m_ppObjects[9]->SetMesh(pCubeMesh);
-	m_ppObjects[9]->SetColor(RGB(255, 64, 64));
-	m_ppObjects[9]->SetPosition(+15.0f, 10.0f, 0.0f);
-	m_ppObjects[9]->SetRotationAxis(XMFLOAT3(1.0f, 1.0f, 0.0f));
-	m_ppObjects[9]->SetRotationSpeed(90.06f);
-	m_ppObjects[9]->SetMovingDirection(XMFLOAT3(-0.0f, 0.0f, -1.0f));
-	m_ppObjects[9]->SetMovingSpeed(15.0f);
+		// 적당한 초기 위치 (랜덤 배치 예시)
+		float x = RandF(-50.0f, 50.0f);
+		float z = RandF(50.0f, 200.0f);
+		m_pEnemyTanks[i]->SetPosition(x, -20.0f + 5.0f, z);
+		m_pEnemyTanks[i]->Rotate(m_pEnemyTanks[i]->GetRight(), 90.0f);
+		m_pEnemyTanks[i]->Rotate(m_pEnemyTanks[i]->GetUp(), 180.0f);
+
+		// 랜덤 이동 방향
+		m_pEnemyTanks[i]->SetMovingDirection(XMFLOAT3(RandF(-1.0f, 1.0f), 0.0f, RandF(-1.0f, 1.0f)));
+		m_pEnemyTanks[i]->SetMovingSpeed(5.0f);  // 속도
+	}
 }
 
 void CScene_2::BuildObjects()
 {
 	CExplosiveObject::PrepareExplosion();
 	BuildEnemies();
+	BuildObstacles();
 
-	float fHalfWidth = 20.0f, fHalfHeight = 20.0f, fHalfDepth = 200.0f;
+	float fHalfWidth = 50.0f, fHalfHeight = 20.0f, fHalfDepth = 200.0f;
 	CWallMesh* pWallCubeMesh = new CWallMesh(fHalfWidth * 2.0f, fHalfHeight * 2.0f, fHalfDepth * 2.0f, 30);
 
 	// 맵 초기화
@@ -155,6 +142,14 @@ void CScene_2::BuildObjects()
 	m_PlayerBody->SetPosition(0.0f, -20.0f + 5.0f, 0.0f);
 	m_PlayerBody->SetMesh(pTankBody);
 	m_PlayerBody->SetColor(RGB(0, 0, 255));
+
+	CWinMesh* pWinMesh = new CWinMesh();
+	m_YouWinObject = new CGameObject();
+	m_YouWinObject->SetMesh(pWinMesh);
+	m_YouWinObject->SetPosition(0.0f, 0.0f, 0.0f);
+	m_YouWinObject->SetPosition(m_pPlayer->GetPosition().x, m_pPlayer->GetPosition().y + 10.0f, m_pPlayer->GetPosition().z + 10.0f);
+	m_YouWinObject->Rotate(m_YouWinObject->GetLook(), 180.0f);
+	m_YouWinObject->Rotate(m_YouWinObject->GetRight(), -90.0f);
 
 #ifdef _WITH_DRAW_AXIS
 	m_pWorldAxis = new CGameObject();
@@ -219,13 +214,20 @@ void CScene_2::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wP
 		case 'w':
 		case 'W':
 			// 여기 승리 조건이 들어가야 함
+			for (int i = 0; i < m_nEnemies; ++i) {
+				if (m_pEnemyTanks[i]->m_bActive == true) {
+					CExplosiveObject* pExplosiveObject = (CExplosiveObject*)m_pEnemyTanks[i];
+					if (pExplosiveObject->m_bBlowingUp == true) continue;
+					pExplosiveObject->m_bBlowingUp = true;
+					m_remainCount--;
+				}
+			}
 			break;
 
 		case VK_CONTROL:
-			if (m_bAutoAttack) {
-				((CTankPlayer*)m_pPlayer)->FireBullet(m_pLockedObject);
-				m_pLockedObject = NULL;
-			}
+			
+			((CTankPlayer*)m_pPlayer)->FireBullet(m_pLockedObject);
+			m_pLockedObject = NULL;
 			break;
 		default:
 			break;
@@ -249,14 +251,14 @@ CGameObject* CScene_2::PickObjectPointedByCursor(int xClient, int yClient, CCame
 	int nIntersected = 0;
 	float fNearestHitDistance = FLT_MAX;
 	CGameObject* pNearestObject = NULL;
-	for (int i = 0; i < m_nObjects; i++)
+	for (int i = 0; i < m_nEnemies; i++)
 	{
 		float fHitDistance = FLT_MAX;
-		nIntersected = m_ppObjects[i]->PickObjectByRayIntersection(xmvPickPosition, xmmtxView, &fHitDistance);
+		nIntersected = m_pEnemyTanks[i]->PickObjectByRayIntersection(xmvPickPosition, xmmtxView, &fHitDistance);
 		if ((nIntersected > 0) && (fHitDistance < fNearestHitDistance))
 		{
 			fNearestHitDistance = fHitDistance;
-			pNearestObject = m_ppObjects[i];
+			pNearestObject = m_pEnemyTanks[i];
 		}
 	}
 	return(pNearestObject);
@@ -330,8 +332,98 @@ void CScene_2::CheckObjectByObjectCollisions()
 	}
 }
 
+void CScene_2::CheckEnemyTankCollisions()
+{
+	// [1] Enemy Tank vs Enemy Tank
+	for (int i = 0; i < m_nEnemies; i++)
+	{
+		if (m_pEnemyTanks[i]->m_bActive == false) continue;
+		for (int j = i + 1; j < m_nEnemies; j++)
+		{
+			if (m_pEnemyTanks[i]->m_xmOOBB.Intersects(m_pEnemyTanks[j]->m_xmOOBB))
+			{
+				std::swap(m_pEnemyTanks[i]->m_xmf3MovingDirection, m_pEnemyTanks[j]->m_xmf3MovingDirection);
+				std::swap(m_pEnemyTanks[i]->m_fMovingSpeed, m_pEnemyTanks[j]->m_fMovingSpeed);
+			}
+		}
+	}
+
+	// [2] Enemy Tank vs Obstacles (벽 or 장애물)
+	for (int i = 0; i < m_nEnemies; i++)
+	{
+		if (m_pEnemyTanks[i]->m_bActive == false) continue;
+		ContainmentType containType = m_pWallsObject->m_xmOOBB.Contains(m_pEnemyTanks[i]->m_xmOOBB);
+		if (containType == DISJOINT || containType == INTERSECTS)
+		{
+			for (int j = 0; j < 6; j++)
+			{
+				PlaneIntersectionType intersectType = m_pEnemyTanks[i]->m_xmOOBB.Intersects(XMLoadFloat4(&m_pWallsObject->m_pxmf4WallPlanes[j]));
+				if (intersectType != FRONT)
+				{
+					XMVECTOR normal = XMVectorSet(m_pWallsObject->m_pxmf4WallPlanes[j].x, m_pWallsObject->m_pxmf4WallPlanes[j].y, m_pWallsObject->m_pxmf4WallPlanes[j].z, 0.0f);
+					XMVECTOR reflect = XMVector3Reflect(XMLoadFloat3(&m_pEnemyTanks[i]->m_xmf3MovingDirection), normal);
+					XMStoreFloat3(&m_pEnemyTanks[i]->m_xmf3MovingDirection, reflect);
+					break;
+				}
+			}
+		}
+	}
+}
+
 void CScene_2::CheckObjectByWallCollisions()
 {
+	for (int i = 0; i < m_nEnemies; i++)
+	{
+		if (m_pEnemyTanks[i]->m_bActive == false) continue;
+		ContainmentType containType = m_pWallsObject->m_xmOOBB.Contains(m_pEnemyTanks[i]->m_xmOOBB);
+		switch (containType)
+		{
+		case DISJOINT:
+		{
+			int nPlaneIndex = -1;
+			for (int j = 0; j < 6; j++)
+			{
+				PlaneIntersectionType intersectType = m_pEnemyTanks[i]->m_xmOOBB.Intersects(XMLoadFloat4(&m_pWallsObject->m_pxmf4WallPlanes[j]));
+				if (intersectType == BACK)
+				{
+					nPlaneIndex = j;
+					break;
+				}
+			}
+			if (nPlaneIndex != -1)
+			{
+				XMVECTOR xmvNormal = XMVectorSet(m_pWallsObject->m_pxmf4WallPlanes[nPlaneIndex].x, m_pWallsObject->m_pxmf4WallPlanes[nPlaneIndex].y, m_pWallsObject->m_pxmf4WallPlanes[nPlaneIndex].z, 0.0f);
+				XMVECTOR xmvReflect = XMVector3Reflect(XMLoadFloat3(&m_pEnemyTanks[i]->m_xmf3MovingDirection), xmvNormal);
+				XMStoreFloat3(&m_pEnemyTanks[i]->m_xmf3MovingDirection, xmvReflect);
+			}
+			break;
+		}
+		case INTERSECTS:
+		{
+			int nPlaneIndex = -1;
+			for (int j = 0; j < 6; j++)
+			{
+				PlaneIntersectionType intersectType = m_pEnemyTanks[i]->m_xmOOBB.Intersects(XMLoadFloat4(&m_pWallsObject->m_pxmf4WallPlanes[j]));
+				if (intersectType == INTERSECTING)
+				{
+					nPlaneIndex = j;
+					break;
+				}
+			}
+			if (nPlaneIndex != -1)
+			{
+				XMVECTOR xmvNormal = XMVectorSet(m_pWallsObject->m_pxmf4WallPlanes[nPlaneIndex].x, m_pWallsObject->m_pxmf4WallPlanes[nPlaneIndex].y, m_pWallsObject->m_pxmf4WallPlanes[nPlaneIndex].z, 0.0f);
+				XMVECTOR xmvReflect = XMVector3Reflect(XMLoadFloat3(&m_pEnemyTanks[i]->m_xmf3MovingDirection), xmvNormal);
+				XMStoreFloat3(&m_pEnemyTanks[i]->m_xmf3MovingDirection, xmvReflect);
+			}
+			break;
+		}
+		case CONTAINS:
+			break;
+		}
+	}
+
+
 	for (int i = 0; i < m_nObjects; i++)
 	{
 		ContainmentType containType = m_pWallsObject->m_xmOOBB.Contains(m_ppObjects[i]->m_xmOOBB);
@@ -401,9 +493,27 @@ void CScene_2::CheckObjectByBulletCollisions()
 		{
 			if (ppBullets[j]->m_bActive && m_ppObjects[i]->m_xmOOBB.Intersects(ppBullets[j]->m_xmOOBB))
 			{
-				CExplosiveObject* pExplosiveObject = (CExplosiveObject*)m_ppObjects[i];
+				ppBullets[j]->Reset();
+			}
+		}
+	}
+}
+
+void CScene_2::CheckEnemyByBulletCollisions()
+{
+	CBulletObject** ppBullets = ((CTankPlayer*)m_pPlayer)->m_ppBullets;
+	for (int i = 0; i < m_nEnemies; i++)
+	{
+		if (m_pEnemyTanks[i]->m_bActive == false) continue;
+		for (int j = 0; j < BULLETS; j++)
+		{
+			if (ppBullets[j]->m_bActive &&  m_pEnemyTanks[i]->m_xmOOBB.Intersects(ppBullets[j]->m_xmOOBB))
+			{
+				CExplosiveObject* pExplosiveObject = (CExplosiveObject*)m_pEnemyTanks[i];
+				if (pExplosiveObject->m_bBlowingUp == true) continue;
 				pExplosiveObject->m_bBlowingUp = true;
 				ppBullets[j]->Reset();
+				m_remainCount--;
 			}
 		}
 	}
@@ -411,33 +521,46 @@ void CScene_2::CheckObjectByBulletCollisions()
 
 void CScene_2::Animate(float fElapsedTime)
 {
+	
 	if (m_pPlayer) m_pPlayer->Animate(fElapsedTime);
 	m_PlayerBody->Animate(fElapsedTime);
 	
 	m_pWallsObject->Animate(fElapsedTime);
 
 	for (int i = 0; i < m_nObjects; i++) m_ppObjects[i]->Animate(fElapsedTime);
+	for (int i = 0; i < m_nEnemies; i++) m_pEnemyTanks[i]->Update(fElapsedTime);
 
 	CheckPlayerByWallCollision();
 
 	CheckObjectByWallCollisions();
 
-	CheckObjectByObjectCollisions();
+	CheckEnemyTankCollisions();
 
 	CheckObjectByBulletCollisions();
+
+	CheckEnemyByBulletCollisions();
 }
 
 void CScene_2::Render(HDC hDCFrameBuffer)
 {
 	auto pCamera = m_pPlayer->GetCamera();
+	if (m_remainCount == 0) {
+		m_YouWinObject->SetPosition(m_pPlayer->GetPosition().x, m_pPlayer->GetPosition().y + 10.0f, m_pPlayer->GetPosition().z + 10.0f);
+		m_YouWinObject->Render(hDCFrameBuffer, pCamera);
+	}
+
 	CGraphicsPipeline::SetViewport(&pCamera->m_Viewport);
 
 	CGraphicsPipeline::SetViewPerspectiveProjectTransform(&pCamera->m_xmf4x4ViewPerspectiveProject);
 	m_pWallsObject->Render(hDCFrameBuffer, pCamera);
 	for (int i = 0; i < m_nObjects; i++) m_ppObjects[i]->Render(hDCFrameBuffer, pCamera);
 
+	for (int i = 0; i < m_nEnemies; ++i) m_pEnemyTanks[i]->Render(hDCFrameBuffer, pCamera);
+	
 	if (m_pPlayer) m_pPlayer->Render(hDCFrameBuffer, pCamera);
 	m_PlayerBody->Render(hDCFrameBuffer, pCamera);
+
+	
 
 //UI
 #ifdef _WITH_DRAW_AXIS

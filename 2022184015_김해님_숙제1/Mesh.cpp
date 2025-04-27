@@ -2,6 +2,48 @@
 #include "Mesh.h"
 #include "GraphicsPipeline.h"
 
+int CountOBJToMesh(const char* filename)
+{
+	std::ifstream file(filename);
+	std::string line;
+	int faceCount = 0;
+
+	while (std::getline(file, line))
+	{
+		if (line.substr(0, 2) == "f ")
+		{
+			faceCount++;
+		}
+	}
+	return faceCount;
+}
+
+int LoadOBJToMesh(const char* filename, std::vector<XMFLOAT3>& vertices, std::vector< std::array<int, 3>>& faces)
+{
+	std::ifstream file(filename);
+	std::string line;
+
+	while (std::getline(file, line))
+	{
+		if (line.substr(0, 2) == "v ")
+		{
+			float x, y, z;
+			sscanf_s(line.c_str(), "v %f %f %f", &x, &y, &z);
+			vertices.push_back(XMFLOAT3(x, y, z));
+		}
+		else if (line.substr(0, 2) == "f ")
+		{
+			int a, b, c, t;
+			sscanf_s(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d", &a, &t, &t, &b, &t, &t, &c, &t, &t);
+			std::array<int, 3> arr = { a, b, c };
+			faces.push_back(arr);
+		}
+		else continue;
+	}
+
+	return (int)faces.size();
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 CPolygon::CPolygon(int nVertices)
@@ -655,3 +697,23 @@ void CTankMesh::Render(HDC hDCFrameBuffer)
 	m_pHeadMesh->Render(hDCFrameBuffer);
 	m_pBarrelMesh->Render(hDCFrameBuffer);
 }
+
+CWinMesh::CWinMesh() : CMesh(CountOBJToMesh("YouWin.obj"))
+{
+	std::vector<XMFLOAT3> vertices;
+	std::vector< std::array<int, 3>> faces;
+	int faceCount = LoadOBJToMesh("YouWin.obj", vertices, faces);
+
+	for (int i = 0; i < faceCount; ++i)
+	{
+		CPolygon* polygon = new CPolygon(3);
+
+		for (int j = 0; j < 3; ++j)
+		{
+			XMFLOAT3 pos = vertices[faces[i][j] - 1];
+			polygon->SetVertex(j, CVertex(pos.x, pos.y, pos.z));
+		}
+		SetPolygon(i, polygon);
+	}
+}
+

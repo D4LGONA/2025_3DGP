@@ -145,6 +145,7 @@ void CGameObject::UpdateBoundingBox()
 
 void CGameObject::Animate(float fElapsedTime)
 {
+	if (false == m_bActive) return;
 	if (m_fRotationSpeed != 0.0f) Rotate(m_xmf3RotationAxis, m_fRotationSpeed * fElapsedTime);
 	if (m_fMovingSpeed != 0.0f) Move(m_xmf3MovingDirection, m_fMovingSpeed * fElapsedTime);
 
@@ -153,6 +154,7 @@ void CGameObject::Animate(float fElapsedTime)
 
 void CGameObject::Render(HDC hDCFrameBuffer, XMFLOAT4X4* pxmf4x4World, CMesh* pMesh)
 {
+	if (false == m_bActive) return;
 	if (pMesh)
 	{
 		CGraphicsPipeline::SetWorldTransform(pxmf4x4World);
@@ -248,6 +250,7 @@ void CExplosiveObject::Animate(float fElapsedTime)
 		{
 			m_bBlowingUp = false;
 			m_fElapsedTimes = 0.0f;
+			this->SetActive(false);
 		}
 	}
 	else

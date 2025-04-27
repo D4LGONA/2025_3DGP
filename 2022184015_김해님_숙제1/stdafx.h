@@ -27,6 +27,10 @@
 // 라이브러리 추가
 #include <map>
 #include <string>
+#include <fstream>
+#include <vector>
+#include <iostream>
+#include <array>
 
 using namespace DirectX;
 using namespace DirectX::PackedVector;

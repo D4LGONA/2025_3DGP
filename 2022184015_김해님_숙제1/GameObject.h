@@ -3,6 +3,8 @@
 #include "Mesh.h"
 #include "Camera.h"
 
+inline float RandF(float fMin, float fMax);
+
 class CGameObject
 {
 public:
