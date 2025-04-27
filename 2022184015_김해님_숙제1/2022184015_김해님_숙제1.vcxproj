@@ -143,6 +143,7 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Timer.h" />
+    <ClInclude Include="TitleScene.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
@@ -158,6 +159,7 @@
     <ClCompile Include="Scene2.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="TitleScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="2022184015_김해님_숙제1.rc" />

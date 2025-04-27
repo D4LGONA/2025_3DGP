@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "GameFramework.h"
 #include "Scene2.h"
+#include "TitleScene.h"
 
 void CGameFramework::OnCreate(HINSTANCE hInstance, HWND hMainWnd)
 {
@@ -71,10 +72,10 @@ void CGameFramework::BuildObjects()
 
 	pCamera->GenerateOrthographicProjectionMatrix(1.01f, 50.0f, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT);
 
-	CTankMesh* pTankMesh = new CTankMesh(6.0f, 6.0f, 1.0f);
+	//CTankMesh* pTankMesh = new CTankMesh(6.0f, 6.0f, 1.0f);
 
 	// todo: 여기 고쳐야 함
-	m_CurrentScene = new CScene_2();
+	m_CurrentScene = new CTitleScene();
 	m_CurrentScene->BuildObjects();
 }
 

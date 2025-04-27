@@ -717,3 +717,40 @@ CWinMesh::CWinMesh() : CMesh(CountOBJToMesh("YouWin.obj"))
 	}
 }
 
+C3DGPMesh::C3DGPMesh() : CMesh(CountOBJToMesh("3DGP.obj"))
+{
+	std::vector<XMFLOAT3> vertices;
+	std::vector< std::array<int, 3>> faces;
+	int faceCount = LoadOBJToMesh("3DGP.obj", vertices, faces);
+
+	for (int i = 0; i < faceCount; ++i)
+	{
+		CPolygon* polygon = new CPolygon(3);
+
+		for (int j = 0; j < 3; ++j)
+		{
+			XMFLOAT3 pos = vertices[faces[i][j] - 1];
+			polygon->SetVertex(j, CVertex(pos.x, pos.y, pos.z));
+		}
+		SetPolygon(i, polygon);
+	}
+}
+
+CNameMesh::CNameMesh() : CMesh(CountOBJToMesh("NAME.obj"))
+{
+	std::vector<XMFLOAT3> vertices;
+	std::vector< std::array<int, 3>> faces;
+	int faceCount = LoadOBJToMesh("NAME.obj", vertices, faces);
+
+	for (int i = 0; i < faceCount; ++i)
+	{
+		CPolygon* polygon = new CPolygon(3);
+
+		for (int j = 0; j < 3; ++j)
+		{
+			XMFLOAT3 pos = vertices[faces[i][j] - 1];
+			polygon->SetVertex(j, CVertex(pos.x, pos.y, pos.z));
+		}
+		SetPolygon(i, polygon);
+	}
+}

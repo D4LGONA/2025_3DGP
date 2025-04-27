@@ -106,3 +106,19 @@ public:
 	CWinMesh();
 	virtual ~CWinMesh() {}
 };
+
+class C3DGPMesh : public CMesh
+{
+public:
+
+	C3DGPMesh();
+	virtual ~C3DGPMesh() {}
+};
+
+class CNameMesh : public CMesh
+{
+public:
+
+	CNameMesh();
+	virtual ~CNameMesh() {}
+};

@@ -25,8 +25,6 @@ private:
 	CTankPlayer*				m_pPlayer = NULL;
 	CGameObject*				m_PlayerBody = NULL;
 
-
-
 	CGameObject*				m_pLockedObject = NULL;
 
 	CGameObject* m_YouWinObject = nullptr;

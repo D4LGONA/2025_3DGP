@@ -146,7 +146,6 @@ void CScene_2::BuildObjects()
 	CWinMesh* pWinMesh = new CWinMesh();
 	m_YouWinObject = new CGameObject();
 	m_YouWinObject->SetMesh(pWinMesh);
-	m_YouWinObject->SetPosition(0.0f, 0.0f, 0.0f);
 	m_YouWinObject->SetPosition(m_pPlayer->GetPosition().x, m_pPlayer->GetPosition().y + 10.0f, m_pPlayer->GetPosition().z + 10.0f);
 	m_YouWinObject->Rotate(m_YouWinObject->GetLook(), 180.0f);
 	m_YouWinObject->Rotate(m_YouWinObject->GetRight(), -90.0f);
