@@ -11,6 +11,7 @@ class CTitleScene : public CScene
 	CPlayer* m_pPlayer;
 
 	CCamera* CreateCamera();
+	bool	bChange = false;
 
 public:
 	CTitleScene() {};
@@ -21,6 +22,8 @@ public:
 
 	virtual void Animate(float fElapsedTime);
 	virtual void Render(HDC hDCFrameBuffer);
+
+	void ResetObjects();
 
 	virtual void OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	virtual void OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);

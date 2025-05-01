@@ -60,6 +60,30 @@ void CPlayer::Move(float x, float y, float z)
 	Move(XMFLOAT3(x, y, z), false);
 }
 
+void CPlayer::SetRotation(float pitch, float yaw, float roll)
+{
+	XMMATRIX rotMat = XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
+
+	// Look, Right, Up 벡터 재생성
+	XMVECTOR look = XMVector3TransformNormal(XMVectorSet(0, 0, 1, 0), rotMat);
+	XMVECTOR up = XMVector3TransformNormal(XMVectorSet(0, 1, 0, 0), rotMat);
+	XMVECTOR right = XMVector3Cross(up, look);
+
+	XMStoreFloat3(&m_xmf3Look, XMVector3Normalize(look));
+	XMStoreFloat3(&m_xmf3Up, XMVector3Normalize(up));
+	XMStoreFloat3(&m_xmf3Right, XMVector3Normalize(right));
+
+	// 카메라에도 반영
+	//if (m_pCamera) m_pCamera->Rotate(pitch, yaw, roll); // 카메라도 따로 회전시킬 필요 있다면
+}
+
+void CPlayer::SetDirection(const XMFLOAT3& right, const XMFLOAT3& up, const XMFLOAT3& look)
+{
+	m_xmf3Right = right;
+	m_xmf3Up = up;
+	m_xmf3Look = look;
+}
+
 void CPlayer::Rotate(float fPitch, float fYaw, float fRoll)
 {
 	m_pCamera->Rotate(fPitch, fYaw, fRoll);

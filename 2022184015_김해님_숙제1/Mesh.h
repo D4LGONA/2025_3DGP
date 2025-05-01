@@ -99,26 +99,19 @@ public:
 	virtual void Render(HDC hDCFrameBuffer);
 };
 
-class CWinMesh : public CMesh
+class CObjMesh : public CMesh
 {
 public:
 
-	CWinMesh();
-	virtual ~CWinMesh() {}
+	CObjMesh(std::string);
+	virtual ~CObjMesh() {}
 };
 
-class C3DGPMesh : public CMesh
+class CTrackMesh : public CMesh
 {
 public:
-
-	C3DGPMesh();
-	virtual ~C3DGPMesh() {}
-};
-
-class CNameMesh : public CMesh
-{
-public:
-
-	CNameMesh();
-	virtual ~CNameMesh() {}
+	CTrackMesh(std::string filepath);
+	std::vector<XMFLOAT3> Points;
+	virtual ~CTrackMesh() {}
+	XMFLOAT3 GetNormal(int i);
 };

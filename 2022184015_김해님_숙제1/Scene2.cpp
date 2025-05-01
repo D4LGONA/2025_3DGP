@@ -2,6 +2,7 @@
 #include "Scene2.h"
 #include "GraphicsPipeline.h"
 #include "GameObject.h"
+#include "GameFramework.h"
 
 CScene_2::CScene_2()
 {
@@ -143,12 +144,19 @@ void CScene_2::BuildObjects()
 	m_PlayerBody->SetMesh(pTankBody);
 	m_PlayerBody->SetColor(RGB(0, 0, 255));
 
-	CWinMesh* pWinMesh = new CWinMesh();
+	CObjMesh* pWinMesh = new CObjMesh("YouWin.obj");
 	m_YouWinObject = new CGameObject();
 	m_YouWinObject->SetMesh(pWinMesh);
 	m_YouWinObject->SetPosition(m_pPlayer->GetPosition().x, m_pPlayer->GetPosition().y + 10.0f, m_pPlayer->GetPosition().z + 10.0f);
 	m_YouWinObject->Rotate(m_YouWinObject->GetLook(), 180.0f);
 	m_YouWinObject->Rotate(m_YouWinObject->GetRight(), -90.0f);
+
+	// 쉴드 초기화
+	CCubeMesh* pShieldMesh = new CCubeMesh(20.0f, 20.0f, 20.0f);
+	m_pShield = new CGameObject();
+	m_pShield->SetMesh(pShieldMesh);
+	m_pShield->SetColor(RGB(0, 255, 255));
+	m_pShield->SetPosition(m_pPlayer->GetPosition());
 
 #ifdef _WITH_DRAW_AXIS
 	m_pWorldAxis = new CGameObject();
@@ -169,6 +177,45 @@ void CScene_2::ReleaseObjects()
 #ifdef _WITH_DRAW_AXIS
 	if (m_pWorldAxis) delete m_pWorldAxis;
 #endif
+}
+
+void CScene_2::ResetObjects()
+{
+	// 1. 적 초기화
+	m_remainCount = m_nEnemies;
+	for (int i = 0; i < m_nEnemies; ++i)
+	{
+		m_pEnemyTanks[i]->m_bActive = true;
+
+		float x = RandF(-50.0f, 50.0f);
+		float z = RandF(50.0f, 200.0f);
+		m_pEnemyTanks[i]->SetPosition(x, -20.0f + 5.0f, z);
+		m_pEnemyTanks[i]->SetMovingDirection(XMFLOAT3(RandF(-1.0f, 1.0f), 0.0f, RandF(-1.0f, 1.0f)));
+		m_pEnemyTanks[i]->SetMovingSpeed(5.0f);
+
+		// 폭발상태 초기화 (CExplosiveObject 상속 시)
+		((CExplosiveObject*)m_pEnemyTanks[i])->m_bBlowingUp = false;
+	}
+
+	// 2. 플레이어 위치 초기화
+	m_pPlayer->SetPosition(0.0f, -20.0f + 5.0f, 0.0f);
+	m_PlayerBody->SetPosition(m_pPlayer->GetPosition());
+
+	// 3. 총알 초기화
+	CBulletObject** ppBullets = ((CTankPlayer*)m_pPlayer)->m_ppBullets;
+	for (int i = 0; i < BULLETS; ++i)
+	{
+		ppBullets[i]->Reset();
+	}
+
+	// 4. 쉴드 상태 초기화
+	m_bShieldOn = false;
+	m_bAutoAttack = false;
+	m_fShieldTimer = 0.0f;
+	m_pLockedObject = nullptr;
+
+	// 5. YouWin 위치 초기화 (화면에서 숨기기)
+	m_YouWinObject->m_bActive = false;
 }
 
 void CScene_2::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
@@ -209,6 +256,8 @@ void CScene_2::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wP
 		case 'S':
 		case 's':
 			m_bShieldOn = !m_bShieldOn;
+			if(m_bShieldOn == true)
+				m_fShieldTimer = 3.0f; // 3초
 			break;
 		case 'w':
 		case 'W':
@@ -228,6 +277,11 @@ void CScene_2::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wP
 			((CTankPlayer*)m_pPlayer)->FireBullet(m_pLockedObject);
 			m_pLockedObject = NULL;
 			break;
+
+		case VK_ESCAPE:
+			CGameFramework::ChangeScene = true;
+			CGameFramework::idx = 1;
+
 		default:
 			break;
 		}
@@ -520,7 +574,17 @@ void CScene_2::CheckEnemyByBulletCollisions()
 
 void CScene_2::Animate(float fElapsedTime)
 {
-	
+	if (m_bShieldOn)
+	{
+		m_pShield->SetPosition(m_pPlayer->GetPosition());
+		m_fShieldTimer -= fElapsedTime;
+		if (m_fShieldTimer <= 0.0f)
+		{
+			m_bShieldOn = false;
+			m_fShieldTimer = 0.0f;
+		}
+	}
+
 	if (m_pPlayer) m_pPlayer->Animate(fElapsedTime);
 	m_PlayerBody->Animate(fElapsedTime);
 	
@@ -544,6 +608,7 @@ void CScene_2::Render(HDC hDCFrameBuffer)
 {
 	auto pCamera = m_pPlayer->GetCamera();
 	if (m_remainCount == 0) {
+		m_YouWinObject->m_bActive = true;
 		m_YouWinObject->SetPosition(m_pPlayer->GetPosition().x, m_pPlayer->GetPosition().y + 10.0f, m_pPlayer->GetPosition().z + 10.0f);
 		m_YouWinObject->Render(hDCFrameBuffer, pCamera);
 	}
@@ -559,7 +624,7 @@ void CScene_2::Render(HDC hDCFrameBuffer)
 	if (m_pPlayer) m_pPlayer->Render(hDCFrameBuffer, pCamera);
 	m_PlayerBody->Render(hDCFrameBuffer, pCamera);
 
-	
+	if (m_bShieldOn) m_pShield->Render(hDCFrameBuffer, pCamera);
 
 //UI
 #ifdef _WITH_DRAW_AXIS

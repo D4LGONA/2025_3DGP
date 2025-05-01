@@ -169,7 +169,8 @@ void CGameObject::Render(HDC hDCFrameBuffer, XMFLOAT4X4* pxmf4x4World, CMesh* pM
 
 void CGameObject::Render(HDC hDCFrameBuffer, CCamera* pCamera)
 {
-	if (pCamera->IsInFrustum(m_xmOOBB)) CGameObject::Render(hDCFrameBuffer, &m_xmf4x4World, m_pMesh);
+	if (pCamera->IsInFrustum(m_xmOOBB)) 
+		CGameObject::Render(hDCFrameBuffer, &m_xmf4x4World, m_pMesh);
 }
 
 void CGameObject::GenerateRayForPicking(XMVECTOR& xmvPickPosition, XMMATRIX& xmmtxView, XMVECTOR& xmvPickRayOrigin, XMVECTOR& xmvPickRayDirection)

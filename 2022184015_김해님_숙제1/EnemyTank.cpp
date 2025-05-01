@@ -40,7 +40,8 @@ void CEnemyTank::Render(HDC hDCFrameBuffer, CCamera* pCamera)
     }
     else {
         CGameObject::Render(hDCFrameBuffer, pCamera);
-        body->Render(hDCFrameBuffer, pCamera);
+        if(m_bActive == true)
+            body->Render(hDCFrameBuffer, pCamera);
     }
 }
 

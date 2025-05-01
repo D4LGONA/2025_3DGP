@@ -27,6 +27,8 @@ private:
 
 	CGameObject*				m_pLockedObject = NULL;
 
+	CGameObject* m_pShield = nullptr;
+
 	CGameObject* m_YouWinObject = nullptr;
 
 	CCamera* CreateCamera();
@@ -35,6 +37,7 @@ private:
 
 	bool m_bAutoAttack = false;  
 	bool m_bShieldOn = false;    
+	float m_fShieldTimer = 0.0f;
 
 #ifdef _WITH_DRAW_AXIS
 	CGameObject*				m_pWorldAxis = NULL;
@@ -43,6 +46,8 @@ private:
 public:
 	virtual void BuildObjects();
 	virtual void ReleaseObjects();
+
+	void ResetObjects();
 
 	void CheckObjectByObjectCollisions();
 	void CheckObjectByWallCollisions();

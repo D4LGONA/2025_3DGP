@@ -31,6 +31,8 @@
 #include <vector>
 #include <iostream>
 #include <array>
+#include <unordered_map>
+#include <unordered_set>
 
 using namespace DirectX;
 using namespace DirectX::PackedVector;

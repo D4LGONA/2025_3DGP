@@ -10,6 +10,9 @@ public:
 	CGameFramework() { }
 	~CGameFramework() { }
 
+	static bool ChangeScene;
+	static int idx;
+
 private:
 	HINSTANCE					m_hInstance = NULL;
 	HWND						m_hWnd = NULL;

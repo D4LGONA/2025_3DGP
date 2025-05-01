@@ -6,6 +6,11 @@
 #include "GameFramework.h"
 #include "Scene2.h"
 #include "TitleScene.h"
+#include "MenuScene.h"
+#include "Scene1.h"
+
+bool CGameFramework::ChangeScene = false;
+int CGameFramework::idx = 0;
 
 void CGameFramework::OnCreate(HINSTANCE hInstance, HWND hMainWnd)
 {
@@ -72,15 +77,23 @@ void CGameFramework::BuildObjects()
 
 	pCamera->GenerateOrthographicProjectionMatrix(1.01f, 50.0f, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT);
 
-	//CTankMesh* pTankMesh = new CTankMesh(6.0f, 6.0f, 1.0f);
-
 	// todo: 여기 고쳐야 함
-	m_CurrentScene = new CTitleScene();
-	m_CurrentScene->BuildObjects();
+	m_Scenes[0] = new CTitleScene();
+	m_Scenes[0]->BuildObjects();
+	m_Scenes[1] = new CMenuScene();
+	m_Scenes[1]->BuildObjects();
+	m_Scenes[2] = new CScene_1();
+	m_Scenes[2]->BuildObjects();
+	m_Scenes[3] = new CScene_2();
+	m_Scenes[3]->BuildObjects();
+
+
+	m_CurrentScene = m_Scenes[0];
 }
 
 void CGameFramework::ReleaseObjects()
 {
+	// 모든 씬 보내주기
 	if (m_CurrentScene)
 	{
 		m_CurrentScene->ReleaseObjects();
@@ -155,6 +168,12 @@ void CGameFramework::ProcessInput()
 void CGameFramework::AnimateObjects()
 {
 	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
+	if (ChangeScene) {
+		ChangeScene = false;
+		m_CurrentScene->ResetObjects();
+		m_CurrentScene = m_Scenes[idx];
+	}
+
 	if (m_CurrentScene) m_CurrentScene->Animate(fTimeElapsed);
 }
 

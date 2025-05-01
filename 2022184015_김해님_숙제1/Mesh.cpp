@@ -44,6 +44,66 @@ int LoadOBJToMesh(const char* filename, std::vector<XMFLOAT3>& vertices, std::ve
 	return (int)faces.size();
 }
 
+int LoadOBJToMesh(const char* filename, std::vector<XMFLOAT3>& vertices, std::vector< std::array<int, 4>>& faces)
+{
+	std::ifstream file(filename);
+	std::string line;
+
+	while (std::getline(file, line))
+	{
+		if (line.substr(0, 2) == "v ")
+		{
+			float x, y, z;
+			sscanf_s(line.c_str(), "v %f %f %f", &x, &y, &z);
+			vertices.push_back(XMFLOAT3(x, y, z));
+		}
+		else if (line.substr(0, 2) == "f ")
+		{
+			int a, b, c, d;
+			const char* str = line.c_str();
+			if (sscanf_s(str, "f %d//%*d %d//%*d %d//%*d %d//%*d", &a, &b, &c, &d) == 4) {
+				std::array<int, 4> arr = { a - 1, b - 1, c - 1, d - 1 };
+				faces.push_back(arr);
+			}
+		}
+	}
+	return (int)faces.size();
+}
+
+
+void BoundingBoxFromVert(BoundingOrientedBox& oobb, const std::vector<XMFLOAT3>& vertices)
+{
+	if (vertices.empty()) return;
+
+	XMFLOAT3 minPos(FLT_MAX, FLT_MAX, FLT_MAX);
+	XMFLOAT3 maxPos(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+	for (const auto& pos : vertices)
+	{
+		minPos.x = min(minPos.x, pos.x);
+		minPos.y = min(minPos.y, pos.y);
+		minPos.z = min(minPos.z, pos.z);
+				   
+		maxPos.x = max(maxPos.x, pos.x);
+		maxPos.y = max(maxPos.y, pos.y);
+		maxPos.z = max(maxPos.z, pos.z);
+	}
+
+	XMFLOAT3 center(
+		(minPos.x + maxPos.x) * 0.5f,
+		(minPos.y + maxPos.y) * 0.5f,
+		(minPos.z + maxPos.z) * 0.5f
+	);
+
+	XMFLOAT3 extents(
+		(maxPos.x - minPos.x) * 0.5f,
+		(maxPos.y - minPos.y) * 0.5f,
+		(maxPos.z - minPos.z) * 0.5f
+	);
+
+	oobb = BoundingOrientedBox(center, extents, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 CPolygon::CPolygon(int nVertices)
@@ -698,11 +758,11 @@ void CTankMesh::Render(HDC hDCFrameBuffer)
 	m_pBarrelMesh->Render(hDCFrameBuffer);
 }
 
-CWinMesh::CWinMesh() : CMesh(CountOBJToMesh("YouWin.obj"))
+CObjMesh::CObjMesh(std::string filepath) : CMesh(CountOBJToMesh(filepath.c_str()))
 {
 	std::vector<XMFLOAT3> vertices;
 	std::vector< std::array<int, 3>> faces;
-	int faceCount = LoadOBJToMesh("YouWin.obj", vertices, faces);
+	int faceCount = LoadOBJToMesh(filepath.c_str(), vertices, faces);
 
 	for (int i = 0; i < faceCount; ++i)
 	{
@@ -715,42 +775,58 @@ CWinMesh::CWinMesh() : CMesh(CountOBJToMesh("YouWin.obj"))
 		}
 		SetPolygon(i, polygon);
 	}
+	BoundingBoxFromVert(m_xmOOBB, vertices);
 }
 
-C3DGPMesh::C3DGPMesh() : CMesh(CountOBJToMesh("3DGP.obj"))
+// todo
+CTrackMesh::CTrackMesh(std::string filepath)
+	: CMesh(CountOBJToMesh(filepath.c_str()))
 {
 	std::vector<XMFLOAT3> vertices;
-	std::vector< std::array<int, 3>> faces;
-	int faceCount = LoadOBJToMesh("3DGP.obj", vertices, faces);
+	std::vector<std::array<int, 4>> faces;
+	int faceCount = LoadOBJToMesh(filepath.c_str(), vertices, faces);
 
 	for (int i = 0; i < faceCount; ++i)
 	{
-		CPolygon* polygon = new CPolygon(3);
+		CPolygon* polygon = new CPolygon(4);
 
-		for (int j = 0; j < 3; ++j)
+		for (int j = 0; j < 4; ++j)
 		{
-			XMFLOAT3 pos = vertices[faces[i][j] - 1];
+			XMFLOAT3 pos = vertices[faces[i][j]];
 			polygon->SetVertex(j, CVertex(pos.x, pos.y, pos.z));
 		}
 		SetPolygon(i, polygon);
+
+		// 트랙 중앙 경로점 추가 (face 중심)
+		XMFLOAT3 sum = XMFLOAT3(0, 0, 0);
+		for (int j = 0; j < 4; ++j)
+		{
+			sum.x += vertices[faces[i][j]].x;
+			sum.y += vertices[faces[i][j]].y;
+			sum.z += vertices[faces[i][j]].z;
+		}
+		XMFLOAT3 center = XMFLOAT3(sum.x / 4.0f, sum.y / 4.0f, sum.z / 4.0f);
+		Points.push_back(center);
 	}
+
+	BoundingBoxFromVert(m_xmOOBB, vertices);
 }
 
-CNameMesh::CNameMesh() : CMesh(CountOBJToMesh("NAME.obj"))
+XMFLOAT3 CTrackMesh::GetNormal(int i)
 {
-	std::vector<XMFLOAT3> vertices;
-	std::vector< std::array<int, 3>> faces;
-	int faceCount = LoadOBJToMesh("NAME.obj", vertices, faces);
+	if (i < 0 || i >= m_nPolygons) return XMFLOAT3(0.0f, 1.0f, 0.0f); // fallback
 
-	for (int i = 0; i < faceCount; ++i)
-	{
-		CPolygon* polygon = new CPolygon(3);
+	CPolygon* polygon = m_ppPolygons[i];
+	if (!polygon) return XMFLOAT3(0.0f, 1.0f, 0.0f);
 
-		for (int j = 0; j < 3; ++j)
-		{
-			XMFLOAT3 pos = vertices[faces[i][j] - 1];
-			polygon->SetVertex(j, CVertex(pos.x, pos.y, pos.z));
-		}
-		SetPolygon(i, polygon);
-	}
+	XMFLOAT3 v0 = polygon->m_pVertices[0].m_xmf3Position;
+	XMFLOAT3 v1 = polygon->m_pVertices[1].m_xmf3Position;
+	XMFLOAT3 v2 = polygon->m_pVertices[2].m_xmf3Position;
+
+	XMFLOAT3 edge1 = Vector3::Subtract(v1, v0);
+	XMFLOAT3 edge2 = Vector3::Subtract(v2, v0);
+
+	XMFLOAT3 normal = Vector3::Normalize(Vector3::CrossProduct(edge1, edge2));
+
+	return normal;
 }

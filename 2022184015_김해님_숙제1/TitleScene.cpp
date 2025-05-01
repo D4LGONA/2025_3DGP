@@ -3,8 +3,7 @@
 #include "GameObject.h"
 #include "GraphicsPipeline.h"
 #include "Player.h"
-
-// todo: 콜라이더 넣어야 함
+#include "GameFramework.h"
 
 CCamera* CTitleScene::CreateCamera()
 {
@@ -30,7 +29,7 @@ void CTitleScene::BuildObjects()
 	m_pPlayer->SetCameraOffset(XMFLOAT3(0.0f, 0.0f, -20.0f));
 
 	// 이름
-	CNameMesh* pName = new CNameMesh();
+	CObjMesh* pName = new CObjMesh("NAME.obj");
 	m_pName = new CExplosiveObject();
 	m_pName->SetPosition(0.0f, -5.0f, 10.0f);
 	m_pName->SetMesh(pName);
@@ -40,7 +39,7 @@ void CTitleScene::BuildObjects()
 	m_pName->SetRotationSpeed(RandF(-30.0f, 30.0f));
 
 	// 타이틀
-	C3DGPMesh* p3DMesh = new C3DGPMesh();
+	CObjMesh* p3DMesh = new CObjMesh("3DGP.obj");
 	m_pTitle = new CGameObject();
 	m_pTitle->SetMesh(p3DMesh);
 	m_pTitle->SetPosition(0.0f, 5.0f, 10.0f);
@@ -58,6 +57,10 @@ void CTitleScene::ReleaseObjects()
 
 void CTitleScene::Animate(float fElapsedTime)
 {
+	if (bChange == true && ((CExplosiveObject*)m_pName)->m_bBlowingUp == false) {
+		CGameFramework::ChangeScene = true;
+		CGameFramework::idx = 1;
+	}
 	m_pName->Animate(fElapsedTime);
 	m_pTitle->Animate(fElapsedTime);
 	m_pPlayer->Animate(fElapsedTime);
@@ -77,6 +80,13 @@ void CTitleScene::Render(HDC hDCFrameBuffer)
 	m_pTitle->Render(hDCFrameBuffer, pCamera);
 }
 
+void CTitleScene::ResetObjects()
+{
+	CExplosiveObject* pExplosiveObject = (CExplosiveObject*)m_pName;
+	pExplosiveObject->m_bBlowingUp = false;
+	bChange = false;
+}
+
 void CTitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
 	switch (nMessageID)
@@ -85,8 +95,10 @@ void CTitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wP
 		if (nMessageID == WM_RBUTTONDOWN) {
 			if (PickObjectPointedByCursor(LOWORD(lParam), HIWORD(lParam), m_pPlayer->m_pCamera)) {
 				CExplosiveObject* pExplosiveObject = (CExplosiveObject*)m_pName;
-				if (pExplosiveObject->m_bBlowingUp == false) 
+				if (pExplosiveObject->m_bBlowingUp == false) {
 					pExplosiveObject->m_bBlowingUp = true;
+					bChange = true;
+				}
 			}
 		}
 		break;

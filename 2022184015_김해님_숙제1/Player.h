@@ -28,7 +28,8 @@ public:
 
 public:
 	void SetPosition(float x, float y, float z);
-	void SetRotation(float x, float y, float z);
+	void SetRotation(float pitch, float yaw, float roll);
+	void SetDirection(const XMFLOAT3& right, const XMFLOAT3& up, const XMFLOAT3& look);
 
 	void LookAt(XMFLOAT3& xmf3LookAt, XMFLOAT3& xmf3Up);
 
