@@ -37,6 +37,8 @@ private:
 	float m_fCurrentPitch = 0.0f;
 	float m_fCurrentRoll = 0.0f;	
 
+	bool b_LockingCamera = false;
+
 #ifdef _WITH_DRAW_AXIS
 	CGameObject* m_pWorldAxis = NULL;
 #endif

@@ -178,13 +178,24 @@ void CScene_1::BuildObjects()
 	}
 
 
-	CTrackMesh* pMesh = new CTrackMesh("track_mesh.obj");
+	CTrackMesh* pMesh = new CTrackMesh("track_mesh_fixed.obj");
 	m_pTrack = new CGameObject();
 	m_pTrack->SetPosition(0.0f, -5.0f, 0.0f);
 	m_pTrack->SetMesh(pMesh);
 	m_pTrack->SetColor(RGB(0, 0, 0));
 
 	m_pPlayer = m_pCart;
+
+	// 카메라 처리 (1인칭 시점)
+	XMFLOAT3 playerPos = m_pCart->GetPosition();
+	XMFLOAT3 look = Vector3::ScalarProduct(m_pCart->GetLook(), 1.0f);
+	XMFLOAT3 cup = Vector3::ScalarProduct(m_pCart->GetUp(), -1.0f);
+
+	XMFLOAT3 eye = Vector3::Add(playerPos, Vector3::ScalarProduct(cup, 5.0f));
+	XMFLOAT3 at = Vector3::Add(eye, look);
+
+	CCamera* cam = m_pCart->GetCamera();
+	cam->SetLookAt(eye, at, cup);
 }
 
 void CScene_1::ReleaseObjects()
@@ -236,8 +247,6 @@ void CScene_1::Animate(float fElapsedTime)
 	XMFLOAT3 direction = Vector3::Subtract(targetPos, curPos);
 	float distance = Vector3::Length(direction);
 
-	
-
 	// 방향 정규화 (목표 방향)
 	XMFLOAT3 targetForward = Vector3::Normalize(direction);
 
@@ -251,25 +260,34 @@ void CScene_1::Animate(float fElapsedTime)
 	// 가속도 적용
 	float heightDelta = targetPos.y - curPos.y;
 	float accel = 0.0f;
-	if (heightDelta < 0) accel = -heightDelta * 20.0f;
-	else                 accel = -heightDelta * 0.05f;
+	if (heightDelta < 0) accel = -heightDelta * 30.f;
+	else                 accel = -heightDelta * 0.2f;
 
 	m_fCurrentSpeed += accel * fElapsedTime;
 	m_fCurrentSpeed = max(2.0f, min(m_fCurrentSpeed, 70.0f));
 
-	// 좌표계 재구성
-	XMFLOAT3 P1 = Vector3::Subtract(curPos, targetPos);
-	XMFLOAT3 P2 = Vector3::Add(P1, XMFLOAT3(5.0f, 0.0f, 0.0f));
-
-	// 법선
+	// 좌표계 재구성 (법선은 트랙에서 가져옴)
 	XMFLOAT3 normal = ((CTrackMesh*)m_pTrack->m_pMesh)->GetNormal(m_iCurrentPathIndex - 1);
 
+	if (Vector3::DotProduct(normal, m_pCart->GetUp()) < 0)
+		normal = Vector3::ScalarProduct(normal, -1.0f);
+
 	XMFLOAT3 look = Vector3::Normalize(direction);
-	XMFLOAT3 right = Vector3::Normalize(Vector3::CrossProduct(normal, look));
+	XMFLOAT3 right = Vector3::Normalize(Vector3::CrossProduct(look, normal));
 	XMFLOAT3 up = normal;
 
-	m_pCart->SetDirection(right, up, look);
+	// 이전 방향 벡터
+	XMFLOAT3 prevLook = m_pCart->GetLook();
+	XMFLOAT3 prevUp = m_pCart->GetUp();
+	XMFLOAT3 prevRight = m_pCart->GetRight();
 
+	// 부드러운 보간
+	XMFLOAT3 smoothLook = Vector3::Normalize(Lerp(prevLook, look, alpha));
+	XMFLOAT3 smoothUp = Vector3::Normalize(Lerp(prevUp, up, alpha));
+	XMFLOAT3 smoothRight = Vector3::Normalize(Vector3::CrossProduct(smoothUp, smoothLook));
+	smoothUp = Vector3::CrossProduct(smoothLook, smoothRight);
+
+	m_pCart->SetDirection(smoothRight, smoothUp, smoothLook);
 
 	// 이동
 	XMFLOAT3 move = Vector3::ScalarProduct(forward, fElapsedTime * m_fCurrentSpeed);
@@ -288,26 +306,31 @@ void CScene_1::Animate(float fElapsedTime)
 		{
 			XMFLOAT3 nextDir = Vector3::Normalize(Vector3::Subtract(m_vTrackPoints[m_iCurrentPathIndex], targetPos));
 			m_fTargetYaw = XMConvertToDegrees(atan2f(nextDir.x, nextDir.z)); // 필요 시 유지
+			
 		}
 		return;
+	}
+
+	if (b_LockingCamera) 
+	{
+		// 카메라 처리 (1인칭 시점)
+		XMFLOAT3 playerPos = m_pCart->GetPosition();
+		XMFLOAT3 look = Vector3::ScalarProduct(m_pCart->GetLook(), 1.0f);
+		XMFLOAT3 cup = Vector3::ScalarProduct(m_pCart->GetUp(), -1.0f);
+
+		XMFLOAT3 eye = Vector3::Add(playerPos, Vector3::ScalarProduct(cup, 5.0f));
+		XMFLOAT3 at = Vector3::Add(eye, look);
+
+		CCamera* cam = m_pCart->GetCamera();
+		cam->SetLookAt(eye, at, cup);
 	}
 
 	// 애니메이션
 	m_pCart->Animate(fElapsedTime);
 	m_pTrack->Animate(fElapsedTime);
 	m_pTrack->UpdateBoundingBox();
-
-	// 카메라 처리 (1인칭 시점)
-	XMFLOAT3 playerPos = m_pCart->GetPosition();
-	look = m_pCart->GetLook();
-	XMFLOAT3 cup = m_pCart->GetUp();
-
-	XMFLOAT3 eye = Vector3::Add(playerPos, Vector3::ScalarProduct(cup, 2.0f));
-	XMFLOAT3 at = Vector3::Add(eye, look);
-
-	CCamera* cam = m_pCart->GetCamera();
-	cam->SetLookAt(eye, at, cup);
 }
+
 
 void CScene_1::Render(HDC hDCFrameBuffer)
 {
@@ -316,10 +339,8 @@ void CScene_1::Render(HDC hDCFrameBuffer)
 	CGraphicsPipeline::SetViewport(&pCamera->m_Viewport);
 	CGraphicsPipeline::SetViewPerspectiveProjectTransform(&pCamera->m_xmf4x4ViewPerspectiveProject);
 
-
-
 	m_pTrack->Render(hDCFrameBuffer, pCamera);
-	if (m_pCart) m_pCart->Render(hDCFrameBuffer, pCamera);
+	if (m_pCart && b_LockingCamera == false) m_pCart->Render(hDCFrameBuffer, pCamera);
 }
 
 void CScene_1::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
@@ -348,6 +369,11 @@ void CScene_1::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wP
 		case '8':
 		case '9':
 			break;
+		case 'F':
+		case 'f':
+			b_LockingCamera = !b_LockingCamera;
+			break;
+
 		case 'N':
 		case 'n':
 			CGameFramework::ChangeScene = true;
