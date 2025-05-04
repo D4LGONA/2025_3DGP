@@ -16,7 +16,6 @@ CCamera* CMenuScene::CreateCamera()
 
 void CMenuScene::BuildObjects()
 {
-	CCubeMesh* t = new CCubeMesh();
 	m_pPlayer = new CPlayer();
 	m_pPlayer->SetPosition(0.0f, 0.0, 0.0f);
 	m_pPlayer->SetMesh(nullptr);
@@ -25,35 +24,35 @@ void CMenuScene::BuildObjects()
 	m_pPlayer->SetCameraOffset(XMFLOAT3(0.0f, 0.0f, -20.0f));
 
 	CObjMesh* pMesh = new CObjMesh("Tutorial.obj");
-	m_pTutorial = new CExplosiveObject();
+	m_pTutorial = new CGameObject();
 	m_pTutorial->SetPosition(-0.0f, 10.0f, 10.0f);
 	m_pTutorial->SetMesh(pMesh);
 	m_pTutorial->SetColor(RGB(0, 0, 0));
 	m_pTutorial->Rotate(m_pTutorial->GetUp(), 180.0f);
 
 	pMesh = new CObjMesh("Lv1.obj");
-	m_pLv1 = new CExplosiveObject();
+	m_pLv1 = new CGameObject();
 	m_pLv1->SetPosition(-10.0f, 0.0f, 10.0f);
 	m_pLv1->SetMesh(pMesh);
 	m_pLv1->SetColor(RGB(0, 0, 0));
 	m_pLv1->Rotate(m_pLv1->GetUp(), 180.0f);
 
 	pMesh = new CObjMesh("Lv2.obj");
-	m_pLv2 = new CExplosiveObject();
+	m_pLv2 = new CGameObject();
 	m_pLv2->SetPosition(10.0f, 0.0f, 10.0f);
 	m_pLv2->SetMesh(pMesh);
 	m_pLv2->SetColor(RGB(0, 0, 0));
 	m_pLv2->Rotate(m_pLv2->GetUp(), 180.0f);
 
 	pMesh = new CObjMesh("Start.obj");
-	m_pStart = new CExplosiveObject();
+	m_pStart = new CGameObject();
 	m_pStart->SetPosition(-10.0f, -10.0f, 10.0f);
 	m_pStart->SetMesh(pMesh);
 	m_pStart->SetColor(RGB(0, 0, 0));
 	m_pStart->Rotate(m_pStart->GetUp(), 180.0f);
 
 	pMesh = new CObjMesh("End.obj");
-	m_pEnd = new CExplosiveObject();
+	m_pEnd = new CGameObject();
 	m_pEnd->SetPosition(10.0f, -10.0f, 10.0f);
 	m_pEnd->SetMesh(pMesh);
 	m_pEnd->SetColor(RGB(0, 0, 0));
@@ -62,13 +61,18 @@ void CMenuScene::BuildObjects()
 
 void CMenuScene::ReleaseObjects()
 {
+	if (m_pTutorial) delete m_pTutorial;
+	if (m_pLv1) delete m_pLv1;
+	if (m_pLv2) delete m_pLv2;
+	if (m_pStart) delete m_pStart;
+	if (m_pEnd) delete m_pEnd;
+	if (m_pPlayer) delete m_pPlayer;
 }
 
 void CMenuScene::Animate(float fElapsedTime)
 {
 	if (curPickingObject != nullptr)
 		curPickingObject->SetColor(RGB(rand() % 256, rand() % 256, rand() % 256));
-	m_pTutorial->Animate(fElapsedTime);
 }
 
 void CMenuScene::Render(HDC hDCFrameBuffer)
@@ -129,7 +133,6 @@ void CMenuScene::ProcessInput(POINT oldCursorPos, HWND hWnd, float m_fElapsedTim
 {
 }
 
-// todo
 CGameObject* CMenuScene::PickObjectPointedByCursor(int xClient, int yClient, CCamera* pCamera)
 {
 	XMFLOAT3 xmf3PickPosition;

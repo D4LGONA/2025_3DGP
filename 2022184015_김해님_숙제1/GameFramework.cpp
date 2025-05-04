@@ -77,7 +77,6 @@ void CGameFramework::BuildObjects()
 
 	pCamera->GenerateOrthographicProjectionMatrix(1.01f, 50.0f, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT);
 
-	// todo: 여기 고쳐야 함
 	m_Scenes[0] = new CTitleScene();
 	m_Scenes[0]->BuildObjects();
 	m_Scenes[1] = new CMenuScene();
@@ -93,12 +92,14 @@ void CGameFramework::BuildObjects()
 
 void CGameFramework::ReleaseObjects()
 {
-	// 모든 씬 보내주기
-	if (m_CurrentScene)
+	for (int i = 0; i < 4; ++i)
 	{
-		m_CurrentScene->ReleaseObjects();
-		delete m_CurrentScene;
-	}
+		if (m_Scenes[i]) {
+			m_Scenes[i]->ReleaseObjects();
+			delete m_Scenes[i];
+			m_Scenes[i] = NULL;
+		}
+	}	
 }
 
 void CGameFramework::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
@@ -112,8 +113,7 @@ void CGameFramework::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM
 		::SetCapture(hWnd);
 		::GetCursorPos(&m_ptOldCursorPos);
 		if (nMessageID == WM_RBUTTONDOWN)
-			int k = 0; // todo: 이 자리에 피킹... 을 합니다.
-			//m_pLockedObject = m_CurrentScene->PickObjectPointedByCursor(LOWORD(lParam), HIWORD(lParam), m_pPlayer->m_pCamera);
+			int k = 0; 
 		break;
 	case WM_LBUTTONUP:
 	case WM_RBUTTONUP:

@@ -17,7 +17,6 @@ private:
 	HINSTANCE					m_hInstance = NULL;
 	HWND						m_hWnd = NULL;
 
-	bool						m_bActive = true; // ?
 
 	RECT						m_rcClient;
 
@@ -53,6 +52,5 @@ public:
 	void OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	LRESULT CALLBACK OnProcessingWindowMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 
-	void SetActive(bool bActive) { m_bActive = bActive; }
 };
 

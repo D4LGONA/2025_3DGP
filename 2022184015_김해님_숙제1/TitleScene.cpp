@@ -20,7 +20,6 @@ void CTitleScene::BuildObjects()
 {
 	CExplosiveObject::PrepareExplosion();
 
-	CCubeMesh* t = new CCubeMesh();
 	m_pPlayer = new CPlayer();
 	m_pPlayer->SetPosition(0.0f, 0.0, 0.0f);
 	m_pPlayer->SetMesh(nullptr);
@@ -53,6 +52,7 @@ void CTitleScene::ReleaseObjects()
 {
 	delete m_pTitle;
 	delete m_pName;
+	delete m_pPlayer;
 }
 
 void CTitleScene::Animate(float fElapsedTime)
@@ -92,7 +92,7 @@ void CTitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wP
 	switch (nMessageID)
 	{
 	case WM_RBUTTONDOWN:
-		if (nMessageID == WM_RBUTTONDOWN) {
+		if (nMessageID == WM_RBUTTONDOWN || nMessageID == WM_LBUTTONDOWN) {
 			if (PickObjectPointedByCursor(LOWORD(lParam), HIWORD(lParam), m_pPlayer->m_pCamera)) {
 				CExplosiveObject* pExplosiveObject = (CExplosiveObject*)m_pName;
 				if (pExplosiveObject->m_bBlowingUp == false) {

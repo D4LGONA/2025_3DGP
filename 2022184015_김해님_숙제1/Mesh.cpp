@@ -40,7 +40,6 @@ int LoadOBJToMesh(const char* filename, std::vector<XMFLOAT3>& vertices, std::ve
 		}
 		else continue;
 	}
-
 	return (int)faces.size();
 }
 
@@ -89,17 +88,9 @@ void BoundingBoxFromVert(BoundingOrientedBox& oobb, const std::vector<XMFLOAT3>&
 		maxPos.z = max(maxPos.z, pos.z);
 	}
 
-	XMFLOAT3 center(
-		(minPos.x + maxPos.x) * 0.5f,
-		(minPos.y + maxPos.y) * 0.5f,
-		(minPos.z + maxPos.z) * 0.5f
-	);
+	XMFLOAT3 center((minPos.x + maxPos.x) * 0.5f, (minPos.y + maxPos.y) * 0.5f, (minPos.z + maxPos.z) * 0.5f);
 
-	XMFLOAT3 extents(
-		(maxPos.x - minPos.x) * 0.5f,
-		(maxPos.y - minPos.y) * 0.5f,
-		(maxPos.z - minPos.z) * 0.5f
-	);
+	XMFLOAT3 extents((maxPos.x - minPos.x) * 0.5f, (maxPos.y - minPos.y) * 0.5f, (maxPos.z - minPos.z) * 0.5f);
 
 	oobb = BoundingOrientedBox(center, extents, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 }
@@ -583,59 +574,6 @@ CTankMesh::CTankMesh(float fWidth, float fHeight, float fDepth)
 	int i = 0;
 	CPolygon* pFace = nullptr;
 
-	//// ======= 몸통 =======
-	//float fx = fWidth / 2.0f, fy = fHeight / 2.0f, fz = fDepth / 4.0f;
-	//float ox = 0.0f, oy = 0.0f, oz = 0.0f;
-
-	//m_pBodyMesh = new CMesh(6);
-	//// Front
-	//pFace = new CPolygon(4);
-	//pFace->SetVertex(0, CVertex(-fx + ox, -fy + oy, -fz + oz));
-	//pFace->SetVertex(1, CVertex(+fx + ox, -fy + oy, -fz + oz));
-	//pFace->SetVertex(2, CVertex(+fx + ox, +fy + oy, -fz + oz));
-	//pFace->SetVertex(3, CVertex(-fx + ox, +fy + oy, -fz + oz));
-	//m_pBodyMesh->SetPolygon(i++, pFace);
-
-	//// Back
-	//pFace = new CPolygon(4);
-	//pFace->SetVertex(0, CVertex(-fx + ox, -fy + oy, +fz + oz));
-	//pFace->SetVertex(1, CVertex(+fx + ox, -fy + oy, +fz + oz));
-	//pFace->SetVertex(2, CVertex(+fx + ox, +fy + oy, +fz + oz));
-	//pFace->SetVertex(3, CVertex(-fx + ox, +fy + oy, +fz + oz));
-	//m_pBodyMesh->SetPolygon(i++, pFace);
-
-	//// Left
-	//pFace = new CPolygon(4);
-	//pFace->SetVertex(0, CVertex(-fx + ox, -fy + oy, -fz + oz));
-	//pFace->SetVertex(1, CVertex(-fx + ox, -fy + oy, +fz + oz));
-	//pFace->SetVertex(2, CVertex(-fx + ox, +fy + oy, +fz + oz));
-	//pFace->SetVertex(3, CVertex(-fx + ox, +fy + oy, -fz + oz));
-	//m_pBodyMesh->SetPolygon(i++, pFace);
-
-	//// Right
-	//pFace = new CPolygon(4);
-	//pFace->SetVertex(0, CVertex(+fx + ox, -fy + oy, -fz + oz));
-	//pFace->SetVertex(1, CVertex(+fx + ox, -fy + oy, +fz + oz));
-	//pFace->SetVertex(2, CVertex(+fx + ox, +fy + oy, +fz + oz));
-	//pFace->SetVertex(3, CVertex(+fx + ox, +fy + oy, -fz + oz));
-	//m_pBodyMesh->SetPolygon(i++, pFace);
-
-	//// Top
-	//pFace = new CPolygon(4);
-	//pFace->SetVertex(0, CVertex(-fx + ox, +fy + oy, -fz + oz));
-	//pFace->SetVertex(1, CVertex(+fx + ox, +fy + oy, -fz + oz));
-	//pFace->SetVertex(2, CVertex(+fx + ox, +fy + oy, +fz + oz));
-	//pFace->SetVertex(3, CVertex(-fx + ox, +fy + oy, +fz + oz));
-	//m_pBodyMesh->SetPolygon(i++, pFace);
-
-	//// Bottom
-	//pFace = new CPolygon(4);
-	//pFace->SetVertex(0, CVertex(-fx + ox, -fy + oy, -fz + oz));
-	//pFace->SetVertex(1, CVertex(+fx + ox, -fy + oy, -fz + oz));
-	//pFace->SetVertex(2, CVertex(+fx + ox, -fy + oy, +fz + oz));
-	//pFace->SetVertex(3, CVertex(-fx + ox, -fy + oy, +fz + oz));
-	//m_pBodyMesh->SetPolygon(i++, pFace);
-
 	// === 머리 ===
 	float fx = fWidth / 4.0f, fy = fHeight / 4.0f, fz = fDepth / 8.0f;
 	float ox = 0.0f, oy = 0.0f, oz = -(fDepth / 8.0f + fDepth / 4.0f);
@@ -778,7 +716,6 @@ CObjMesh::CObjMesh(std::string filepath) : CMesh(CountOBJToMesh(filepath.c_str()
 	BoundingBoxFromVert(m_xmOOBB, vertices);
 }
 
-// todo
 CTrackMesh::CTrackMesh(std::string filepath)
 	: CMesh(CountOBJToMesh(filepath.c_str()))
 {
@@ -796,17 +733,6 @@ CTrackMesh::CTrackMesh(std::string filepath)
 			polygon->SetVertex(j, CVertex(pos.x, pos.y, pos.z));
 		}
 		SetPolygon(i, polygon);
-
-		// 트랙 중앙 경로점 추가 (face 중심)
-		XMFLOAT3 sum = XMFLOAT3(0, 0, 0);
-		for (int j = 0; j < 4; ++j)
-		{
-			sum.x += vertices[faces[i][j]].x;
-			sum.y += vertices[faces[i][j]].y;
-			sum.z += vertices[faces[i][j]].z;
-		}
-		XMFLOAT3 center = XMFLOAT3(sum.x / 4.0f, sum.y / 4.0f, sum.z / 4.0f);
-		Points.push_back(center);
 	}
 
 	BoundingBoxFromVert(m_xmOOBB, vertices);
@@ -814,8 +740,6 @@ CTrackMesh::CTrackMesh(std::string filepath)
 
 XMFLOAT3 CTrackMesh::GetNormal(int i)
 {
-	if (i < 0 || i >= m_nPolygons) return XMFLOAT3(0.0f, 1.0f, 0.0f); // fallback
-
 	CPolygon* polygon = m_ppPolygons[i];
 	if (!polygon) return XMFLOAT3(0.0f, 1.0f, 0.0f);
 

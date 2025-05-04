@@ -202,16 +202,28 @@ void CTankPlayer::Rotate(float fPitch, float fYaw, float fRoll)
 {
 	CPlayer::Rotate(0.0f, fYaw, 0.0f);
 
-
-	// 카메라 회전 todo: 여기 수정
 	if (m_pCamera)
+	{
+		// 기존 카메라 오프셋 벡터
+		//XMFLOAT3 offset = m_xmf3CameraOffset;
+
+		//// offset을 Y축(Yaw) 기준으로 회전
+		//XMMATRIX rotation = XMMatrixRotationY(XMConvertToRadians(fYaw));
+		//XMVECTOR vOffset = XMVector3TransformCoord(XMLoadFloat3(&offset), rotation);
+		//XMFLOAT3 rotatedOffset;
+		//XMStoreFloat3(&rotatedOffset, vOffset);
+
+		//// 회전된 offset을 다시 설정
+		//SetCameraOffset(rotatedOffset);
+
+		// Pitch는 카메라의 pitch만 조절
 		m_pCamera->Rotate(fPitch, fYaw, 0.0f);
+		m_pCamera->SetLookAt(GetPosition(), GetUp());
+	}
 }
 
 void CTankPlayer::FireBullet(CGameObject* pLockedObject)
 {
-	// 어차피 적이 나랑 같은 평면 상에 있을 테니 y값 회전은 무시
-	// todo: 근데 카메라가 이상.. 함
 	if (pLockedObject) 
 	{
 		auto a = XMFLOAT3(pLockedObject->GetPosition().x, this->GetPosition().y, pLockedObject->GetPosition().z);

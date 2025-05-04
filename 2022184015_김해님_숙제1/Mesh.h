@@ -111,7 +111,6 @@ class CTrackMesh : public CMesh
 {
 public:
 	CTrackMesh(std::string filepath);
-	std::vector<XMFLOAT3> Points;
 	virtual ~CTrackMesh() {}
 	XMFLOAT3 GetNormal(int i);
 };

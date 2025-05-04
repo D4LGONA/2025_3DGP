@@ -13,46 +13,6 @@ static XMFLOAT3 Lerp(const XMFLOAT3& a, const XMFLOAT3& b, float t)
 	);
 }
 
-XMVECTOR XMQuaternionRotationVectorToVector(XMVECTOR from, XMVECTOR to)
-{
-	XMVECTOR v0 = XMVector3Normalize(from);
-	XMVECTOR v1 = XMVector3Normalize(to);
-	float dot = XMVectorGetX(XMVector3Dot(v0, v1));
-
-	if (dot >= 1.0f - 1e-6f)
-		return XMQuaternionIdentity(); // 같은 방향
-	if (dot <= -1.0f + 1e-6f)
-	{
-		// 반대 방향일 경우 → 임의의 직교 벡터로 축 설정
-		XMVECTOR orthogonal = XMVector3Cross(v0, XMVectorSet(1, 0, 0, 0));
-		if (XMVector3Equal(XMVector3LengthSq(orthogonal), XMVectorZero()))
-			orthogonal = XMVector3Cross(v0, XMVectorSet(0, 1, 0, 0));
-		orthogonal = XMVector3Normalize(orthogonal);
-		return XMQuaternionRotationAxis(orthogonal, XM_PI);
-	}
-
-	XMVECTOR axis = XMVector3Cross(v0, v1);
-	XMVECTOR axisLenSq = XMVector3LengthSq(axis);
-
-	if (XMVector3Equal(axisLenSq, XMVectorZero()))
-		return XMQuaternionIdentity();
-
-	axis = XMVector3Normalize(axis);
-	float angle = acosf(dot);
-	return XMQuaternionRotationAxis(axis, angle);
-}
-
-static void GetPitchYawRollFromMatrix(const XMMATRIX& mat, float* pitch, float* yaw, float* roll)
-{
-	XMFLOAT4X4 m;
-	XMStoreFloat4x4(&m, mat);
-
-	if (pitch) *pitch = asinf(-m._32); // -m[2][1]
-	if (yaw)   *yaw = atan2f(m._31, m._33); // m[2][0], m[2][2]
-	if (roll)  *roll = atan2f(m._12, m._22); // m[0][1], m[1][1]
-}
-
-
 CScene_1::CScene_1()
 {
 }
@@ -63,46 +23,41 @@ CScene_1::~CScene_1()
 
 int CScene_1::LoadLineToMesh(const char* filename, std::vector<XMFLOAT3>& vertices, std::vector<std::array<int, 2>>& edges)
 {
+	std::ifstream file(filename);
+	std::string line;
+
+	while (std::getline(file, line))
 	{
-		std::ifstream file(filename);
-		std::string line;
-
-		while (std::getline(file, line))
+		if (line.substr(0, 2) == "v ")
 		{
-			if (line.substr(0, 2) == "v ")
-			{
-				float x, y, z;
-				sscanf_s(line.c_str(), "v %f %f %f", &x, &y, &z);
-				vertices.push_back(XMFLOAT3(x, y, z));
-			}
-			else if (line.substr(0, 2) == "l ")
-			{
-				int a, b;
-				std::array<int, 2> arr;
-				sscanf_s(line.c_str(), "l %d %d", &a, &b);
-				if ( a > b)
-					arr = { b - 1, a - 1 };
-				else
-					arr = { a - 1, b - 1 };
-				edges.push_back(arr);
-			}
+			float x, y, z;
+			sscanf_s(line.c_str(), "v %f %f %f", &x, &y, &z);
+			vertices.push_back(XMFLOAT3(x, y, z));
 		}
-
-		return (int)edges.size();
+		else if (line.substr(0, 2) == "l ")
+		{
+			int a, b;
+			std::array<int, 2> arr;
+			sscanf_s(line.c_str(), "l %d %d", &a, &b);
+			if ( a > b)
+				arr = { b - 1, a - 1 };
+			else
+				arr = { a - 1, b - 1 };
+			edges.push_back(arr);
+		}
 	}
+	return (int)edges.size();
 }
 
 void CScene_1::BuildOrderedLinePath(const std::vector<XMFLOAT3>& vertices, const std::vector<std::array<int, 2>>& edges, std::vector<XMFLOAT3>& outPath)
 {
 	std::unordered_map<int, std::vector<int>> adjacency;
 
-	// 인접 리스트 생성
 	for (const auto& e : edges) {
 		adjacency[e[0]].push_back(e[1]);
 		adjacency[e[1]].push_back(e[0]);
 	}
 
-	// 시작점 찾기 (이웃이 1개인 점이 보통 끝점)
 	int start = -1;
 	for (const auto& a : adjacency) {
 		if (a.second.size() == 1) {
@@ -111,13 +66,12 @@ void CScene_1::BuildOrderedLinePath(const std::vector<XMFLOAT3>& vertices, const
 		}
 	}
 
-	if (start == -1) return; // 닫힌 루프이거나 잘못된 데이터
+	if (start == -1) return; 
 
 	std::unordered_set<int> visited;
 	int current = start;
 	int previous = -1;
 
-	// 경로 따라가기
 	while (true) {
 		outPath.push_back(vertices[current]);
 		visited.insert(current);
@@ -161,11 +115,11 @@ void CScene_1::BuildObjects()
 	m_pCart->SetCameraOffset(XMFLOAT3(0.0f, -5.0f, 15.0f));
 
 	m_pDummy = new CPlayer();
-	m_pDummy->SetPosition(0.0f, -50.0f, 0.0f);
+	m_pDummy->SetPosition(0.0f, 100.0f, 0.0f);
 	m_pDummy->SetMesh(t);
 	m_pDummy->SetColor(RGB(0, 0, 255));
 	m_pDummy->SetCamera(CreateCamera());
-	m_pDummy->SetCameraOffset(XMFLOAT3(0.0f, -5.0f, 15.0f));
+	m_pDummy->SetCameraOffset(XMFLOAT3(0.0f, 50.0f, 15.0f));
 
 
 	std::vector<XMFLOAT3> tmps;
@@ -177,7 +131,6 @@ void CScene_1::BuildObjects()
 		std::reverse(m_vTrackPoints.begin(), m_vTrackPoints.end());
 	}
 
-
 	CTrackMesh* pMesh = new CTrackMesh("track_mesh_fixed.obj");
 	m_pTrack = new CGameObject();
 	m_pTrack->SetPosition(0.0f, -5.0f, 0.0f);
@@ -186,7 +139,6 @@ void CScene_1::BuildObjects()
 
 	m_pPlayer = m_pCart;
 
-	// 카메라 처리 (1인칭 시점)
 	XMFLOAT3 playerPos = m_pCart->GetPosition();
 	XMFLOAT3 look = Vector3::ScalarProduct(m_pCart->GetLook(), 1.0f);
 	XMFLOAT3 cup = Vector3::ScalarProduct(m_pCart->GetUp(), -1.0f);
@@ -200,22 +152,26 @@ void CScene_1::BuildObjects()
 
 void CScene_1::ReleaseObjects()
 {
+	if (m_pCart) delete m_pCart;
+	if (m_pDummy) delete m_pDummy;
+	if (m_pTrack) delete m_pTrack;
+	if (m_vTrackPoints.size() > 0)
+	{
+		m_vTrackPoints.clear();
+	}
+	if (m_vTrackEdges.size() > 0)
+	{
+		m_vTrackEdges.clear();
+	}
 }
 
 void CScene_1::ResetObjects()
 {
-	// 경로 인덱스 초기화
 	m_iCurrentPathIndex = 1;
-
-	// 속도 초기화
 	m_fCurrentSpeed = 10.0f;
-
-	// 타이머 초기화
 	timer = 0.0f;
 	m_fMoveSpeed = 20.f;
 
-
-	// 플레이어 위치 초기화
 	if (!m_vTrackPoints.empty())
 	{
 		XMFLOAT3 startPos = m_vTrackPoints[0];
@@ -226,8 +182,6 @@ void CScene_1::ResetObjects()
 
 void CScene_1::Animate(float fElapsedTime)
 {
-	if (m_pCart == nullptr) return;
-
 	if (m_iCurrentPathIndex >= m_vTrackPoints.size())
 	{
 		timer += fElapsedTime;
@@ -239,25 +193,18 @@ void CScene_1::Animate(float fElapsedTime)
 		return;
 	}
 
-	// 현재 점과 목표 점 위치
 	XMFLOAT3 curPos = m_vTrackPoints[m_iCurrentPathIndex - 1];
 	XMFLOAT3 targetPos = m_vTrackPoints[m_iCurrentPathIndex];
 
-	// 방향 벡터
 	XMFLOAT3 direction = Vector3::Subtract(targetPos, curPos);
 	float distance = Vector3::Length(direction);
 
-	// 방향 정규화 (목표 방향)
 	XMFLOAT3 targetForward = Vector3::Normalize(direction);
-
-	// 현재 방향
 	XMFLOAT3 currentForward = m_pCart->GetLook();
 
-	// 부드러운 보간 (Lerp)
-	float alpha = 5.0f * fElapsedTime; // 회전 속도 조절
+	float alpha = 5.0f * fElapsedTime;
 	XMFLOAT3 forward = Vector3::Normalize(Lerp(currentForward, targetForward, alpha));
 
-	// 가속도 적용
 	float heightDelta = targetPos.y - curPos.y;
 	float accel = 0.0f;
 	if (heightDelta < 0) accel = -heightDelta * 30.f;
@@ -266,7 +213,6 @@ void CScene_1::Animate(float fElapsedTime)
 	m_fCurrentSpeed += accel * fElapsedTime;
 	m_fCurrentSpeed = max(2.0f, min(m_fCurrentSpeed, 70.0f));
 
-	// 좌표계 재구성 (법선은 트랙에서 가져옴)
 	XMFLOAT3 normal = ((CTrackMesh*)m_pTrack->m_pMesh)->GetNormal(m_iCurrentPathIndex - 1);
 
 	if (Vector3::DotProduct(normal, m_pCart->GetUp()) < 0)
@@ -276,12 +222,10 @@ void CScene_1::Animate(float fElapsedTime)
 	XMFLOAT3 right = Vector3::Normalize(Vector3::CrossProduct(look, normal));
 	XMFLOAT3 up = normal;
 
-	// 이전 방향 벡터
 	XMFLOAT3 prevLook = m_pCart->GetLook();
 	XMFLOAT3 prevUp = m_pCart->GetUp();
 	XMFLOAT3 prevRight = m_pCart->GetRight();
 
-	// 부드러운 보간
 	XMFLOAT3 smoothLook = Vector3::Normalize(Lerp(prevLook, look, alpha));
 	XMFLOAT3 smoothUp = Vector3::Normalize(Lerp(prevUp, up, alpha));
 	XMFLOAT3 smoothRight = Vector3::Normalize(Vector3::CrossProduct(smoothUp, smoothLook));
@@ -289,31 +233,26 @@ void CScene_1::Animate(float fElapsedTime)
 
 	m_pCart->SetDirection(smoothRight, smoothUp, smoothLook);
 
-	// 이동
 	XMFLOAT3 move = Vector3::ScalarProduct(forward, fElapsedTime * m_fCurrentSpeed);
-	m_pCart->Move(move, false);
+	XMFLOAT3 curPosCart = m_pCart->GetPosition();
+	XMFLOAT3 nextPos = Vector3::Add(curPosCart, move);
 
-	// 도착 판정
-	XMFLOAT3 prevToCur = Vector3::Subtract(targetPos, curPos);
-	XMFLOAT3 curToTarget = Vector3::Subtract(targetPos, m_pCart->GetPosition());
+	XMFLOAT3 curToTarget = Vector3::Subtract(targetPos, curPos);
+	XMFLOAT3 nextToTarget = Vector3::Subtract(targetPos, nextPos);
 
-	if (Vector3::DotProduct(prevToCur, curToTarget) < 0)
+	if (Vector3::DotProduct(curToTarget, nextToTarget) < 0)
 	{
 		m_iCurrentPathIndex++;
 		m_pCart->SetPosition(targetPos.x, targetPos.y, targetPos.z);
-
-		if (m_iCurrentPathIndex < m_vTrackPoints.size())
-		{
-			XMFLOAT3 nextDir = Vector3::Normalize(Vector3::Subtract(m_vTrackPoints[m_iCurrentPathIndex], targetPos));
-			m_fTargetYaw = XMConvertToDegrees(atan2f(nextDir.x, nextDir.z)); // 필요 시 유지
-			
-		}
-		return;
+	}
+	else
+	{
+		m_pCart->Move(move, false);
 	}
 
 	if (b_LockingCamera) 
 	{
-		// 카메라 처리 (1인칭 시점)
+		// 카메라 처리
 		XMFLOAT3 playerPos = m_pCart->GetPosition();
 		XMFLOAT3 look = Vector3::ScalarProduct(m_pCart->GetLook(), 1.0f);
 		XMFLOAT3 cup = Vector3::ScalarProduct(m_pCart->GetUp(), -1.0f);

@@ -2,8 +2,6 @@
 #include "stdafx.h"
 #include "Camera.h"
 
-// Scene 클래스: 4개 씬들의 부모 클래스입니다.
-
 class CScene 
 {
 public:
@@ -21,3 +19,4 @@ public:
 	virtual void OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam) {};
 	virtual void ProcessInput(POINT oldCursorPos, HWND hWnd, float m_fElapsedTime) = 0;
 };
+
