@@ -68,9 +68,23 @@ protected:
 	int m_nBaseVertex = 0;
 	//인덱스 버퍼의 인덱스에 더해질 인덱스이다. 
 
+protected:
+	//모델 좌표계의 OOBB 바운딩 박스이다.
+	BoundingOrientedBox m_xmBoundingBox;
+
+
 public:
+	BoundingOrientedBox GetBoundingBox() { return(m_xmBoundingBox); }
 	//virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList);
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, UINT nInstances = 1);
+
+	// 피킹
+	int CheckRayIntersection(XMFLOAT3& xmRayPosition, XMFLOAT3& xmRayDirection, float* pfNearHitDistance);
+protected:
+	//정점을 픽킹을 위하여 저장한다(정점 버퍼를 Map()하여 읽지 않아도 되도록).
+	CDiffusedVertex * m_pVertices = NULL;
+	//메쉬의 인덱스를 저장한다(인덱스 버퍼를 Map()하여 읽지 않아도 되도록).
+	UINT* m_pnIndices = NULL;
 };
 
 //-----------------------------------------------------------------
@@ -88,8 +102,7 @@ class CCubeMeshDiffused : public CMesh
 {
 public:
 	//직육면체의 가로, 세로, 깊이의 길이를 지정하여 직육면체 메쉬를 생성한다. 
-	CCubeMeshDiffused(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList
-		* pd3dCommandList, float fWidth = 2.0f, float fHeight = 2.0f, float fDepth = 2.0f);
+	CCubeMeshDiffused(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, float fWidth = 2.0f, float fHeight = 2.0f, float fDepth = 2.0f);
 	virtual ~CCubeMeshDiffused();
 };
 

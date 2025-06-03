@@ -11,6 +11,9 @@ public:
 	TitleScene();
 	virtual ~TitleScene();
 
+	virtual bool OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
+	virtual bool OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
+
 	virtual void CreateGraphicsPipelineState(ID3D12Device* pd3dDevice) override;
 	virtual void BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList) override;
 	virtual void ReleaseObjects() override;
@@ -18,10 +21,10 @@ public:
 	virtual ID3D12RootSignature* CreateGraphicsRootSignature(ID3D12Device* pd3dDevice) override;
 
 	virtual void AnimateObjects(float fTimeElapsed) override;
+
+	bool PickObjectPointedByCursor(int xClient, int yClient, CCamera* pCamera);
 private:
 	CPlayer* pPlayer = nullptr;
-
-	CObjectsShader* pObjectsShader = nullptr; // TitleScene에서 사용할 셰이더
 
 	std::vector<CGameObject*> objects;
 };

@@ -105,6 +105,8 @@ void CCamera::GenerateViewMatrix(XMFLOAT3 xmf3Position, XMFLOAT3 xmf3LookAt, XMF
 	m_xmf3LookAtWorld = xmf3LookAt;
 	m_xmf3Up = xmf3Up;
 	GenerateViewMatrix();
+	//카메라 변환 행렬이 바뀔 때마다 절두체를 다시 생성한다(절두체는 월드 좌표계로 생성한다).
+	GenerateFrustum();
 }
 
 void CCamera::CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
@@ -128,6 +130,21 @@ void CCamera::SetViewportsAndScissorRects(ID3D12GraphicsCommandList* pd3dCommand
 {
 	pd3dCommandList->RSSetViewports(1, &m_d3dViewport);
 	pd3dCommandList->RSSetScissorRects(1, &m_d3dScissorRect);
+}
+
+void CCamera::GenerateFrustum()
+{
+	//원근 투영 변환 행렬에서 절두체를 생성한다(절두체는 카메라 좌표계로 표현된다).
+	m_xmFrustum.CreateFromMatrix(m_xmFrustum, XMLoadFloat4x4(&m_xmf4x4Projection));
+	//카메라 변환 행렬의 역행렬을 구한다.
+	XMMATRIX xmmtxInversView = XMMatrixInverse(NULL, XMLoadFloat4x4(&m_xmf4x4View));
+	//절두체를 카메라 변환 행렬의 역행렬로 변환한다(이제 절두체는 월드 좌표계로 표현된다).
+	m_xmFrustum.Transform(m_xmFrustum, xmmtxInversView);
+}
+
+bool CCamera::IsInFrustum(BoundingOrientedBox& xmBoundingBox)
+{
+	return(m_xmFrustum.Intersects(xmBoundingBox));
 }
 
 //---------------------------------------------------------

@@ -1,7 +1,7 @@
 #pragma once
 #include "Mesh.h"
 #include "Camera.h"
-class CShader;
+#include "Shader.h"
 
 class CGameObject
 {
@@ -50,6 +50,16 @@ public:
 	//상수 버퍼의 내용을 갱신한다.
 	virtual void UpdateShaderVariables(ID3D12GraphicsCommandList *pd3dCommandList);
 	virtual void ReleaseShaderVariables();
+
+public:
+	//게임 객체가 카메라에 보인는 가를 검사한다.
+	bool IsVisible(CCamera* pCamera = NULL);
+
+public:
+	//모델 좌표계의 픽킹 광선을 생성한다.
+	void GenerateRayForPicking(XMFLOAT3& xmf3PickPosition, XMFLOAT4X4& xmf4x4View, XMFLOAT3* pxmf3PickRayOrigin, XMFLOAT3* pxmf3PickRayDirection);
+	//카메라 좌표계의 한 점에 대한 모델 좌표계의 픽킹 광선을 생성하고 객체와의 교차를 검사한다.
+	int PickObjectByRayIntersection(XMFLOAT3& xmf3PickPosition, XMFLOAT4X4& xmf4x4View, float* pfHitDistance);
 };
 
 class CRotatingObject : public CGameObject
@@ -67,4 +77,44 @@ public:
 			xmf3RotationAxis;
 	}
 	virtual void Animate(float fTimeElapsed);
+};
+
+//----------------------------------------------------
+
+class CExplosiveObject : public CGameObject
+{
+public:
+	CExplosiveObject();
+	virtual ~CExplosiveObject();
+
+	bool m_bBlowingUp = false;
+	float m_fElapsedTimes = 0.0f;
+	float m_fDuration = 2.0f;
+	float m_fExplosionSpeed = 10.0f;
+	float m_fExplosionRotation = 720.0f;
+
+	CInstancingShader* m_pInstancingShader = nullptr;
+	CMesh* m_expMesh = nullptr;
+
+	void setExplosionMesh(CMesh* mesh);
+	void Animate(float fElapsedTime);
+	void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
+	void SetExpShader(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* m_pd3dGraphicsRootSignature);
+	void StartExplosion();
+	void Reset();
+};
+
+//----------------------------------------------------
+// explosive에서 사용할 그냥 움직이는 아이
+class CMovingObject : public CGameObject
+{
+public:
+	CMovingObject(XMFLOAT3 dir, float speed, float rotationSpeed);
+	virtual void Animate(float fElapsedTime) override;
+	void Reset();
+private:
+	XMFLOAT3 m_xmf3Direction;
+	float m_fSpeed;
+	float m_fRotationSpeed;
+	float m_fTimeElapsed = 0.0f;
 };

@@ -10,6 +10,50 @@ TitleScene::~TitleScene()
 	ReleaseObjects();
 }
 
+bool TitleScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
+{
+	if (nMessageID == WM_KEYDOWN)
+	{
+		switch (wParam)
+		{
+		case 'A': // 'A' 키 눌렸을 때
+		{
+			auto a = reinterpret_cast<CExplosiveObject*>(objects.back());
+			if (!a->m_bBlowingUp)
+			{
+				a->StartExplosion(); // 폭발 시작
+			}
+			return true; // 메시지 처리됨
+		}
+		}
+	}
+	return false;
+}
+
+bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
+{
+	switch (nMessageID)
+	{
+	case WM_LBUTTONDOWN:
+	case WM_RBUTTONDOWN:
+		if (nMessageID == WM_RBUTTONDOWN || nMessageID == WM_LBUTTONDOWN) {
+			if (PickObjectPointedByCursor(LOWORD(lParam), HIWORD(lParam), m_pPlayer->m_pCamera)) {
+				CExplosiveObject* pExplosiveObject = (CExplosiveObject*)m_pName;
+				if (pExplosiveObject->m_bBlowingUp == false) {
+					pExplosiveObject->m_bBlowingUp = true;
+					bChange = true;
+				}
+			}
+		}
+	case WM_LBUTTONUP:
+	case WM_RBUTTONUP:
+		//마우스 캡쳐를 해제한다. 
+		::ReleaseCapture();
+		break;
+	}
+	return false;
+}
+
 void TitleScene::CreateGraphicsPipelineState(ID3D12Device* pd3dDevice)
 {
 	if (!m_pd3dGraphicsRootSignature)
@@ -29,8 +73,6 @@ void TitleScene::Render(ID3D12GraphicsCommandList* pd3dCommandList)
 	pd3dCommandList->SetGraphicsRootSignature(m_pd3dGraphicsRootSignature);
 	pCamera->UpdateShaderVariables(pd3dCommandList);
 
-	//// 플레이어 셰이더 상수 업데이트 (예: 월드 행렬 등)
-	//pPlayer->UpdateShaderVariables(pd3dCommandList);
 
 	// 오브젝트 렌더링
 	for (auto& obj : objects)
@@ -59,12 +101,17 @@ ID3D12RootSignature* TitleScene::CreateGraphicsRootSignature(ID3D12Device* pd3dD
 void TitleScene::AnimateObjects(float fTimeElapsed)
 {
 	if (pPlayer) pPlayer->Update(fTimeElapsed); // 플레이어(및 카메라) 업데이트
+	for (auto& obj : objects)
+	{
+		if (obj) obj->Animate(fTimeElapsed); // 각 오브젝트 업데이트
+	}
 	CScene::AnimateObjects(fTimeElapsed);       // 공통 셰이더 객체들 업데이트
 }
 
 // 쉐이더 -> 모든 오브젝트에 대해 DiffusedShader 사용
 void TitleScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
 {
+
 	// 루트 시그니처 생성
 	m_pd3dGraphicsRootSignature = CreateGraphicsRootSignature(pd3dDevice);
 
@@ -97,21 +144,45 @@ void TitleScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandLis
 
 	// 오브젝트 빌드
 	// 오브젝트 0: 3D프로그래밍1 메쉬
-	objects.push_back(new CGameObject());
-	objects[0]->CreateShaderVariables(pd3dDevice, pd3dCommandList);
-	objects[0]->SetShader(pShader);
-	objects[0]->SetPosition(XMFLOAT3(0.0f, 10.0f, 50.0f));
-	objects[0]->Rotate(0.0f, 180.0f, 0.0f); // 180도 회전
-	objects[0]->SetMesh(new CObjMeshDiffused(pd3dDevice, pd3dCommandList, "3DGP.obj", XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f)));
+	auto nameobj = new CRotatingObject();
+	nameobj->SetRotationAxis(XMFLOAT3(0.0f, 1.0f, 0.0f)); // Y축을 회전축으로 설정
+	nameobj->SetRotationSpeed((((rand() / (float)RAND_MAX) * 10.0f) - 5.0f) * 10.0f);
+	nameobj->CreateShaderVariables(pd3dDevice, pd3dCommandList);
+	nameobj->SetShader(pShader);
+	nameobj->SetPosition(XMFLOAT3(0.0f, 10.0f, 50.0f));
+	nameobj->Rotate(0.0f, 180.0f, 0.0f); // 180도 회전
+	nameobj->SetMesh(new CObjMeshDiffused(pd3dDevice, pd3dCommandList, "3DGP.obj", XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f)));
+	objects.push_back(nameobj);
 
-	objects.push_back(new CGameObject());
-	objects[1]->CreateShaderVariables(pd3dDevice, pd3dCommandList);
-	objects[1]->SetShader(pShader);
-	objects[1]->SetPosition(XMFLOAT3(0.0f, -10.0f, 50.0f));
-	objects[1]->Rotate(0.0f, 180.0f, 0.0f); // 180도 회전
-	objects[1]->SetMesh(new CObjMeshDiffused(pd3dDevice, pd3dCommandList, "NAME.obj", XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f)));
+
+	auto obj = new CExplosiveObject(); // Rotating Object로 만든 후에 피킹이 일어나면 Explosive Object로 변경.
+	obj->setExplosionMesh(new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, 1.0f, 1.0f, 1.0f));
+	obj->CreateShaderVariables(pd3dDevice, pd3dCommandList);
+	obj->SetExpShader(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
+	obj->SetShader(pShader);
+	obj->SetPosition(XMFLOAT3(0.0f, -10.0f, 50.0f));
+	obj->Rotate(0.0f, 180.0f, 0.0f); // 180도 회전
+	obj->SetMesh(new CObjMeshDiffused(pd3dDevice, pd3dCommandList, "NAME.obj", XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f)));
+	objects.push_back(obj);
 }
 
 void TitleScene::ReleaseObjects()
 {
+}
+
+bool TitleScene::PickObjectPointedByCursor(int xClient, int yClient, CCamera* pCamera)
+{
+	XMFLOAT3 xmf3PickPosition;
+	xmf3PickPosition.x = (((2.0f * xClient) / (float)pCamera->m_Viewport.m_nWidth) - 1) / pCamera->m_xmf4x4PerspectiveProject._11;
+	xmf3PickPosition.y = -(((2.0f * yClient) / (float)pCamera->m_Viewport.m_nHeight) - 1) / pCamera->m_xmf4x4PerspectiveProject._22;
+	xmf3PickPosition.z = 1.0f;
+
+	XMVECTOR xmvPickPosition = XMLoadFloat3(&xmf3PickPosition);
+	XMMATRIX xmmtxView = XMLoadFloat4x4(&pCamera->m_xmf4x4View);
+
+	int nIntersected = 0;
+
+	float fHitDistance = FLT_MAX;
+	nIntersected = m_pName->PickObjectByRayIntersection(xmvPickPosition, xmmtxView, &fHitDistance);
+	return nIntersected;
 }

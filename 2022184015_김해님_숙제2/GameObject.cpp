@@ -48,7 +48,7 @@ void CGameObject::OnPrepareRender()
 
 void CGameObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
 {
-	OnPrepareRender();
+	if (false == IsVisible(pCamera)) return;
 	//객체의 정보를 셰이더 변수(상수 버퍼)로 복사한다. 
 	UpdateShaderVariables(pd3dCommandList);
 	if (m_pShader) m_pShader->Render(pd3dCommandList, pCamera);
@@ -157,6 +157,16 @@ void CGameObject::ReleaseShaderVariables()
 {
 }
 
+bool CGameObject::IsVisible(CCamera* pCamera)
+{
+	OnPrepareRender();
+	bool bIsVisible = false;
+	BoundingOrientedBox xmBoundingBox = m_pMesh->GetBoundingBox();
+	//모델 좌표계의 바운딩 박스를 월드 좌표계로 변환한다.
+	xmBoundingBox.Transform(xmBoundingBox, XMLoadFloat4x4(&m_xmf4x4World));
+	if (pCamera) bIsVisible = pCamera->IsInFrustum(xmBoundingBox);
+	return(bIsVisible);
+}
 //----------------------------------------------------------------------------------------
 
 CRotatingObject::CRotatingObject()
@@ -174,3 +184,128 @@ void CRotatingObject::Animate(float fTimeElapsed)
 	CGameObject::Rotate(&m_xmf3RotationAxis, m_fRotationSpeed * fTimeElapsed);
 }
 
+//----------------------------------------------------------------------------------------
+
+CExplosiveObject::CExplosiveObject()
+{
+
+}
+
+CExplosiveObject::~CExplosiveObject()
+{
+}
+
+void CExplosiveObject::setExplosionMesh(CMesh* mesh)
+{
+	std::vector<CGameObject*> tmp;
+	for (int i = 0; i < EXPLOSION_DEBRISES; ++i)
+	{
+		XMVECTOR dirVec = ::RandomUnitVectorOnSphere();
+		XMFLOAT3 direction;
+		XMStoreFloat3(&direction, dirVec);
+		auto obj = new CMovingObject(direction, m_fExplosionSpeed, m_fExplosionRotation);
+		obj->SetMesh(mesh);
+
+		tmp.emplace_back(obj);
+	}
+
+	m_pInstancingShader = new CInstancingShader(tmp);
+}
+
+void CExplosiveObject::Animate(float fElapsedTime)
+{
+	if (!m_bBlowingUp)
+	{
+		CGameObject::Animate(fElapsedTime);
+	}
+	else 
+	{
+		m_fElapsedTimes += fElapsedTime;
+
+		m_pInstancingShader->AnimateObjects(fElapsedTime);
+
+		if (m_fElapsedTimes >= m_fDuration) {
+			m_bBlowingUp = false;
+			Reset();
+		}
+	}
+}
+
+void CExplosiveObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
+{
+	if (m_bBlowingUp && m_pInstancingShader)
+		m_pInstancingShader->Render(pd3dCommandList, pCamera);
+	else
+		CGameObject::Render(pd3dCommandList, pCamera);
+}
+
+void CExplosiveObject::SetExpShader(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* m_pd3dGraphicsRootSignature)
+{
+	if (m_pInstancingShader)
+	{
+		m_pInstancingShader->CreateShader(pd3dDevice, m_pd3dGraphicsRootSignature);
+		m_pInstancingShader->BuildObjects(pd3dDevice, pd3dCommandList);
+	}
+}
+
+void CExplosiveObject::StartExplosion()
+{
+	m_bBlowingUp = true;
+	m_fElapsedTimes = 0.0f;
+
+	// 이 시점에 초기 위치를 지정해줘야 각 debris 위치가 기준점 주변에서 시작됨
+	XMFLOAT3 origin = GetPosition();
+	m_pInstancingShader->SetPosition(origin);
+}
+
+void CExplosiveObject::Reset()
+{
+	m_bBlowingUp = false;
+	m_fElapsedTimes = 0.0f;
+	m_pInstancingShader->Reset();
+}
+
+CMovingObject::CMovingObject(XMFLOAT3 dir, float speed, float rotationSpeed)
+	: m_xmf3Direction(dir), m_fSpeed(speed), m_fRotationSpeed(rotationSpeed)
+{
+	m_fTimeElapsed = 0.0f;
+
+	// 기본적으로 방향 단위 벡터로 정규화 (안전성 확보)
+	float length = sqrtf(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
+	if (length > 0.0f)
+	{
+		m_xmf3Direction.x /= length;
+		m_xmf3Direction.y /= length;
+		m_xmf3Direction.z /= length;
+	}
+
+	// 월드 행렬 초기화 (Identity 또는 필요 시 위치/회전 초기화)
+	XMStoreFloat4x4(&m_xmf4x4World, XMMatrixIdentity());
+}
+
+void CMovingObject::Animate(float fElapsedTime)
+{
+	m_fTimeElapsed += fElapsedTime;
+
+	if (m_fTimeElapsed <= 2.0f)
+	{
+		XMFLOAT3 position = GetPosition();
+
+		// 위치 이동
+		position.x += m_xmf3Direction.x * m_fSpeed * fElapsedTime;
+		position.y += m_xmf3Direction.y * m_fSpeed * fElapsedTime;
+		position.z += m_xmf3Direction.z * m_fSpeed * fElapsedTime;
+		SetPosition(position);
+
+		// 회전
+		XMMATRIX mtxWorld = XMLoadFloat4x4(&m_xmf4x4World);
+		XMMATRIX mtxRot = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Direction), XMConvertToRadians(m_fRotationSpeed * fElapsedTime));
+		mtxWorld = XMMatrixMultiply(mtxRot, mtxWorld);
+		XMStoreFloat4x4(&m_xmf4x4World, mtxWorld);
+	}
+}
+
+void CMovingObject::Reset()
+{
+	m_fTimeElapsed = 0.0f;
+}
