@@ -69,8 +69,8 @@ int CMesh::CheckRayIntersection(XMFLOAT3& xmf3RayOrigin, XMFLOAT3& xmf3RayDirect
 	if (m_nIndices > 0) nPrimitives = (m_d3dPrimitiveTopology ==
 		D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST) ? (m_nIndices / 3) : (m_nIndices - 2);
 	//광선은 모델 좌표계로 표현된다.
-	XMVECTOR xmRayOrigin = XMLoadFloat3(&xmf3RayOrigin);
-	XMVECTOR xmRayDirection = XMLoadFloat3(&xmf3RayDirection);
+	XMVECTOR xmRayOrigin = DirectX::XMLoadFloat3(&xmf3RayOrigin);
+	XMVECTOR xmRayDirection = DirectX::XMLoadFloat3(&xmf3RayDirection);
 	//모델 좌표계의 광선과 메쉬의 바운딩 박스(모델 좌표계)와의 교차를 검사한다.
 	bool bIntersected = m_xmBoundingBox.Intersects(xmRayOrigin, xmRayDirection,
 		*pfNearHitDistance);
@@ -82,12 +82,9 @@ int CMesh::CheckRayIntersection(XMFLOAT3& xmf3RayOrigin, XMFLOAT3& xmf3RayDirect
 	   시작점(실제로는 카메라 좌표계의 원점)에 가장 가까운 삼각형을 찾는다.*/
 		for (int i = 0; i < nPrimitives; i++)
 		{
-			XMVECTOR v0 = XMLoadFloat3((XMFLOAT3*)(pbPositions + ((m_pnIndices) ?
-				(m_pnIndices[(i * nOffset) + 0]) : ((i * nOffset) + 0)) * m_nStride));
-			XMVECTOR v1 = XMLoadFloat3((XMFLOAT3*)(pbPositions + ((m_pnIndices) ?
-				(m_pnIndices[(i * nOffset) + 1]) : ((i * nOffset) + 1)) * m_nStride));
-			XMVECTOR v2 = XMLoadFloat3((XMFLOAT3*)(pbPositions + ((m_pnIndices) ?
-				(m_pnIndices[(i * nOffset) + 2]) : ((i * nOffset) + 2)) * m_nStride));
+			XMVECTOR v0 = DirectX::XMLoadFloat3((XMFLOAT3*)(pbPositions + ((m_pnIndices) ? (m_pnIndices[(i * nOffset) + 0]) : ((i * nOffset) + 0)) * m_nStride));
+			XMVECTOR v1 = DirectX::XMLoadFloat3((XMFLOAT3*)(pbPositions + ((m_pnIndices) ? (m_pnIndices[(i * nOffset) + 1]) : ((i * nOffset) + 1)) * m_nStride));
+			XMVECTOR v2 = DirectX::XMLoadFloat3((XMFLOAT3*)(pbPositions + ((m_pnIndices) ? (m_pnIndices[(i * nOffset) + 2]) : ((i * nOffset) + 2)) * m_nStride));
 			float fHitDistance;
 			BOOL bIntersected = TriangleTests::Intersects(xmRayOrigin, xmRayDirection, v0,
 				v1, v2, fHitDistance);
@@ -205,6 +202,7 @@ CObjMeshDiffused::CObjMeshDiffused(ID3D12Device* pd3dDevice, ID3D12GraphicsComma
 {
 	std::vector<XMFLOAT3> positions;
 	std::vector<CDiffusedVertex> vertices;
+	std::vector<UINT> indices;
 
 	std::ifstream file(filename);
 	if (!file.is_open()) return;
@@ -221,79 +219,75 @@ CObjMeshDiffused::CObjMeshDiffused(ID3D12Device* pd3dDevice, ID3D12GraphicsComma
 			float x, y, z;
 			iss >> x >> y >> z;
 			positions.push_back(XMFLOAT3(x, y, z));
+			vertices.push_back(CDiffusedVertex(XMFLOAT3(x, y, z), xmf4Color));
 		}
 		else if (prefix == "f")
 		{
-			int i1, i2, i3;
-			char slash;
-
-			// v1 v2 v3 형식 또는 v1// v2// v3//
-			std::string v1, v2, v3;
-			iss >> v1 >> v2 >> v3;
+			std::string v[3];
+			iss >> v[0] >> v[1] >> v[2];
 
 			auto parseIndex = [](const std::string& token) {
 				size_t pos = token.find('/');
 				return std::stoi(pos == std::string::npos ? token : token.substr(0, pos)) - 1;
 				};
 
-			i1 = parseIndex(v1);
-			i2 = parseIndex(v2);
-			i3 = parseIndex(v3);
-
-			vertices.push_back(CDiffusedVertex(positions[i1], xmf4Color));
-			vertices.push_back(CDiffusedVertex(positions[i2], xmf4Color));
-			vertices.push_back(CDiffusedVertex(positions[i3], xmf4Color));
+			for (int i = 0; i < 3; ++i)
+			{
+				indices.push_back(parseIndex(v[i]));
+			}
 		}
 	}
 
-	m_nVertices = static_cast<UINT>(vertices.size());
+	// 최종 정점/인덱스 배열 설정
 	m_nStride = sizeof(CDiffusedVertex);
 	m_nOffset = 0;
 	m_nSlot = 0;
 	m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
+	// 정점 버퍼 생성
+	m_nVertices = static_cast<UINT>(vertices.size());
+	m_pVertices = new CDiffusedVertex[m_nVertices];
+	memcpy(m_pVertices, vertices.data(), sizeof(CDiffusedVertex) * m_nVertices);
+
 	m_pd3dVertexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, vertices.data(),
 		m_nStride * m_nVertices, D3D12_HEAP_TYPE_DEFAULT,
 		D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dVertexUploadBuffer);
-
 	m_d3dVertexBufferView.BufferLocation = m_pd3dVertexBuffer->GetGPUVirtualAddress();
 	m_d3dVertexBufferView.StrideInBytes = m_nStride;
 	m_d3dVertexBufferView.SizeInBytes = m_nStride * m_nVertices;
 
-	// 정점들을 포함하는 최소/최대 좌표 계산
+	// 인덱스 버퍼 생성
+	m_nIndices = static_cast<UINT>(indices.size());
+	m_pnIndices = new UINT[m_nIndices];
+	memcpy(m_pnIndices, indices.data(), sizeof(UINT) * m_nIndices);
+
+	m_pd3dIndexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, indices.data(),
+		sizeof(UINT) * m_nIndices, D3D12_HEAP_TYPE_DEFAULT,
+		D3D12_RESOURCE_STATE_INDEX_BUFFER, &m_pd3dIndexUploadBuffer);
+	m_d3dIndexBufferView.BufferLocation = m_pd3dIndexBuffer->GetGPUVirtualAddress();
+	m_d3dIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
+	m_d3dIndexBufferView.SizeInBytes = sizeof(UINT) * m_nIndices;
+
+	// 바운딩 박스 계산
 	if (!positions.empty()) {
-		XMFLOAT3 vMin = positions[0];
-		XMFLOAT3 vMax = positions[0];
-
-		for (const auto& pos : positions) {
-			vMin.x = min(vMin.x, pos.x);
-			vMin.y = min(vMin.y, pos.y);
-			vMin.z = min(vMin.z, pos.z);
-
-			vMax.x = max(vMax.x, pos.x);
-			vMax.y = max(vMax.y, pos.y);
-			vMax.z = max(vMax.z, pos.z);
+		XMFLOAT3 minPos(FLT_MAX, FLT_MAX, FLT_MAX);
+		XMFLOAT3 maxPos(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+		for (const auto& v : positions) {
+			minPos.x = min(minPos.x, v.x); maxPos.x = max(maxPos.x, v.x);
+			minPos.y = min(minPos.y, v.y); maxPos.y = max(maxPos.y, v.y);
+			minPos.z = min(minPos.z, v.z); maxPos.z = max(maxPos.z, v.z);
 		}
-
-		// 중심 좌표 = (min + max) / 2
-		XMFLOAT3 center = {
-			(vMin.x + vMax.x) * 0.5f,
-			(vMin.y + vMax.y) * 0.5f,
-			(vMin.z + vMax.z) * 0.5f
-		};
-
-		// 반(半)크기 = (max - min) / 2
-		XMFLOAT3 extents = {
-			(vMax.x - vMin.x) * 0.5f,
-			(vMax.y - vMin.y) * 0.5f,
-			(vMax.z - vMin.z) * 0.5f
-		};
-
-		// 단위 회전 (Quaternion): 회전 없음
-		XMFLOAT4 orientation = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-		// 바운딩 OBB 초기화
-		m_xmBoundingBox = BoundingOrientedBox(center, extents, orientation);
+		XMFLOAT3 center = XMFLOAT3(
+			(minPos.x + maxPos.x) * 0.5f,
+			(minPos.y + maxPos.y) * 0.5f,
+			(minPos.z + maxPos.z) * 0.5f
+		);
+		XMFLOAT3 extents = XMFLOAT3(
+			(maxPos.x - minPos.x) * 0.5f,
+			(maxPos.y - minPos.y) * 0.5f,
+			(maxPos.z - minPos.z) * 0.5f
+		);
+		m_xmBoundingBox = BoundingOrientedBox(center, extents, XMFLOAT4(0, 0, 0, 1));
 	}
 }
 
