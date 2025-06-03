@@ -1,15 +1,11 @@
 #pragma once
-
-#include "stdafx.h"
 #include "Scene.h"
-#include "player.h"
 
-// Title Scene: 이름과 3D프로그래밍1 메쉬를 띄우는 씬
-class TitleScene : public CScene
+class MenuScene : public CScene
 {
 public:
-	TitleScene();
-	virtual ~TitleScene();
+	MenuScene();
+	virtual ~MenuScene();
 
 	virtual bool OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	virtual bool OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
@@ -27,7 +23,8 @@ public:
 	CGameObject* PickObjectPointedByCursor(int xClient, int yClient, CCamera* pCamera);
 private:
 	CPlayer* pPlayer = nullptr;
-	bool isExplosive = false; // 폭발 여부
 
 	std::vector<CGameObject*> objects;
+
 };
+

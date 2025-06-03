@@ -16,15 +16,6 @@ bool TitleScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM 
 	{
 		switch (wParam)
 		{
-		case 'A': // 'A' 키 눌렸을 때
-		{
-			auto a = reinterpret_cast<CExplosiveObject*>(objects.back());
-			if (!a->m_bBlowingUp)
-			{
-				a->StartExplosion(); // 폭발 시작
-			}
-			return true; // 메시지 처리됨
-		}
 		}
 	}
 	return false;
@@ -42,14 +33,10 @@ bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPa
 				if (!a->m_bBlowingUp)
 				{
 					a->StartExplosion(); // 폭발 시작
+					isExplosive = true;
 				}
 			}
 		}
-	case WM_LBUTTONUP:
-	case WM_RBUTTONUP:
-		//마우스 캡쳐를 해제한다. 
-		::ReleaseCapture();
-		break;
 	}
 	return false;
 }
@@ -100,6 +87,11 @@ ID3D12RootSignature* TitleScene::CreateGraphicsRootSignature(ID3D12Device* pd3dD
 
 void TitleScene::AnimateObjects(float fTimeElapsed)
 {
+	if (isExplosive && false == reinterpret_cast<CExplosiveObject*>(objects.back())->m_bBlowingUp) {
+		change = true;
+		idx = 1; // 폭발 후 씬 변경
+	}
+
 	if (pPlayer) pPlayer->Update(fTimeElapsed); // 플레이어(및 카메라) 업데이트
 	for (auto& obj : objects)
 	{

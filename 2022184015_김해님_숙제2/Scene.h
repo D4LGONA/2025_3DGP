@@ -33,11 +33,15 @@ public:
 public:
 	//씬의 모든 게임 객체들에 대한 마우스 픽킹을 수행한다.
 	virtual CGameObject* PickObjectPointedByCursor(int xClient, int yClient, CCamera* pCamera) = 0;
+	bool change = false; // 씬 변경 여부
+	int idx = 0; // 바꿀 씬 인덱스
 
 protected:
 	//배치(Batch) 처리를 하기 위하여 씬을 셰이더들의 리스트로 표현한다. 
 	// 벡터를 사용함
 	std::vector<CInstancingShader*> m_pShaders;
+
+	
 
 	ID3D12RootSignature* m_pd3dGraphicsRootSignature = NULL;
 	ID3D12PipelineState *m_pd3dPipelineState = NULL;

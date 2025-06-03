@@ -103,6 +103,7 @@ public: // 따라하기 6 추가
 	void MoveToNextFrame();
 	UINT64 m_nFenceValues[m_nSwapChainBuffers];
 	CScene* m_pScene;
+	std::vector<CScene*> m_pScenes;
 
 public:
 	//마지막으로 마우스 버튼을 클릭할 때의 마우스 커서의 위치이다. 

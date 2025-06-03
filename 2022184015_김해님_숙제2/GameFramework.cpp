@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "GameFramework.h"
+#include "MenuScene.h"
 
 CGameFramework::CGameFramework()
 {
@@ -98,36 +99,7 @@ void CGameFramework::CreateSwapChain()
 	::GetClientRect(m_hWnd, &rcClient);
 	m_nWndClientWidth = rcClient.right - rcClient.left;
 	m_nWndClientHeight = rcClient.bottom - rcClient.top;
-	//DXGI_SWAP_CHAIN_DESC1 dxgiSwapChainDesc;
-	//::ZeroMemory(&dxgiSwapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC1));
-	//dxgiSwapChainDesc.Width = m_nWndClientWidth;
-	//dxgiSwapChainDesc.Height = m_nWndClientHeight;
-	//dxgiSwapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	//dxgiSwapChainDesc.SampleDesc.Count = (m_bMsaa4xEnable) ? 4 : 1;
-	//dxgiSwapChainDesc.SampleDesc.Quality = (m_bMsaa4xEnable) ? (m_nMsaa4xQualityLevels -
-	//	1) : 0;
-	//dxgiSwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	//dxgiSwapChainDesc.BufferCount = m_nSwapChainBuffers;
-	//dxgiSwapChainDesc.Scaling = DXGI_SCALING_NONE;
-	//dxgiSwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-	//dxgiSwapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
-	//dxgiSwapChainDesc.Flags = 0;
-	//DXGI_SWAP_CHAIN_FULLSCREEN_DESC dxgiSwapChainFullScreenDesc;
-	//::ZeroMemory(&dxgiSwapChainFullScreenDesc, sizeof(DXGI_SWAP_CHAIN_FULLSCREEN_DESC));
-	//dxgiSwapChainFullScreenDesc.RefreshRate.Numerator = 60;
-	//dxgiSwapChainFullScreenDesc.RefreshRate.Denominator = 1;
-	//dxgiSwapChainFullScreenDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-	//dxgiSwapChainFullScreenDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-	//dxgiSwapChainFullScreenDesc.Windowed = TRUE;
-	//m_pdxgiFactory->CreateSwapChainForHwnd(m_pd3dCommandQueue, m_hWnd,
-	//	&dxgiSwapChainDesc, &dxgiSwapChainFullScreenDesc, NULL, (IDXGISwapChain1
-	//		**)&m_pdxgiSwapChain);
-	////스왑체인을 생성한다. 
-	//m_pdxgiFactory->MakeWindowAssociation(m_hWnd, DXGI_MWA_NO_ALT_ENTER);
-	////“Alt+Enter” 키의 동작을 비활성화한다. 
-	//m_nSwapChainBufferIndex = m_pdxgiSwapChain->GetCurrentBackBufferIndex();
-	////스왑체인의 현재 후면버퍼 인덱스를 저장한다. 
-
+	
 	DXGI_SWAP_CHAIN_DESC dxgiSwapChainDesc;
 	dxgiSwapChainDesc.BufferDesc.Width = m_nWndClientWidth;
 	::ZeroMemory(&dxgiSwapChainDesc, sizeof(dxgiSwapChainDesc));
@@ -313,8 +285,14 @@ void CGameFramework::CreateDepthStencilView()
 void CGameFramework::BuildObjects()
 {
 	m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
-	m_pScene = new TitleScene();
-	if (m_pScene) m_pScene->BuildObjects(m_pd3dDevice, m_pd3dCommandList);
+	m_pScenes.push_back(new TitleScene());
+	m_pScenes.push_back(new MenuScene());
+	m_pScene = m_pScenes[0];
+	for (auto& a : m_pScenes)
+	{
+		a->BuildObjects(m_pd3dDevice, m_pd3dCommandList);
+	}
+
 	m_pd3dCommandList->Close();
 
 	ID3D12CommandList* ppd3dCommandLists[] = { m_pd3dCommandList };
@@ -468,6 +446,11 @@ void CGameFramework::ProcessInput()
 
 void CGameFramework::AnimateObjects()
 {
+	if (m_pScene->change == true)
+	{
+		m_pScene->change = false;
+		m_pScene = m_pScenes[m_pScene->idx];
+	}
 	if (m_pScene) m_pScene->AnimateObjects(m_GameTimer.GetTimeElapsed());
 }
 
