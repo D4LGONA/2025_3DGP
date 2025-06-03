@@ -23,7 +23,7 @@ public:
 	// 프레임 업데이트
 	virtual bool ProcessInput(UCHAR* pKeysBuffer);
 	virtual void AnimateObjects(float fTimeElapsed);
-	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera) = 0;
+	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList) = 0;
 	virtual void ReleaseUploadBuffers();
 
 	// 루트 시그니처

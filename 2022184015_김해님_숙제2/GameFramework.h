@@ -56,10 +56,6 @@ private:
 	//펜스 인터페이스 포인터, 펜스의 값, 이벤트 핸들이다.
 
 public:
-	CCamera* m_pCamera = NULL;
-
-
-public:
 	CGameFramework();
 	~CGameFramework();
 	bool OnCreate(HINSTANCE hInstance, HWND hMainWnd);
@@ -79,6 +75,7 @@ public:
 	void BuildObjects();
 	void ReleaseObjects();
 	//렌더링할 메쉬와 게임 객체를 생성하고 소멸하는 함수이다. 
+	// 
     //프레임워크의 핵심(사용자 입력, 애니메이션, 렌더링)을 구성하는 함수이다. 
 
 	void ProcessInput();

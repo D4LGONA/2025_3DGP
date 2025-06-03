@@ -214,8 +214,15 @@ void CDiffusedShader::CreateShader(ID3D12Device* pd3dDevice, ID3D12RootSignature
 
 //-------------------------------------------------------------------
 
-CObjectsShader::CObjectsShader()
+// 구조: CObjectsShader를 이용해서 이 안에 게임오브젝트를 넣어줄 것.
+CObjectsShader::CObjectsShader(std::vector<CGameObject*> objs)
 {
+	m_nObjects = objs.size();
+	m_ppObjects = new CGameObject * [m_nObjects];
+	for (int i = 0; i < m_nObjects; i++)
+	{
+		m_ppObjects[i] = objs[i];
+	}
 }
 
 CObjectsShader::~CObjectsShader()
