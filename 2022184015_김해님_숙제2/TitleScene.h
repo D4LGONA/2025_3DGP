@@ -8,7 +8,7 @@
 class TitleScene : public CScene
 {
 public:
-	TitleScene();
+	TitleScene(CGameTimer* timer);
 	virtual ~TitleScene();
 
 	virtual bool OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);

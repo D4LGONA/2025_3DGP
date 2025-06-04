@@ -7,7 +7,7 @@
 class CScene
 {
 public:
-	CScene();
+	CScene(CGameTimer* timer);
 	~CScene() {};
 
 	//씬에서 마우스와 키보드 메시지를 처리
@@ -21,7 +21,8 @@ public:
 	virtual void ReleaseObjects() = 0;
 
 	// 프레임 업데이트
-	virtual bool ProcessInput(UCHAR* pKeysBuffer);
+
+	virtual void ProcessInput(const UCHAR* pKeyBuffer, float cxDelta, float cyDelta, float timeElapsed) {};
 	virtual void AnimateObjects(float fTimeElapsed);
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList) = 0;
 	virtual void ReleaseUploadBuffers();
@@ -41,7 +42,7 @@ protected:
 	// 벡터를 사용함
 	std::vector<CInstancingShader*> m_pShaders;
 
-	
+	CGameTimer* m_SceneTimer = NULL; // 게임 타이머
 
 	ID3D12RootSignature* m_pd3dGraphicsRootSignature = NULL;
 	ID3D12PipelineState *m_pd3dPipelineState = NULL;

@@ -59,7 +59,6 @@ public:
 	void SetMaxVelocityY(float fMaxVelocity) { m_fMaxVelocityY = fMaxVelocity; }
 	void SetVelocity(XMFLOAT3& xmf3Velocity) { m_xmf3Velocity = xmf3Velocity; }
 
-	/*플레이어의 위치를 xmf3Position 위치로 설정한다. xmf3Position 벡터에서 현재 플레이어의 위치 벡터를 빼면 현재 플레이어의 위치에서 xmf3Position 방향으로의 벡터가 된다. 현재 플레이어의 위치에서 이 벡터 만큼 이동한다.*/
 	void SetPosition(XMFLOAT3& xmf3Position) {
 		Move(XMFLOAT3(xmf3Position.x - m_xmf3Position.x, xmf3Position.y - m_xmf3Position.y, xmf3Position.z - m_xmf3Position.z), false);
 	}
@@ -94,15 +93,15 @@ public:
 
 	//카메라를 변경하기 위하여 호출하는 함수이다. 
 	CCamera *OnChangeCamera(DWORD nNewCameraMode, DWORD nCurrentCameraMode);
-	virtual CCamera* ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed) {
-		return(NULL);
-	}
 
 	//플레이어의 위치와 회전축으로부터 월드 변환 행렬을 생성하는 함수이다. 
 	virtual void OnPrepareRender();
 
 	//플레이어의 카메라가 3인칭 카메라일 때 플레이어(메쉬)를 렌더링한다. 
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera = NULL);
+	
+	// 카메라 인칭 변환
+	virtual CCamera* ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed);
 };
 
 //---------------------------------------------------------------
@@ -115,4 +114,18 @@ public:
 	virtual ~CAirplanePlayer();
 	virtual CCamera* ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed);
 	virtual void OnPrepareRender();
+};
+
+////---------------------------------------------------------------
+
+class CTankPlayer : public CPlayer
+{
+public:
+	CTankPlayer();
+	virtual ~CTankPlayer();
+
+	float m_fBulletEffectiveRange = 150.0f;
+	//CBulletObject* m_ppBullets[BULLETS];
+
+	void FireBullet(CGameObject* pLockedObject);
 };

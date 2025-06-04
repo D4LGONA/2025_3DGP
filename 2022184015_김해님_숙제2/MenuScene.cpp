@@ -2,7 +2,8 @@
 #include "MenuScene.h"
 #include "Player.h"
 
-MenuScene::MenuScene()
+MenuScene::MenuScene(CGameTimer* timer)
+	: CScene(timer)
 {
 }
 

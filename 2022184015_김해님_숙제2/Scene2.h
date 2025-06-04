@@ -1,11 +1,13 @@
 #pragma once
 #include "Scene.h"
 
-class MenuScene : public CScene
+// 탱크게임.
+// 일단 폭발 여러개 테스트부터 좀 해볼까 함
+class Scene2 : public CScene
 {
 public:
-	MenuScene(CGameTimer* timer);
-	virtual ~MenuScene();
+	Scene2(CGameTimer* timer);
+	virtual ~Scene2();
 
 	virtual bool OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	virtual bool OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
@@ -18,13 +20,17 @@ public:
 
 	virtual void AnimateObjects(float fTimeElapsed) override;
 
+	void ProcessInput(const UCHAR* pKeyBuffer, float cxDelta, float cyDelta, float timeElapsed) override;
+
 public:
 	//씬의 모든 게임 객체들에 대한 마우스 픽킹을 수행한다.
 	CGameObject* PickObjectPointedByCursor(int xClient, int yClient, CCamera* pCamera);
 private:
 	CPlayer* pPlayer = nullptr;
+	CGameObject* pBody = nullptr; // 탱크 객체
+
+	bool isExplosive = false; // 폭발 여부
 
 	std::vector<CGameObject*> objects;
-
 };
 

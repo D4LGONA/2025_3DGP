@@ -1,7 +1,8 @@
 #include "stdafx.h"
 #include "Scene.h"
 
-CScene::CScene()
+CScene::CScene(CGameTimer* timer)
+	: m_SceneTimer(timer)
 {
 }
 
@@ -169,7 +170,3 @@ bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 	return(false);
 }
 
-bool CScene::ProcessInput(UCHAR* pKeysBuffer)
-{
-	return false;
-}

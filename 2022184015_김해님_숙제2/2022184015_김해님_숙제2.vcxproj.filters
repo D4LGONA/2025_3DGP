@@ -63,6 +63,9 @@
     <ClInclude Include="MenuScene.h">
       <Filter>Scene</Filter>
     </ClInclude>
+    <ClInclude Include="Scene2.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="2022184015_김해님_숙제2.cpp">
@@ -99,6 +102,9 @@
       <Filter>Scene</Filter>
     </ClCompile>
     <ClCompile Include="MenuScene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene2.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
   </ItemGroup>
