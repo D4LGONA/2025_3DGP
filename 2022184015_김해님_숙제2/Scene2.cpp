@@ -20,6 +20,10 @@ bool Scene2::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 		{
 		case 'a':
 		case 'A':
+			AutoTarget = !AutoTarget;
+			break;
+		case 'w':
+		case 'W':
 			// 모든 expobj를 터트린다.
 			for (auto& obj : objects)
 			{
@@ -32,9 +36,13 @@ bool Scene2::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 			}
 			break;
 		case VK_CONTROL:
-
-			//m_pLockedObject = NULL;
+		{
+			auto pl = dynamic_cast<CTankPlayer*>(pPlayer);
+				// 플레이어가 선택한 오브젝트가 없으면 아무것도 안함.
+			pl->FireBullet(pickedObj);
+			pickedObj = nullptr;
 			break;
+		}
 		}
 	}
 	else if (nMessageID == WM_KEYUP)
@@ -58,11 +66,8 @@ bool Scene2::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam,
 {
 	switch (nMessageID)
 	{
-	case WM_LBUTTONDOWN:
 	case WM_RBUTTONDOWN:
-		if (nMessageID == WM_RBUTTONDOWN || nMessageID == WM_LBUTTONDOWN) {
-			// todo: 여기에 피킹 로직 추가
-		}
+		pickedObj = PickObjectPointedByCursor(LOWORD(lParam), HIWORD(lParam), pPlayer->GetCamera());
 	}
 	return false;
 }
@@ -83,7 +88,7 @@ void Scene2::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	auto mesh = new CObjMeshDiffused(pd3dDevice, pd3dCommandList, "head.obj", XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f));
 
 	// 플레이어 생성
-	pPlayer = new CPlayer();
+	pPlayer = new CTankPlayer(pd3dDevice, pd3dCommandList);
 
 	//플레이어를 위한 셰이더 변수를 생성한다. 
 	pPlayer->CreateShaderVariables(pd3dDevice, pd3dCommandList);
@@ -113,17 +118,22 @@ void Scene2::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	// 헤드메쉬 -> 회전 안했을때 카메라쪽 바라보고 있음.
 	// 오브젝트 빌드
 	for (int i = 0; i < 20; ++i) {
-		auto obj = new CExplosiveObject(); // Rotating Object로 만든 후에 피킹이 일어나면 Explosive Object로 변경.
+		auto obj = new CTankObject(); // Rotating Object로 만든 후에 피킹이 일어나면 Explosive Object로 변경.
 		obj->setExplosionMesh(new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, 1.0f, 1.0f, 1.0f));
 		obj->CreateShaderVariables(pd3dDevice, pd3dCommandList);
 		obj->SetExpShader(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
 		obj->SetShader(pShader);
-		obj->SetPosition(XMFLOAT3(0.0f, -0.0f, 10.0f));
-		obj->Rotate(0.0f, 0.0f, 0.0f); 
+		obj->SetPosition(XMFLOAT3(RandF(-5.0f, 5.0f), 0.0f, RandF(-5.0f, 5.0f) + 10.0f));
 		obj->SetMesh(mesh);
+		obj->SetBody(new CCubeMeshDiffused(pd3dDevice, pd3dCommandList));
 		objects.push_back(obj);
 	}
 
+	map = new CGameObject();
+	map->CreateShaderVariables(pd3dDevice, pd3dCommandList);
+	map->SetShader(pShader);
+	map->SetPosition(0.0f, 6.0f, 0.0f);
+	map->SetMesh(new CObjMeshDiffused(pd3dDevice, pd3dCommandList, "map.obj", XMFLOAT4(0.0f, 0.5f, 0.0f, 1.0f)));
 }
 
 void Scene2::ReleaseObjects()
@@ -141,6 +151,8 @@ void Scene2::Render(ID3D12GraphicsCommandList* pd3dCommandList)
 	pd3dCommandList->SetGraphicsRootSignature(m_pd3dGraphicsRootSignature);
 	pCamera->UpdateShaderVariables(pd3dCommandList);
 
+
+	map->Render(pd3dCommandList, pCamera); // 맵 렌더링
 
 	// 오브젝트 렌더링
 	for (auto& obj : objects)
@@ -169,12 +181,17 @@ ID3D12RootSignature* Scene2::CreateGraphicsRootSignature(ID3D12Device* pd3dDevic
 
 void Scene2::AnimateObjects(float fTimeElapsed)
 {
-	if (pPlayer) pPlayer->Update(fTimeElapsed); // 플레이어(및 카메라) 업데이트
+	auto pl = dynamic_cast<CTankPlayer*>(pPlayer);
+	if (pl) pl->Animate(fTimeElapsed); // 플레이어(및 카메라) 업데이트
+	if (pl) pl->Update(fTimeElapsed); // 플레이어(및 카메라) 업데이트
 	for (auto& obj : objects)
 	{
 		if (obj) obj->Animate(fTimeElapsed); // 각 오브젝트 업데이트
 	}
 	CScene::AnimateObjects(fTimeElapsed);       // 공통 셰이더 객체들 업데이트
+
+	// 충돌체크
+	CheckEnemyByBulletCollisions();
 }
 
 CGameObject* Scene2::PickObjectPointedByCursor(int xClient, int yClient, CCamera* pCamera)
@@ -192,8 +209,9 @@ CGameObject* Scene2::PickObjectPointedByCursor(int xClient, int yClient, CCamera
 	float fHitDistance = FLT_MAX, fNearestHitDistance = FLT_MAX;
 	CGameObject* pIntersectedObject = NULL, * pNearestObject = NULL;
 
-	for (auto& obj : objects)
+	for (auto& object : objects)
 	{
+		auto obj = dynamic_cast<CTankObject*>(object);
 		if (obj)
 		{
 			nIntersected = obj->PickObjectByRayIntersection(xmf3PickPosition, xmf4x4View, &fHitDistance);
@@ -230,5 +248,43 @@ void Scene2::ProcessInput(const UCHAR* pKeyBuffer, float cxDelta, float cyDelta,
 		if (dwDirection) pPlayer->Move(dwDirection, 500.0f * timeElapsed, true);
 		pPlayer->Update(timeElapsed);
 		pBody->SetPosition(pPlayer->GetPosition().x, pPlayer->GetPosition().y - 1.0f, pPlayer->GetPosition().z); // 플레이어 몸체 위치 업데이트
+		ClampPlayerBodyPosition();
 	}
+}
+
+
+void Scene2::CheckEnemyByBulletCollisions()
+{
+	CBulletObject** ppBullets = ((CTankPlayer*)pPlayer)->m_ppBullets;
+	for (int i = 0; i < objects.size(); i++)
+	{
+		for (int j = 0; j < BULLETS; j++)
+		{
+			if (ppBullets[j]->bActive && objects[i]->GetBoundingBox().Intersects(ppBullets[j]->GetBoundingBox()))
+			{
+				CExplosiveObject* pExplosiveObject = (CExplosiveObject*)objects[i];
+				if (pExplosiveObject->m_bBlowingUp == true) continue;
+				pExplosiveObject->StartExplosion();
+				ppBullets[j]->Reset();
+			}
+		}
+	}
+}
+
+void Scene2::ClampPlayerBodyPosition()
+{
+	if (!pBody || !pPlayer) return;
+
+	XMFLOAT3 bodyPos = pBody->GetPosition();
+
+	// XZ 경계 제한
+	bodyPos.x = std::clamp(bodyPos.x, -7.0f, 7.0f);
+
+	// 위치 보정
+	pBody->SetPosition(bodyPos);
+
+	// pPlayer도 같이 이동 (머리 위치 = 몸체 위치 + 1.0f)
+	pPlayer->SetPosition(XMFLOAT3(bodyPos.x, bodyPos.y + 1.0f, bodyPos.z));
+
+	map->SetPosition(0.0f, 6.0f, pPlayer->GetPosition().z);
 }

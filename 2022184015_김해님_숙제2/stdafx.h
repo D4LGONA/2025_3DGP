@@ -35,6 +35,7 @@
 #include <vector>
 #include <map>
 #include <tuple>
+#include <algorithm>
 
 
 using namespace DirectX;

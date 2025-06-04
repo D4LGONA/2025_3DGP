@@ -1,7 +1,9 @@
 #pragma once
 #include "Scene.h"
+#include "Player.h"
 
 // 탱크게임.
+
 // 일단 폭발 여러개 테스트부터 좀 해볼까 함
 class Scene2 : public CScene
 {
@@ -21,7 +23,8 @@ public:
 	virtual void AnimateObjects(float fTimeElapsed) override;
 
 	void ProcessInput(const UCHAR* pKeyBuffer, float cxDelta, float cyDelta, float timeElapsed) override;
-
+	void CheckEnemyByBulletCollisions();
+	void ClampPlayerBodyPosition();
 public:
 	//씬의 모든 게임 객체들에 대한 마우스 픽킹을 수행한다.
 	CGameObject* PickObjectPointedByCursor(int xClient, int yClient, CCamera* pCamera);
@@ -29,8 +32,11 @@ private:
 	CPlayer* pPlayer = nullptr;
 	CGameObject* pBody = nullptr; // 탱크 객체
 
-	bool isExplosive = false; // 폭발 여부
+	bool AutoTarget = false;
 
+	CGameObject* pickedObj = nullptr;
+
+	CGameObject* map = nullptr; 
 	std::vector<CGameObject*> objects;
 };
 

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "Player.h"
 #include "Shader.h"
 
@@ -44,7 +44,7 @@ void CPlayer::UpdateShaderVariables(ID3D12GraphicsCommandList* pd3dCommandList)
 	CGameObject::UpdateShaderVariables(pd3dCommandList);
 }
 
-// ´ë°¢¼± »¡¶óÁ®¼­ Á¤±ÔÈ­ÇØ¼­ °íÄ§
+// ëŒ€ê°ì„  ë¹¨ë¼ì ¸ì„œ ì •ê·œí™”í•´ì„œ ê³ ì¹¨
 void CPlayer::Move(DWORD dwDirection, float fDistance, bool bUpdateVelocity)
 {
 	if (dwDirection)
@@ -58,7 +58,7 @@ void CPlayer::Move(DWORD dwDirection, float fDistance, bool bUpdateVelocity)
 		if (dwDirection & DIR_UP)       xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, 1.0f);
 		if (dwDirection & DIR_DOWN)     xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, -1.0f);
 
-		// Á¤±ÔÈ­ ÈÄ °Å¸® ¹è
+		// ì •ê·œí™” í›„ ê±°ë¦¬ ë°°
 		xmf3Shift = Vector3::Normalize(xmf3Shift);
 		xmf3Shift = Vector3::ScalarProduct(xmf3Shift, fDistance, false);
 
@@ -68,31 +68,31 @@ void CPlayer::Move(DWORD dwDirection, float fDistance, bool bUpdateVelocity)
 
 void CPlayer::Move(const XMFLOAT3& xmf3Shift, bool bUpdateVelocity)
 {
-	//bUpdateVelocity°¡ ÂüÀÌ¸é ÇÃ·¹ÀÌ¾î¸¦ ÀÌµ¿ÇÏÁö ¾Ê°í ¼Óµµ º¤ÅÍ¸¦ º¯°æÇÑ´Ù. 
+	//bUpdateVelocityê°€ ì°¸ì´ë©´ í”Œë ˆì´ì–´ë¥¼ ì´ë™í•˜ì§€ ì•Šê³  ì†ë„ ë²¡í„°ë¥¼ ë³€ê²½í•œë‹¤. 
 	if (bUpdateVelocity)
 	{
-		//ÇÃ·¹ÀÌ¾îÀÇ ¼Óµµ º¤ÅÍ¸¦ xmf3Shift º¤ÅÍ¸¸Å­ º¯°æÇÑ´Ù. 
+		//í”Œë ˆì´ì–´ì˜ ì†ë„ ë²¡í„°ë¥¼ xmf3Shift ë²¡í„°ë§Œí¼ ë³€ê²½í•œë‹¤. 
 		m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, xmf3Shift);
 	}
 	else
 	{
-		//ÇÃ·¹ÀÌ¾î¸¦ ÇöÀç À§Ä¡ º¤ÅÍ¿¡¼­ xmf3Shift º¤ÅÍ¸¸Å­ ÀÌµ¿ÇÑ´Ù. 
+		//í”Œë ˆì´ì–´ë¥¼ í˜„ì¬ ìœ„ì¹˜ ë²¡í„°ì—ì„œ xmf3Shift ë²¡í„°ë§Œí¼ ì´ë™í•œë‹¤. 
 		m_xmf3Position = Vector3::Add(m_xmf3Position, xmf3Shift);
-		//ÇÃ·¹ÀÌ¾îÀÇ À§Ä¡°¡ º¯°æµÇ¾úÀ¸¹Ç·Î Ä«¸Ş¶óÀÇ À§Ä¡µµ xmf3Shift º¤ÅÍ¸¸Å­ ÀÌµ¿ÇÑ´Ù. 
+		//í”Œë ˆì´ì–´ì˜ ìœ„ì¹˜ê°€ ë³€ê²½ë˜ì—ˆìœ¼ë¯€ë¡œ ì¹´ë©”ë¼ì˜ ìœ„ì¹˜ë„ xmf3Shift ë²¡í„°ë§Œí¼ ì´ë™í•œë‹¤. 
 		if (m_pCamera) m_pCamera->Move(xmf3Shift);
 	}
 }
 
-//ÇÃ·¹ÀÌ¾î¸¦ ·ÎÄÃ x-Ãà, y-Ãà, z-ÃàÀ» Áß½ÉÀ¸·Î È¸ÀüÇÑ´Ù. 
+//í”Œë ˆì´ì–´ë¥¼ ë¡œì»¬ x-ì¶•, y-ì¶•, z-ì¶•ì„ ì¤‘ì‹¬ìœ¼ë¡œ íšŒì „í•œë‹¤. 
 void CPlayer::Rotate(float x, float y, float z)
 {
 	DWORD nCameraMode = m_pCamera->GetMode();
-	//1ÀÎÄª Ä«¸Ş¶ó ¶Ç´Â 3ÀÎÄª Ä«¸Ş¶óÀÇ °æ¿ì ÇÃ·¹ÀÌ¾îÀÇ È¸ÀüÀº ¾à°£ÀÇ Á¦¾àÀÌ µû¸¥´Ù. 
+	//1ì¸ì¹­ ì¹´ë©”ë¼ ë˜ëŠ” 3ì¸ì¹­ ì¹´ë©”ë¼ì˜ ê²½ìš° í”Œë ˆì´ì–´ì˜ íšŒì „ì€ ì•½ê°„ì˜ ì œì•½ì´ ë”°ë¥¸ë‹¤. 
 	if ((nCameraMode == FIRST_PERSON_CAMERA) || (nCameraMode == THIRD_PERSON_CAMERA))
 	{
-		/*·ÎÄÃ x-ÃàÀ» Áß½ÉÀ¸·Î È¸ÀüÇÏ´Â °ÍÀº °í°³¸¦ ¾ÕµÚ·Î ¼÷ÀÌ´Â µ¿ÀÛ¿¡ ÇØ´çÇÑ´Ù. ±×·¯¹Ç·Î x-ÃàÀ» Áß½ÉÀ¸·Î È¸ÀüÇÏ´Â
-		°¢µµ´Â -89.0~+89.0µµ »çÀÌ·Î Á¦ÇÑÇÑ´Ù. x´Â ÇöÀçÀÇ m_fPitch¿¡¼­ ½ÇÁ¦ È¸ÀüÇÏ´Â °¢µµÀÌ¹Ç·Î x¸¸Å­ È¸ÀüÇÑ ´ÙÀ½
-		Pitch°¡ +89µµ º¸´Ù Å©°Å³ª -89µµ º¸´Ù ÀÛÀ¸¸é m_fPitch°¡ +89µµ ¶Ç´Â -89µµ°¡ µÇµµ·Ï È¸Àü°¢µµ(x)¸¦ ¼öÁ¤ÇÑ´Ù.*/
+		/*ë¡œì»¬ x-ì¶•ì„ ì¤‘ì‹¬ìœ¼ë¡œ íšŒì „í•˜ëŠ” ê²ƒì€ ê³ ê°œë¥¼ ì•ë’¤ë¡œ ìˆ™ì´ëŠ” ë™ì‘ì— í•´ë‹¹í•œë‹¤. ê·¸ëŸ¬ë¯€ë¡œ x-ì¶•ì„ ì¤‘ì‹¬ìœ¼ë¡œ íšŒì „í•˜ëŠ”
+		ê°ë„ëŠ” -89.0~+89.0ë„ ì‚¬ì´ë¡œ ì œí•œí•œë‹¤. xëŠ” í˜„ì¬ì˜ m_fPitchì—ì„œ ì‹¤ì œ íšŒì „í•˜ëŠ” ê°ë„ì´ë¯€ë¡œ xë§Œí¼ íšŒì „í•œ ë‹¤ìŒ
+		Pitchê°€ +89ë„ ë³´ë‹¤ í¬ê±°ë‚˜ -89ë„ ë³´ë‹¤ ì‘ìœ¼ë©´ m_fPitchê°€ +89ë„ ë˜ëŠ” -89ë„ê°€ ë˜ë„ë¡ íšŒì „ê°ë„(x)ë¥¼ ìˆ˜ì •í•œë‹¤.*/
 		if (x != 0.0f)
 		{
 			m_fPitch += x;
@@ -101,26 +101,26 @@ void CPlayer::Rotate(float x, float y, float z)
 		}
 		if (y != 0.0f)
 		{
-			//·ÎÄÃ y-ÃàÀ» Áß½ÉÀ¸·Î È¸ÀüÇÏ´Â °ÍÀº ¸öÅëÀ» µ¹¸®´Â °ÍÀÌ¹Ç·Î È¸Àü °¢µµÀÇ Á¦ÇÑÀÌ ¾ø´Ù. 
+			//ë¡œì»¬ y-ì¶•ì„ ì¤‘ì‹¬ìœ¼ë¡œ íšŒì „í•˜ëŠ” ê²ƒì€ ëª¸í†µì„ ëŒë¦¬ëŠ” ê²ƒì´ë¯€ë¡œ íšŒì „ ê°ë„ì˜ ì œí•œì´ ì—†ë‹¤. 
 			m_fYaw += y;
 			if (m_fYaw > 360.0f) m_fYaw -= 360.0f;
 			if (m_fYaw < 0.0f) m_fYaw += 360.0f;
 		}
 		if (z != 0.0f)
 		{
-			/*·ÎÄÃ z-ÃàÀ» Áß½ÉÀ¸·Î È¸ÀüÇÏ´Â °ÍÀº ¸öÅëÀ» ÁÂ¿ì·Î ±â¿ïÀÌ´Â °ÍÀÌ¹Ç·Î È¸Àü °¢µµ´Â -20.0~+20.0µµ »çÀÌ·Î Á¦ÇÑµÈ´Ù. 
-			z´Â ÇöÀçÀÇ m_fRoll¿¡¼­ ½ÇÁ¦ È¸ÀüÇÏ´Â °¢µµÀÌ¹Ç·Î z¸¸Å­ È¸ÀüÇÑ ´ÙÀ½ m_fRollÀÌ +20µµ º¸´Ù Å©°Å³ª -20µµº¸´Ù
-			ÀÛÀ¸¸é m_fRollÀÌ +20µµ ¶Ç´Â -20µµ°¡ µÇµµ·Ï È¸Àü°¢µµ(z)¸¦ ¼öÁ¤ÇÑ´Ù.*/
+			/*ë¡œì»¬ z-ì¶•ì„ ì¤‘ì‹¬ìœ¼ë¡œ íšŒì „í•˜ëŠ” ê²ƒì€ ëª¸í†µì„ ì¢Œìš°ë¡œ ê¸°ìš¸ì´ëŠ” ê²ƒì´ë¯€ë¡œ íšŒì „ ê°ë„ëŠ” -20.0~+20.0ë„ ì‚¬ì´ë¡œ ì œí•œëœë‹¤. 
+			zëŠ” í˜„ì¬ì˜ m_fRollì—ì„œ ì‹¤ì œ íšŒì „í•˜ëŠ” ê°ë„ì´ë¯€ë¡œ zë§Œí¼ íšŒì „í•œ ë‹¤ìŒ m_fRollì´ +20ë„ ë³´ë‹¤ í¬ê±°ë‚˜ -20ë„ë³´ë‹¤
+			ì‘ìœ¼ë©´ m_fRollì´ +20ë„ ë˜ëŠ” -20ë„ê°€ ë˜ë„ë¡ íšŒì „ê°ë„(z)ë¥¼ ìˆ˜ì •í•œë‹¤.*/
 			m_fRoll += z;
 			if (m_fRoll > +20.0f) { z -= (m_fRoll - 20.0f); m_fRoll = +20.0f; }
 			if (m_fRoll < -20.0f) { z -= (m_fRoll + 20.0f); m_fRoll = -20.0f; }
 		}
 
-		//Ä«¸Ş¶ó¸¦ x, y, z ¸¸Å­ È¸ÀüÇÑ´Ù. ÇÃ·¹ÀÌ¾î¸¦ È¸ÀüÇÏ¸é Ä«¸Ş¶ó°¡ È¸ÀüÇÏ°Ô µÈ´Ù. 
+		//ì¹´ë©”ë¼ë¥¼ x, y, z ë§Œí¼ íšŒì „í•œë‹¤. í”Œë ˆì´ì–´ë¥¼ íšŒì „í•˜ë©´ ì¹´ë©”ë¼ê°€ íšŒì „í•˜ê²Œ ëœë‹¤. 
 		m_pCamera->Rotate(x, y, z);
-		/*ÇÃ·¹ÀÌ¾î¸¦ È¸ÀüÇÑ´Ù. 1ÀÎÄª Ä«¸Ş¶ó ¶Ç´Â 3ÀÎÄª Ä«¸Ş¶ó¿¡¼­ ÇÃ·¹ÀÌ¾îÀÇ È¸ÀüÀº ·ÎÄÃ y-Ãà¿¡¼­¸¸ ÀÏ¾î³­´Ù. 
-		ÇÃ·¹ÀÌ¾îÀÇ ·ÎÄÃ y-Ãà(Up º¤ÅÍ)À» ±âÁØÀ¸·Î ·ÎÄÃ z-Ãà(Look º¤ÅÍ)¿Í ·ÎÄÃ x-Ãà(Right º¤ÅÍ)À» È¸Àü½ÃÅ²´Ù. 
-		±âº»ÀûÀ¸·Î Up º¤ÅÍ¸¦ ±âÁØÀ¸·Î È¸ÀüÇÏ´Â °ÍÀº ÇÃ·¹ÀÌ¾î°¡ ¶È¹Ù·Î ¼­ÀÖ´Â °ÍÀ» °¡Á¤ÇÑ´Ù´Â ÀÇ¹ÌÀÌ´Ù.*/
+		/*í”Œë ˆì´ì–´ë¥¼ íšŒì „í•œë‹¤. 1ì¸ì¹­ ì¹´ë©”ë¼ ë˜ëŠ” 3ì¸ì¹­ ì¹´ë©”ë¼ì—ì„œ í”Œë ˆì´ì–´ì˜ íšŒì „ì€ ë¡œì»¬ y-ì¶•ì—ì„œë§Œ ì¼ì–´ë‚œë‹¤. 
+		í”Œë ˆì´ì–´ì˜ ë¡œì»¬ y-ì¶•(Up ë²¡í„°)ì„ ê¸°ì¤€ìœ¼ë¡œ ë¡œì»¬ z-ì¶•(Look ë²¡í„°)ì™€ ë¡œì»¬ x-ì¶•(Right ë²¡í„°)ì„ íšŒì „ì‹œí‚¨ë‹¤. 
+		ê¸°ë³¸ì ìœ¼ë¡œ Up ë²¡í„°ë¥¼ ê¸°ì¤€ìœ¼ë¡œ íšŒì „í•˜ëŠ” ê²ƒì€ í”Œë ˆì´ì–´ê°€ ë˜‘ë°”ë¡œ ì„œìˆëŠ” ê²ƒì„ ê°€ì •í•œë‹¤ëŠ” ì˜ë¯¸ì´ë‹¤.*/
 		if (y != 0.0f)
 		{
 			XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Up), XMConvertToRadians(y));
@@ -130,7 +130,7 @@ void CPlayer::Rotate(float x, float y, float z)
 	}
 	else if (nCameraMode == SPACESHIP_CAMERA)
 	{
-		/*½ºÆäÀÌ½º-½± Ä«¸Ş¶ó¿¡¼­ ÇÃ·¹ÀÌ¾îÀÇ È¸ÀüÀº È¸Àü °¢µµÀÇ Á¦ÇÑÀÌ ¾ø´Ù. ±×¸®°í ¸ğµç ÃàÀ» Áß½ÉÀ¸·Î È¸ÀüÀ» ÇÒ ¼ö ÀÖ´Ù.*/
+		/*ìŠ¤í˜ì´ìŠ¤-ì‰½ ì¹´ë©”ë¼ì—ì„œ í”Œë ˆì´ì–´ì˜ íšŒì „ì€ íšŒì „ ê°ë„ì˜ ì œí•œì´ ì—†ë‹¤. ê·¸ë¦¬ê³  ëª¨ë“  ì¶•ì„ ì¤‘ì‹¬ìœ¼ë¡œ íšŒì „ì„ í•  ìˆ˜ ìˆë‹¤.*/
 		m_pCamera->Rotate(x, y, z);
 		if (x != 0.0f)
 		{
@@ -154,23 +154,23 @@ void CPlayer::Rotate(float x, float y, float z)
 			m_xmf3Right = Vector3::TransformNormal(m_xmf3Right, xmmtxRotate);
 		}
 		
-		/*È¸ÀüÀ¸·Î ÀÎÇØ ÇÃ·¹ÀÌ¾îÀÇ ·ÎÄÃ x-Ãà, y-Ãà, z-ÃàÀÌ ¼­·Î Á÷±³ÇÏÁö ¾ÊÀ» ¼ö ÀÖÀ¸¹Ç·Î z-Ãà(Look º¤ÅÍ)À» ±âÁØÀ¸·Î
-		ÇÏ¿© ¼­·Î Á÷±³ÇÏ°í ´ÜÀ§º¤ÅÍ°¡ µÇµµ·Ï ÇÑ´Ù.*/
+		/*íšŒì „ìœ¼ë¡œ ì¸í•´ í”Œë ˆì´ì–´ì˜ ë¡œì»¬ x-ì¶•, y-ì¶•, z-ì¶•ì´ ì„œë¡œ ì§êµí•˜ì§€ ì•Šì„ ìˆ˜ ìˆìœ¼ë¯€ë¡œ z-ì¶•(Look ë²¡í„°)ì„ ê¸°ì¤€ìœ¼ë¡œ
+		í•˜ì—¬ ì„œë¡œ ì§êµí•˜ê³  ë‹¨ìœ„ë²¡í„°ê°€ ë˜ë„ë¡ í•œë‹¤.*/
 		m_xmf3Look = Vector3::Normalize(m_xmf3Look);
 		m_xmf3Right = Vector3::CrossProduct(m_xmf3Up, m_xmf3Look, true);
 		m_xmf3Up = Vector3::CrossProduct(m_xmf3Look, m_xmf3Right, true);
 	}
 }
 
-//ÀÌ ÇÔ¼ö´Â ¸Å ÇÁ·¹ÀÓ¸¶´Ù È£ÃâµÈ´Ù. ÇÃ·¹ÀÌ¾îÀÇ ¼Óµµ º¤ÅÍ¿¡ Áß·Â°ú ¸¶Âû·Â µîÀ» Àû¿ëÇÑ´Ù. 
+//ì´ í•¨ìˆ˜ëŠ” ë§¤ í”„ë ˆì„ë§ˆë‹¤ í˜¸ì¶œëœë‹¤. í”Œë ˆì´ì–´ì˜ ì†ë„ ë²¡í„°ì— ì¤‘ë ¥ê³¼ ë§ˆì°°ë ¥ ë“±ì„ ì ìš©í•œë‹¤. 
 void CPlayer::Update(float fTimeElapsed)
 {
-	/*ÇÃ·¹ÀÌ¾îÀÇ ¼Óµµ º¤ÅÍ¸¦ Áß·Â º¤ÅÍ¿Í ´õÇÑ´Ù. Áß·Â º¤ÅÍ¿¡ 
-	fTimeElapsed¸¦ °öÇÏ´Â °ÍÀº Áß·ÂÀ» ½Ã°£¿¡ ºñ·ÊÇÏµµ·Ï Àû¿ëÇÑ´Ù´Â ÀÇ¹ÌÀÌ´Ù.*/
+	/*í”Œë ˆì´ì–´ì˜ ì†ë„ ë²¡í„°ë¥¼ ì¤‘ë ¥ ë²¡í„°ì™€ ë”í•œë‹¤. ì¤‘ë ¥ ë²¡í„°ì— 
+	fTimeElapsedë¥¼ ê³±í•˜ëŠ” ê²ƒì€ ì¤‘ë ¥ì„ ì‹œê°„ì— ë¹„ë¡€í•˜ë„ë¡ ì ìš©í•œë‹¤ëŠ” ì˜ë¯¸ì´ë‹¤.*/
 	m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, Vector3::ScalarProduct(m_xmf3Gravity, fTimeElapsed, false));
 
-	/*ÇÃ·¹ÀÌ¾îÀÇ ¼Óµµ º¤ÅÍÀÇ XZ-¼ººĞÀÇ Å©±â¸¦ ±¸ÇÑ´Ù. ÀÌ°ÍÀÌ XZ-Æò¸éÀÇ 
-	ÃÖ´ë ¼Ó·Âº¸´Ù Å©¸é ¼Óµµ º¤ÅÍÀÇ x¿Í z-¹æÇâ ¼ººĞÀ» Á¶Á¤ÇÑ´Ù.*/
+	/*í”Œë ˆì´ì–´ì˜ ì†ë„ ë²¡í„°ì˜ XZ-ì„±ë¶„ì˜ í¬ê¸°ë¥¼ êµ¬í•œë‹¤. ì´ê²ƒì´ XZ-í‰ë©´ì˜ 
+	ìµœëŒ€ ì†ë ¥ë³´ë‹¤ í¬ë©´ ì†ë„ ë²¡í„°ì˜ xì™€ z-ë°©í–¥ ì„±ë¶„ì„ ì¡°ì •í•œë‹¤.*/
 	float fLength = sqrtf(m_xmf3Velocity.x * m_xmf3Velocity.x + m_xmf3Velocity.z * m_xmf3Velocity.z);
 	float fMaxVelocityXZ = m_fMaxVelocityXZ * fTimeElapsed;
 	if (fLength > m_fMaxVelocityXZ)
@@ -179,43 +179,43 @@ void CPlayer::Update(float fTimeElapsed)
 		m_xmf3Velocity.z *= (fMaxVelocityXZ / fLength);
 	}
 
-	/*ÇÃ·¹ÀÌ¾îÀÇ ¼Óµµ º¤ÅÍÀÇ y-¼ººĞÀÇ Å©±â¸¦ ±¸ÇÑ´Ù. ÀÌ°ÍÀÌ y-Ãà ¹æÇâÀÇ ÃÖ´ë ¼Ó·Âº¸´Ù Å©¸é 
-	¼Óµµ º¤ÅÍÀÇ y-¹æÇâ ¼ººĞÀ» Á¶Á¤ÇÑ´Ù.*/
+	/*í”Œë ˆì´ì–´ì˜ ì†ë„ ë²¡í„°ì˜ y-ì„±ë¶„ì˜ í¬ê¸°ë¥¼ êµ¬í•œë‹¤. ì´ê²ƒì´ y-ì¶• ë°©í–¥ì˜ ìµœëŒ€ ì†ë ¥ë³´ë‹¤ í¬ë©´ 
+	ì†ë„ ë²¡í„°ì˜ y-ë°©í–¥ ì„±ë¶„ì„ ì¡°ì •í•œë‹¤.*/
 	float fMaxVelocityY = m_fMaxVelocityY * fTimeElapsed;
 	fLength = sqrtf(m_xmf3Velocity.y * m_xmf3Velocity.y);
 	if (fLength > m_fMaxVelocityY) m_xmf3Velocity.y *= (fMaxVelocityY / fLength);
 
-	//ÇÃ·¹ÀÌ¾î¸¦ ¼Óµµ º¤ÅÍ ¸¸Å­ ½ÇÁ¦·Î ÀÌµ¿ÇÑ´Ù(Ä«¸Ş¶óµµ ÀÌµ¿µÉ °ÍÀÌ´Ù).
+	//í”Œë ˆì´ì–´ë¥¼ ì†ë„ ë²¡í„° ë§Œí¼ ì‹¤ì œë¡œ ì´ë™í•œë‹¤(ì¹´ë©”ë¼ë„ ì´ë™ë  ê²ƒì´ë‹¤).
 	XMFLOAT3 xmf3Velocity = Vector3::ScalarProduct(m_xmf3Velocity, fTimeElapsed, false);
 	Move(xmf3Velocity, false);
 
-	/*ÇÃ·¹ÀÌ¾îÀÇ À§Ä¡°¡ º¯°æµÉ ¶§ Ãß°¡·Î ¼öÇàÇÒ ÀÛ¾÷À» ¼öÇàÇÑ´Ù. ÇÃ·¹ÀÌ¾îÀÇ »õ·Î¿î À§Ä¡°¡ À¯È¿ÇÑ À§Ä¡°¡ ¾Æ´Ò ¼öµµ
-	ÀÖ°í ¶Ç´Â ÇÃ·¹ÀÌ¾îÀÇ Ãæµ¹ °Ë»ç µîÀ» ¼öÇàÇÒ ÇÊ¿ä°¡ ÀÖ´Ù. ÀÌ·¯ÇÑ »óÈ²¿¡¼­ ÇÃ·¹ÀÌ¾îÀÇ À§Ä¡¸¦ À¯È¿ÇÑ À§Ä¡·Î ´Ù½Ã
-	º¯°æÇÒ ¼ö ÀÖ´Ù.*/
+	/*í”Œë ˆì´ì–´ì˜ ìœ„ì¹˜ê°€ ë³€ê²½ë  ë•Œ ì¶”ê°€ë¡œ ìˆ˜í–‰í•  ì‘ì—…ì„ ìˆ˜í–‰í•œë‹¤. í”Œë ˆì´ì–´ì˜ ìƒˆë¡œìš´ ìœ„ì¹˜ê°€ ìœ íš¨í•œ ìœ„ì¹˜ê°€ ì•„ë‹ ìˆ˜ë„
+	ìˆê³  ë˜ëŠ” í”Œë ˆì´ì–´ì˜ ì¶©ëŒ ê²€ì‚¬ ë“±ì„ ìˆ˜í–‰í•  í•„ìš”ê°€ ìˆë‹¤. ì´ëŸ¬í•œ ìƒí™©ì—ì„œ í”Œë ˆì´ì–´ì˜ ìœ„ì¹˜ë¥¼ ìœ íš¨í•œ ìœ„ì¹˜ë¡œ ë‹¤ì‹œ
+	ë³€ê²½í•  ìˆ˜ ìˆë‹¤.*/
 	if (m_pPlayerUpdatedContext) OnPlayerUpdateCallback(fTimeElapsed);
 	DWORD nCameraMode = m_pCamera->GetMode();
-	//ÇÃ·¹ÀÌ¾îÀÇ À§Ä¡°¡ º¯°æµÇ¾úÀ¸¹Ç·Î 3ÀÎÄª Ä«¸Ş¶ó¸¦ °»½ÅÇÑ´Ù. 
+	//í”Œë ˆì´ì–´ì˜ ìœ„ì¹˜ê°€ ë³€ê²½ë˜ì—ˆìœ¼ë¯€ë¡œ 3ì¸ì¹­ ì¹´ë©”ë¼ë¥¼ ê°±ì‹ í•œë‹¤. 
 	if (nCameraMode == THIRD_PERSON_CAMERA) m_pCamera->Update(m_xmf3Position, fTimeElapsed);
-	//Ä«¸Ş¶óÀÇ À§Ä¡°¡ º¯°æµÉ ¶§ Ãß°¡·Î ¼öÇàÇÒ ÀÛ¾÷À» ¼öÇàÇÑ´Ù. 
+	//ì¹´ë©”ë¼ì˜ ìœ„ì¹˜ê°€ ë³€ê²½ë  ë•Œ ì¶”ê°€ë¡œ ìˆ˜í–‰í•  ì‘ì—…ì„ ìˆ˜í–‰í•œë‹¤. 
 	if (m_pCameraUpdatedContext) OnCameraUpdateCallback(fTimeElapsed);
-	//Ä«¸Ş¶ó°¡ 3ÀÎÄª Ä«¸Ş¶óÀÌ¸é Ä«¸Ş¶ó°¡ º¯°æµÈ ÇÃ·¹ÀÌ¾î À§Ä¡¸¦ ¹Ù¶óº¸µµ·Ï ÇÑ´Ù. 
+	//ì¹´ë©”ë¼ê°€ 3ì¸ì¹­ ì¹´ë©”ë¼ì´ë©´ ì¹´ë©”ë¼ê°€ ë³€ê²½ëœ í”Œë ˆì´ì–´ ìœ„ì¹˜ë¥¼ ë°”ë¼ë³´ë„ë¡ í•œë‹¤. 
 	if (nCameraMode == THIRD_PERSON_CAMERA) m_pCamera->SetLookAt(m_xmf3Position);
-	//Ä«¸Ş¶óÀÇ Ä«¸Ş¶ó º¯È¯ Çà·ÄÀ» ´Ù½Ã »ı¼ºÇÑ´Ù.
+	//ì¹´ë©”ë¼ì˜ ì¹´ë©”ë¼ ë³€í™˜ í–‰ë ¬ì„ ë‹¤ì‹œ ìƒì„±í•œë‹¤.
 	m_pCamera->RegenerateViewMatrix();
 
-	/*ÇÃ·¹ÀÌ¾îÀÇ ¼Óµµ º¤ÅÍ°¡ ¸¶Âû·Â ¶§¹®¿¡ °¨¼ÓÀÌ µÇ¾î¾ß ÇÑ´Ù¸é °¨¼Ó º¤ÅÍ¸¦ »ı¼ºÇÑ´Ù. ¼Óµµ º¤ÅÍÀÇ ¹İ´ë ¹æÇâ º¤ÅÍ¸¦
-	±¸ÇÏ°í ´ÜÀ§ º¤ÅÍ·Î ¸¸µç´Ù. ¸¶Âû °è¼ö¸¦ ½Ã°£¿¡ ºñ·ÊÇÏµµ·Ï ÇÏ¿© ¸¶Âû·ÂÀ» ±¸ÇÑ´Ù. ´ÜÀ§ º¤ÅÍ¿¡ ¸¶Âû·ÂÀ» °öÇÏ¿© °¨¼Ó º¤ÅÍ¸¦ ±¸ÇÑ´Ù. 
-	¼Óµµ º¤ÅÍ¿¡ °¨¼Ó º¤ÅÍ¸¦ ´õÇÏ¿© ¼Óµµ º¤ÅÍ¸¦ ÁÙÀÎ´Ù. ¸¶Âû·ÂÀÌ ¼Ó·Âº¸´Ù Å©¸é ¼Ó·ÂÀº 0ÀÌ µÉ °ÍÀÌ´Ù.*/
+	/*í”Œë ˆì´ì–´ì˜ ì†ë„ ë²¡í„°ê°€ ë§ˆì°°ë ¥ ë•Œë¬¸ì— ê°ì†ì´ ë˜ì–´ì•¼ í•œë‹¤ë©´ ê°ì† ë²¡í„°ë¥¼ ìƒì„±í•œë‹¤. ì†ë„ ë²¡í„°ì˜ ë°˜ëŒ€ ë°©í–¥ ë²¡í„°ë¥¼
+	êµ¬í•˜ê³  ë‹¨ìœ„ ë²¡í„°ë¡œ ë§Œë“ ë‹¤. ë§ˆì°° ê³„ìˆ˜ë¥¼ ì‹œê°„ì— ë¹„ë¡€í•˜ë„ë¡ í•˜ì—¬ ë§ˆì°°ë ¥ì„ êµ¬í•œë‹¤. ë‹¨ìœ„ ë²¡í„°ì— ë§ˆì°°ë ¥ì„ ê³±í•˜ì—¬ ê°ì† ë²¡í„°ë¥¼ êµ¬í•œë‹¤. 
+	ì†ë„ ë²¡í„°ì— ê°ì† ë²¡í„°ë¥¼ ë”í•˜ì—¬ ì†ë„ ë²¡í„°ë¥¼ ì¤„ì¸ë‹¤. ë§ˆì°°ë ¥ì´ ì†ë ¥ë³´ë‹¤ í¬ë©´ ì†ë ¥ì€ 0ì´ ë  ê²ƒì´ë‹¤.*/
 	fLength = Vector3::Length(m_xmf3Velocity);
 	float fDeceleration = (m_fFriction * fTimeElapsed);
 	if (fDeceleration > fLength) fDeceleration = fLength;
 	m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, Vector3::ScalarProduct(m_xmf3Velocity, -fDeceleration, true));
 }
 
-/*Ä«¸Ş¶ó¸¦ º¯°æÇÒ ¶§ ChangeCamera() ÇÔ¼ö¿¡¼­ È£ÃâµÇ´Â ÇÔ¼öÀÌ´Ù. nCurrentCameraMode´Â ÇöÀç Ä«¸Ş¶óÀÇ ¸ğµåÀÌ°í nNewCameraMode´Â »õ·Î ¼³Á¤ÇÒ Ä«¸Ş¶ó ¸ğµåÀÌ´Ù.*/
+/*ì¹´ë©”ë¼ë¥¼ ë³€ê²½í•  ë•Œ ChangeCamera() í•¨ìˆ˜ì—ì„œ í˜¸ì¶œë˜ëŠ” í•¨ìˆ˜ì´ë‹¤. nCurrentCameraModeëŠ” í˜„ì¬ ì¹´ë©”ë¼ì˜ ëª¨ë“œì´ê³  nNewCameraModeëŠ” ìƒˆë¡œ ì„¤ì •í•  ì¹´ë©”ë¼ ëª¨ë“œì´ë‹¤.*/
 CCamera* CPlayer::OnChangeCamera(DWORD nNewCameraMode, DWORD nCurrentCameraMode)
 {
-	//»õ·Î¿î Ä«¸Ş¶óÀÇ ¸ğµå¿¡ µû¶ó Ä«¸Ş¶ó¸¦ »õ·Î »ı¼ºÇÑ´Ù. 
+	//ìƒˆë¡œìš´ ì¹´ë©”ë¼ì˜ ëª¨ë“œì— ë”°ë¼ ì¹´ë©”ë¼ë¥¼ ìƒˆë¡œ ìƒì„±í•œë‹¤. 
 	CCamera *pNewCamera = NULL;
 	switch (nNewCameraMode)
 	{
@@ -230,11 +230,11 @@ CCamera* CPlayer::OnChangeCamera(DWORD nNewCameraMode, DWORD nCurrentCameraMode)
 		break;
 	}
 
-	/*ÇöÀç Ä«¸Ş¶óÀÇ ¸ğµå°¡ ½ºÆäÀÌ½º-½± ¸ğµåÀÇ Ä«¸Ş¶óÀÌ°í »õ·Î¿î Ä«¸Ş¶ó°¡ 1ÀÎÄª ¶Ç´Â 3ÀÎÄª Ä«¸Ş¶óÀÌ¸é ÇÃ·¹ÀÌ¾îÀÇ
-	Up º¤ÅÍ¸¦ ¿ùµåÁÂÇ¥°èÀÇ y-Ãà ¹æÇâ º¤ÅÍ(0, 1, 0)ÀÌ µÇµµ·Ï ÇÑ´Ù. Áï, ¶È¹Ù·Î ¼­µµ·Ï ÇÑ´Ù. ±×¸®°í ½ºÆäÀÌ½º-½± Ä«¸Ş¶óÀÇ °æ¿ì ÇÃ·¹ÀÌ¾îÀÇ ÀÌµ¿¿¡´Â Á¦¾àÀÌ ¾ø´Ù. 
-	Æ¯È÷, y-Ãà ¹æÇâÀÇ ¿òÁ÷ÀÓÀÌ ÀÚÀ¯·Ó´Ù. ±×·¯¹Ç·Î ÇÃ·¹ÀÌ¾îÀÇ À§Ä¡´Â °øÁß(À§Ä¡ º¤ÅÍÀÇ y-ÁÂÇ¥°¡ 0º¸´Ù Å©´Ù)ÀÌ µÉ ¼ö ÀÖ´Ù. ÀÌ¶§ »õ·Î¿î Ä«¸Ş¶ó°¡ 1ÀÎÄª ¶Ç´Â 3ÀÎÄª Ä«¸Ş¶óÀÌ¸é ÇÃ·¹ÀÌ¾îÀÇ
-	À§Ä¡´Â Áö¸éÀÌ µÇ¾î¾ß ÇÑ´Ù. ±×·¯¹Ç·Î ÇÃ·¹ÀÌ¾îÀÇ Right º¤ÅÍ¿Í Look º¤ÅÍÀÇ y °ªÀ» 0À¸·Î ¸¸µç´Ù. 
-	ÀÌÁ¦ ÇÃ·¹ÀÌ¾îÀÇ Right º¤ÅÍ¿Í Look º¤ÅÍ´Â ´ÜÀ§º¤ÅÍ°¡ ¾Æ´Ï¹Ç·Î Á¤±ÔÈ­ÇÑ´Ù.*/
+	/*í˜„ì¬ ì¹´ë©”ë¼ì˜ ëª¨ë“œê°€ ìŠ¤í˜ì´ìŠ¤-ì‰½ ëª¨ë“œì˜ ì¹´ë©”ë¼ì´ê³  ìƒˆë¡œìš´ ì¹´ë©”ë¼ê°€ 1ì¸ì¹­ ë˜ëŠ” 3ì¸ì¹­ ì¹´ë©”ë¼ì´ë©´ í”Œë ˆì´ì–´ì˜
+	Up ë²¡í„°ë¥¼ ì›”ë“œì¢Œí‘œê³„ì˜ y-ì¶• ë°©í–¥ ë²¡í„°(0, 1, 0)ì´ ë˜ë„ë¡ í•œë‹¤. ì¦‰, ë˜‘ë°”ë¡œ ì„œë„ë¡ í•œë‹¤. ê·¸ë¦¬ê³  ìŠ¤í˜ì´ìŠ¤-ì‰½ ì¹´ë©”ë¼ì˜ ê²½ìš° í”Œë ˆì´ì–´ì˜ ì´ë™ì—ëŠ” ì œì•½ì´ ì—†ë‹¤. 
+	íŠ¹íˆ, y-ì¶• ë°©í–¥ì˜ ì›€ì§ì„ì´ ììœ ë¡­ë‹¤. ê·¸ëŸ¬ë¯€ë¡œ í”Œë ˆì´ì–´ì˜ ìœ„ì¹˜ëŠ” ê³µì¤‘(ìœ„ì¹˜ ë²¡í„°ì˜ y-ì¢Œí‘œê°€ 0ë³´ë‹¤ í¬ë‹¤)ì´ ë  ìˆ˜ ìˆë‹¤. ì´ë•Œ ìƒˆë¡œìš´ ì¹´ë©”ë¼ê°€ 1ì¸ì¹­ ë˜ëŠ” 3ì¸ì¹­ ì¹´ë©”ë¼ì´ë©´ í”Œë ˆì´ì–´ì˜
+	ìœ„ì¹˜ëŠ” ì§€ë©´ì´ ë˜ì–´ì•¼ í•œë‹¤. ê·¸ëŸ¬ë¯€ë¡œ í”Œë ˆì´ì–´ì˜ Right ë²¡í„°ì™€ Look ë²¡í„°ì˜ y ê°’ì„ 0ìœ¼ë¡œ ë§Œë“ ë‹¤. 
+	ì´ì œ í”Œë ˆì´ì–´ì˜ Right ë²¡í„°ì™€ Look ë²¡í„°ëŠ” ë‹¨ìœ„ë²¡í„°ê°€ ì•„ë‹ˆë¯€ë¡œ ì •ê·œí™”í•œë‹¤.*/
 	if (nCurrentCameraMode == SPACESHIP_CAMERA)
 	{
 		m_xmf3Right = Vector3::Normalize(XMFLOAT3(m_xmf3Right.x, 0.0f, m_xmf3Right.z));
@@ -243,14 +243,14 @@ CCamera* CPlayer::OnChangeCamera(DWORD nNewCameraMode, DWORD nCurrentCameraMode)
 		m_fPitch = 0.0f;
 		m_fRoll = 0.0f;
 
-		/*Look º¤ÅÍ¿Í ¿ùµåÁÂÇ¥°èÀÇ z-Ãà(0, 0, 1)ÀÌ ÀÌ·ç´Â °¢µµ(³»Àû=cos)¸¦ °è»êÇÏ¿© 
-		ÇÃ·¹ÀÌ¾îÀÇ y-ÃàÀÇ È¸Àü °¢µµ m_fYaw·Î ¼³Á¤ÇÑ´Ù.*/
+		/*Look ë²¡í„°ì™€ ì›”ë“œì¢Œí‘œê³„ì˜ z-ì¶•(0, 0, 1)ì´ ì´ë£¨ëŠ” ê°ë„(ë‚´ì =cos)ë¥¼ ê³„ì‚°í•˜ì—¬ 
+		í”Œë ˆì´ì–´ì˜ y-ì¶•ì˜ íšŒì „ ê°ë„ m_fYawë¡œ ì„¤ì •í•œë‹¤.*/
 		m_fYaw = Vector3::Angle(XMFLOAT3(0.0f, 0.0f, 1.0f), m_xmf3Look);
 		if (m_xmf3Look.x < 0.0f) m_fYaw = -m_fYaw;
 	}
 	else if ((nNewCameraMode == SPACESHIP_CAMERA) && m_pCamera)
 	{
-		/*»õ·Î¿î Ä«¸Ş¶óÀÇ ¸ğµå°¡ ½ºÆäÀÌ½º-½± ¸ğµåÀÇ Ä«¸Ş¶óÀÌ°í ÇöÀç Ä«¸Ş¶ó ¸ğµå°¡ 1ÀÎÄª ¶Ç´Â 3ÀÎÄª Ä«¸Ş¶óÀÌ¸é ÇÃ·¹ÀÌ¾îÀÇ ·ÎÄÃ ÃàÀ» ÇöÀç Ä«¸Ş¶óÀÇ ·ÎÄÃ Ãà°ú °°°Ô ¸¸µç´Ù.*/
+		/*ìƒˆë¡œìš´ ì¹´ë©”ë¼ì˜ ëª¨ë“œê°€ ìŠ¤í˜ì´ìŠ¤-ì‰½ ëª¨ë“œì˜ ì¹´ë©”ë¼ì´ê³  í˜„ì¬ ì¹´ë©”ë¼ ëª¨ë“œê°€ 1ì¸ì¹­ ë˜ëŠ” 3ì¸ì¹­ ì¹´ë©”ë¼ì´ë©´ í”Œë ˆì´ì–´ì˜ ë¡œì»¬ ì¶•ì„ í˜„ì¬ ì¹´ë©”ë¼ì˜ ë¡œì»¬ ì¶•ê³¼ ê°™ê²Œ ë§Œë“ ë‹¤.*/
 		m_xmf3Right = m_pCamera->GetRightVector();
 		m_xmf3Up = m_pCamera->GetUpVector();
 		m_xmf3Look = m_pCamera->GetLookVector();
@@ -258,15 +258,15 @@ CCamera* CPlayer::OnChangeCamera(DWORD nNewCameraMode, DWORD nCurrentCameraMode)
 	if (pNewCamera)
 	{
 		pNewCamera->SetMode(nNewCameraMode);
-		//ÇöÀç Ä«¸Ş¶ó¸¦ »ç¿ëÇÏ´Â ÇÃ·¹ÀÌ¾î °´Ã¼¸¦ ¼³Á¤ÇÑ´Ù. 
+		//í˜„ì¬ ì¹´ë©”ë¼ë¥¼ ì‚¬ìš©í•˜ëŠ” í”Œë ˆì´ì–´ ê°ì²´ë¥¼ ì„¤ì •í•œë‹¤. 
 		pNewCamera->SetPlayer(this);
 	}
 	if (m_pCamera) delete m_pCamera;
 	return(pNewCamera);
 }
 
-/*ÇÃ·¹ÀÌ¾îÀÇ À§Ä¡¿Í È¸ÀüÃàÀ¸·ÎºÎÅÍ ¿ùµå º¯È¯ Çà·ÄÀ» »ı¼ºÇÏ´Â ÇÔ¼öÀÌ´Ù. ÇÃ·¹ÀÌ¾îÀÇ Right º¤ÅÍ°¡ ¿ùµå º¯È¯ Çà·ÄÀÇ Ã¹ ¹øÂ° Çà º¤ÅÍ, 
-Up º¤ÅÍ°¡ µÎ ¹øÂ° Çà º¤ÅÍ, Look º¤ÅÍ°¡ ¼¼ ¹øÂ° Çà º¤ÅÍ, ÇÃ·¹ÀÌ¾îÀÇ À§Ä¡ º¤ÅÍ°¡ ³× ¹øÂ° Çà º¤ÅÍ°¡ µÈ´Ù.*/
+/*í”Œë ˆì´ì–´ì˜ ìœ„ì¹˜ì™€ íšŒì „ì¶•ìœ¼ë¡œë¶€í„° ì›”ë“œ ë³€í™˜ í–‰ë ¬ì„ ìƒì„±í•˜ëŠ” í•¨ìˆ˜ì´ë‹¤. í”Œë ˆì´ì–´ì˜ Right ë²¡í„°ê°€ ì›”ë“œ ë³€í™˜ í–‰ë ¬ì˜ ì²« ë²ˆì§¸ í–‰ ë²¡í„°, 
+Up ë²¡í„°ê°€ ë‘ ë²ˆì§¸ í–‰ ë²¡í„°, Look ë²¡í„°ê°€ ì„¸ ë²ˆì§¸ í–‰ ë²¡í„°, í”Œë ˆì´ì–´ì˜ ìœ„ì¹˜ ë²¡í„°ê°€ ë„¤ ë²ˆì§¸ í–‰ ë²¡í„°ê°€ ëœë‹¤.*/
 void CPlayer::OnPrepareRender()
 {
 	m_xmf4x4World._11 = m_xmf3Right.x;
@@ -286,7 +286,7 @@ void CPlayer::OnPrepareRender()
 void CPlayer::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
 {
 	DWORD nCameraMode = (pCamera) ? pCamera->GetMode() : 0x00;
-	//Ä«¸Ş¶ó ¸ğµå°¡ 3ÀÎÄªÀÌ¸é ÇÃ·¹ÀÌ¾î °´Ã¼¸¦ ·»´õ¸µÇÑ´Ù. 
+	//ì¹´ë©”ë¼ ëª¨ë“œê°€ 3ì¸ì¹­ì´ë©´ í”Œë ˆì´ì–´ ê°ì²´ë¥¼ ë Œë”ë§í•œë‹¤. 
 	if (nCameraMode == THIRD_PERSON_CAMERA)
 	{
 		if (m_pShader) m_pShader->Render(pd3dCommandList, pCamera);
@@ -301,7 +301,7 @@ CCamera* CPlayer::ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed)
 	switch (nNewCameraMode)
 	{
 	case FIRST_PERSON_CAMERA:
-		//ÇÃ·¹ÀÌ¾îÀÇ Æ¯¼ºÀ» 1ÀÎÄª Ä«¸Ş¶ó ¸ğµå¿¡ ¸Â°Ô º¯°æÇÑ´Ù. Áß·ÂÀº Àû¿ëÇÏÁö ¾Ê´Â´Ù. 
+		//í”Œë ˆì´ì–´ì˜ íŠ¹ì„±ì„ 1ì¸ì¹­ ì¹´ë©”ë¼ ëª¨ë“œì— ë§ê²Œ ë³€ê²½í•œë‹¤. ì¤‘ë ¥ì€ ì ìš©í•˜ì§€ ì•ŠëŠ”ë‹¤. 
 		SetFriction(200.0f);
 		SetGravity(XMFLOAT3(0.0f, 0.0f, 0.0f));
 		SetMaxVelocityXZ(125.0f);
@@ -314,7 +314,7 @@ CCamera* CPlayer::ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed)
 		m_pCamera->SetScissorRect(0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT);
 		break;
 	//case SPACESHIP_CAMERA:
-	//	//ÇÃ·¹ÀÌ¾îÀÇ Æ¯¼ºÀ» ½ºÆäÀÌ½º-½± Ä«¸Ş¶ó ¸ğµå¿¡ ¸Â°Ô º¯°æÇÑ´Ù. Áß·ÂÀº Àû¿ëÇÏÁö ¾Ê´Â´Ù. 
+	//	//í”Œë ˆì´ì–´ì˜ íŠ¹ì„±ì„ ìŠ¤í˜ì´ìŠ¤-ì‰½ ì¹´ë©”ë¼ ëª¨ë“œì— ë§ê²Œ ë³€ê²½í•œë‹¤. ì¤‘ë ¥ì€ ì ìš©í•˜ì§€ ì•ŠëŠ”ë‹¤. 
 	//	SetFriction(125.0f);
 	//	SetGravity(XMFLOAT3(0.0f, 0.0f, 0.0f));
 	//	SetMaxVelocityXZ(400.0f);
@@ -327,13 +327,13 @@ CCamera* CPlayer::ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed)
 	//	m_pCamera->SetScissorRect(0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT);
 	//	break;
 	case THIRD_PERSON_CAMERA:
-		//ÇÃ·¹ÀÌ¾îÀÇ Æ¯¼ºÀ» 3ÀÎÄª Ä«¸Ş¶ó ¸ğµå¿¡ ¸Â°Ô º¯°æÇÑ´Ù. Áö¿¬ È¿°ú¿Í Ä«¸Ş¶ó ¿ÀÇÁ¼ÂÀ» ¼³Á¤ÇÑ´Ù. 
+		//í”Œë ˆì´ì–´ì˜ íŠ¹ì„±ì„ 3ì¸ì¹­ ì¹´ë©”ë¼ ëª¨ë“œì— ë§ê²Œ ë³€ê²½í•œë‹¤. ì§€ì—° íš¨ê³¼ì™€ ì¹´ë©”ë¼ ì˜¤í”„ì…‹ì„ ì„¤ì •í•œë‹¤. 
 		SetFriction(250.0f);
 		SetGravity(XMFLOAT3(0.0f, 0.0f, 0.0f));
 		SetMaxVelocityXZ(125.0f);
 		SetMaxVelocityY(400.0f);
 		m_pCamera = OnChangeCamera(THIRD_PERSON_CAMERA, nCurrentCameraMode);
-		//3ÀÎÄª Ä«¸Ş¶óÀÇ Áö¿¬ È¿°ú¸¦ ¼³Á¤ÇÑ´Ù. °ªÀ» 0.25f ´ë½Å¿¡ 0.0f¿Í 1.0f·Î ¼³Á¤ÇÑ °á°ú¸¦ ºñ±³ÇÏ±â ¹Ù¶õ´Ù. 
+		//3ì¸ì¹­ ì¹´ë©”ë¼ì˜ ì§€ì—° íš¨ê³¼ë¥¼ ì„¤ì •í•œë‹¤. ê°’ì„ 0.25f ëŒ€ì‹ ì— 0.0fì™€ 1.0fë¡œ ì„¤ì •í•œ ê²°ê³¼ë¥¼ ë¹„êµí•˜ê¸° ë°”ë€ë‹¤. 
 		m_pCamera->SetTimeLag(0.25f);
 		m_pCamera->SetOffset(XMFLOAT3(0.0f, 5.0f, -10.0f));
 		m_pCamera->GenerateProjectionMatrix(1.01f, 5000.0f, ASPECT_RATIO, 60.0f);
@@ -344,7 +344,7 @@ CCamera* CPlayer::ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed)
 		break;
 	}
 	m_pCamera->SetPosition(Vector3::Add(m_xmf3Position, m_pCamera->GetOffset()));
-	//ÇÃ·¹ÀÌ¾î¸¦ ½Ã°£ÀÇ °æ°ú¿¡ µû¶ó °»½Å(À§Ä¡¿Í ¹æÇâÀ» º¯°æ: ¼Óµµ, ¸¶Âû·Â, Áß·Â µîÀ» Ã³¸®)ÇÑ´Ù. 
+	//í”Œë ˆì´ì–´ë¥¼ ì‹œê°„ì˜ ê²½ê³¼ì— ë”°ë¼ ê°±ì‹ (ìœ„ì¹˜ì™€ ë°©í–¥ì„ ë³€ê²½: ì†ë„, ë§ˆì°°ë ¥, ì¤‘ë ¥ ë“±ì„ ì²˜ë¦¬)í•œë‹¤. 
 	Update(fTimeElapsed);
 	return(m_pCamera);
 }
@@ -353,18 +353,18 @@ CCamera* CPlayer::ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed)
 
 CAirplanePlayer::CAirplanePlayer(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature)
 {
-	//ºñÇà±â ¸Ş½¬¸¦ »ı¼ºÇÑ´Ù. 
+	//ë¹„í–‰ê¸° ë©”ì‰¬ë¥¼ ìƒì„±í•œë‹¤. 
 	//CMesh *pAirplaneMesh = new CAirplaneMeshDiffused(pd3dDevice, pd3dCommandList, 20.0f,
 	//20.0f, 4.0f, XMFLOAT4(0.0f, 0.5f, 0.0f, 0.0f));
 	//SetMesh(pAirplaneMesh);
 
-	//ÇÃ·¹ÀÌ¾îÀÇ Ä«¸Ş¶ó¸¦ ½ºÆäÀÌ½º-½± Ä«¸Ş¶ó·Î º¯°æ(»ı¼º)ÇÑ´Ù. 
+	//í”Œë ˆì´ì–´ì˜ ì¹´ë©”ë¼ë¥¼ ìŠ¤í˜ì´ìŠ¤-ì‰½ ì¹´ë©”ë¼ë¡œ ë³€ê²½(ìƒì„±)í•œë‹¤. 
 	m_pCamera = ChangeCamera(SPACESHIP_CAMERA, 0.0f);
-	//ÇÃ·¹ÀÌ¾î¸¦ À§ÇÑ ¼ÎÀÌ´õ º¯¼ö¸¦ »ı¼ºÇÑ´Ù. 
+	//í”Œë ˆì´ì–´ë¥¼ ìœ„í•œ ì…°ì´ë” ë³€ìˆ˜ë¥¼ ìƒì„±í•œë‹¤. 
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
-	//ÇÃ·¹ÀÌ¾îÀÇ À§Ä¡¸¦ ¼³Á¤ÇÑ´Ù. 
+	//í”Œë ˆì´ì–´ì˜ ìœ„ì¹˜ë¥¼ ì„¤ì •í•œë‹¤. 
 	SetPosition(XMFLOAT3(0.0f, 0.0f, -50.0f));
-	//ÇÃ·¹ÀÌ¾î(ºñÇà±â) ¸Ş½¬¸¦ ·»´õ¸µÇÒ ¶§ »ç¿ëÇÒ ¼ÎÀÌ´õ¸¦ »ı¼ºÇÑ´Ù.
+	//í”Œë ˆì´ì–´(ë¹„í–‰ê¸°) ë©”ì‰¬ë¥¼ ë Œë”ë§í•  ë•Œ ì‚¬ìš©í•  ì…°ì´ë”ë¥¼ ìƒì„±í•œë‹¤.
 	CObjectsShader* pShader = new CObjectsShader();
 	pShader->CreateShader(pd3dDevice, pd3dGraphicsRootSignature);
 	SetShader(pShader);
@@ -377,15 +377,15 @@ CAirplanePlayer::~CAirplanePlayer()
 void CAirplanePlayer::OnPrepareRender()
 {
 	CPlayer::OnPrepareRender();
-	//ºñÇà±â ¸ğµ¨À» ±×¸®±â Àü¿¡ x-ÃàÀ¸·Î 90µµ È¸ÀüÇÑ´Ù. 
+	//ë¹„í–‰ê¸° ëª¨ë¸ì„ ê·¸ë¦¬ê¸° ì „ì— x-ì¶•ìœ¼ë¡œ 90ë„ íšŒì „í•œë‹¤. 
 	XMMATRIX mtxRotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(90.0f), 0.0f, 0.0f);
 	m_xmf4x4World = Matrix4x4::Multiply(mtxRotate, m_xmf4x4World);
 }
-/*3ÀÎÄª Ä«¸Ş¶óÀÏ ¶§ ÇÃ·¹ÀÌ¾î ¸Ş½¬¸¦ ·ÎÄÃ x-ÃàÀ» Áß½ÉÀ¸·Î +90µµ È¸ÀüÇÏ°í ·»´õ¸µÇÑ´Ù. 
-¿Ö³ÄÇÏ¸é ºñÇà±â ¸ğµ¨ ¸Ş½¬´Â ´ÙÀ½ ±×¸²°ú °°ÀÌ y-Ãà ¹æÇâÀÌ ºñÇà±âÀÇ ¾ÕÂÊÀÌ µÇµµ·Ï ¸ğµ¨¸µÀÌ µÇ¾ú±â ¶§¹®ÀÌ´Ù. 
-±×¸®°í ÀÌ ¸Ş½¬¸¦ Ä«¸Ş¶óÀÇ z- Ãà ¹æÇâÀ¸·Î ÇâÇÏµµ·Ï ±×¸± °ÍÀÌ±â ¶§¹®ÀÌ´Ù.*/
+/*3ì¸ì¹­ ì¹´ë©”ë¼ì¼ ë•Œ í”Œë ˆì´ì–´ ë©”ì‰¬ë¥¼ ë¡œì»¬ x-ì¶•ì„ ì¤‘ì‹¬ìœ¼ë¡œ +90ë„ íšŒì „í•˜ê³  ë Œë”ë§í•œë‹¤. 
+ì™œëƒí•˜ë©´ ë¹„í–‰ê¸° ëª¨ë¸ ë©”ì‰¬ëŠ” ë‹¤ìŒ ê·¸ë¦¼ê³¼ ê°™ì´ y-ì¶• ë°©í–¥ì´ ë¹„í–‰ê¸°ì˜ ì•ìª½ì´ ë˜ë„ë¡ ëª¨ë¸ë§ì´ ë˜ì—ˆê¸° ë•Œë¬¸ì´ë‹¤. 
+ê·¸ë¦¬ê³  ì´ ë©”ì‰¬ë¥¼ ì¹´ë©”ë¼ì˜ z- ì¶• ë°©í–¥ìœ¼ë¡œ í–¥í•˜ë„ë¡ ê·¸ë¦´ ê²ƒì´ê¸° ë•Œë¬¸ì´ë‹¤.*/
 
-//Ä«¸Ş¶ó¸¦ º¯°æÇÒ ¶§ È£ÃâµÇ´Â ÇÔ¼öÀÌ´Ù. nNewCameraMode´Â »õ·Î ¼³Á¤ÇÒ Ä«¸Ş¶ó ¸ğµåÀÌ´Ù. 
+//ì¹´ë©”ë¼ë¥¼ ë³€ê²½í•  ë•Œ í˜¸ì¶œë˜ëŠ” í•¨ìˆ˜ì´ë‹¤. nNewCameraModeëŠ” ìƒˆë¡œ ì„¤ì •í•  ì¹´ë©”ë¼ ëª¨ë“œì´ë‹¤. 
 CCamera *CAirplanePlayer::ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed)
 {
 	DWORD nCurrentCameraMode = (m_pCamera) ? m_pCamera->GetMode() : 0x00;
@@ -393,7 +393,7 @@ CCamera *CAirplanePlayer::ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed)
 	switch (nNewCameraMode)
 	{
 	case FIRST_PERSON_CAMERA:
-		//ÇÃ·¹ÀÌ¾îÀÇ Æ¯¼ºÀ» 1ÀÎÄª Ä«¸Ş¶ó ¸ğµå¿¡ ¸Â°Ô º¯°æÇÑ´Ù. Áß·ÂÀº Àû¿ëÇÏÁö ¾Ê´Â´Ù. 
+		//í”Œë ˆì´ì–´ì˜ íŠ¹ì„±ì„ 1ì¸ì¹­ ì¹´ë©”ë¼ ëª¨ë“œì— ë§ê²Œ ë³€ê²½í•œë‹¤. ì¤‘ë ¥ì€ ì ìš©í•˜ì§€ ì•ŠëŠ”ë‹¤. 
 		SetFriction(200.0f);
 		SetGravity(XMFLOAT3(0.0f, 0.0f, 0.0f));
 		SetMaxVelocityXZ(125.0f);
@@ -407,7 +407,7 @@ CCamera *CAirplanePlayer::ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed)
 		m_pCamera->SetScissorRect(0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT);
 		break;
 	case SPACESHIP_CAMERA:
-		//ÇÃ·¹ÀÌ¾îÀÇ Æ¯¼ºÀ» ½ºÆäÀÌ½º-½± Ä«¸Ş¶ó ¸ğµå¿¡ ¸Â°Ô º¯°æÇÑ´Ù. Áß·ÂÀº Àû¿ëÇÏÁö ¾Ê´Â´Ù. 
+		//í”Œë ˆì´ì–´ì˜ íŠ¹ì„±ì„ ìŠ¤í˜ì´ìŠ¤-ì‰½ ì¹´ë©”ë¼ ëª¨ë“œì— ë§ê²Œ ë³€ê²½í•œë‹¤. ì¤‘ë ¥ì€ ì ìš©í•˜ì§€ ì•ŠëŠ”ë‹¤. 
 		SetFriction(125.0f);
 		SetGravity(XMFLOAT3(0.0f, 0.0f, 0.0f));
 		SetMaxVelocityXZ(400.0f);
@@ -421,13 +421,13 @@ CCamera *CAirplanePlayer::ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed)
 		m_pCamera->SetScissorRect(0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT);
 		break;
 	case THIRD_PERSON_CAMERA:
-		//ÇÃ·¹ÀÌ¾îÀÇ Æ¯¼ºÀ» 3ÀÎÄª Ä«¸Ş¶ó ¸ğµå¿¡ ¸Â°Ô º¯°æÇÑ´Ù. Áö¿¬ È¿°ú¿Í Ä«¸Ş¶ó ¿ÀÇÁ¼ÂÀ» ¼³Á¤ÇÑ´Ù. 
+		//í”Œë ˆì´ì–´ì˜ íŠ¹ì„±ì„ 3ì¸ì¹­ ì¹´ë©”ë¼ ëª¨ë“œì— ë§ê²Œ ë³€ê²½í•œë‹¤. ì§€ì—° íš¨ê³¼ì™€ ì¹´ë©”ë¼ ì˜¤í”„ì…‹ì„ ì„¤ì •í•œë‹¤. 
 		SetFriction(250.0f);
 		SetGravity(XMFLOAT3(0.0f, 0.0f, 0.0f));
 		SetMaxVelocityXZ(125.0f);
 		SetMaxVelocityY(400.0f);
 		m_pCamera = OnChangeCamera(THIRD_PERSON_CAMERA, nCurrentCameraMode);
-		//3ÀÎÄª Ä«¸Ş¶óÀÇ Áö¿¬ È¿°ú¸¦ ¼³Á¤ÇÑ´Ù. °ªÀ» 0.25f ´ë½Å¿¡ 0.0f¿Í 1.0f·Î ¼³Á¤ÇÑ °á°ú¸¦ ºñ±³ÇÏ±â ¹Ù¶õ´Ù. 
+		//3ì¸ì¹­ ì¹´ë©”ë¼ì˜ ì§€ì—° íš¨ê³¼ë¥¼ ì„¤ì •í•œë‹¤. ê°’ì„ 0.25f ëŒ€ì‹ ì— 0.0fì™€ 1.0fë¡œ ì„¤ì •í•œ ê²°ê³¼ë¥¼ ë¹„êµí•˜ê¸° ë°”ë€ë‹¤. 
 		m_pCamera->SetTimeLag(0.25f);
 		m_pCamera->SetOffset(XMFLOAT3(0.0f, 20.0f, -50.0f));
 		m_pCamera->GenerateProjectionMatrix(1.01f, 5000.0f, ASPECT_RATIO, 60.0f);
@@ -439,7 +439,98 @@ CCamera *CAirplanePlayer::ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed)
 		break;
 	}
 	m_pCamera->SetPosition(Vector3::Add(m_xmf3Position, m_pCamera->GetOffset()));
-	//ÇÃ·¹ÀÌ¾î¸¦ ½Ã°£ÀÇ °æ°ú¿¡ µû¶ó °»½Å(À§Ä¡¿Í ¹æÇâÀ» º¯°æ: ¼Óµµ, ¸¶Âû·Â, Áß·Â µîÀ» Ã³¸®)ÇÑ´Ù. 
+	//í”Œë ˆì´ì–´ë¥¼ ì‹œê°„ì˜ ê²½ê³¼ì— ë”°ë¼ ê°±ì‹ (ìœ„ì¹˜ì™€ ë°©í–¥ì„ ë³€ê²½: ì†ë„, ë§ˆì°°ë ¥, ì¤‘ë ¥ ë“±ì„ ì²˜ë¦¬)í•œë‹¤. 
 	Update(fTimeElapsed);
 	return(m_pCamera);
+}
+
+CTankPlayer::CTankPlayer(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
+{
+	CCubeMeshDiffused* pBulletMesh = new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, 0.5f, 0.5f, 0.5f);
+	for (int i = 0; i < BULLETS; i++)
+	{
+		m_ppBullets[i] = new CBulletObject(m_fBulletEffectiveRange);
+		m_ppBullets[i]->SetMesh(pBulletMesh);
+		m_ppBullets[i]->bActive = false;
+	}
+}
+
+CTankPlayer::~CTankPlayer()
+{
+}
+
+void CTankPlayer::FireBullet(CGameObject* pLockedObject)
+{
+	if (pLockedObject)
+	{
+		auto target = pLockedObject->GetPosition();
+		XMFLOAT3 position = GetPosition();
+		// ë°©í–¥ ë²¡í„° (XZ í‰ë©´ ê¸°ì¤€)
+		float dx = target.x - position.x;
+		float dz = target.z - position.z;
+
+		// ì›í•˜ëŠ” yaw ê°ë„ (ë¼ë””ì•ˆ â†’ degree ë³€í™˜)
+		float yawRadians = atan2f(dx, dz);  // +Z ê¸°ì¤€
+		float yawDegrees = XMConvertToDegrees(yawRadians);
+
+		// í˜„ì¬ yawì™€ì˜ ì°¨ì´ ê³„ì‚° í›„ íšŒì „ (ë˜ëŠ” ì ˆëŒ€ yaw ì„¤ì •)
+		float deltaYaw = yawDegrees - m_fYaw;
+
+		Rotate(0.0f, deltaYaw, 0.0f);
+
+		OnUpdateTransform();  // ì›”ë“œí–‰ë ¬ ê°±ì‹ 
+	}
+
+	CBulletObject* pBulletObject = NULL;
+	for (int i = 0; i < BULLETS; i++)
+	{
+		if (m_ppBullets[i]->bActive == true) continue;
+		pBulletObject = m_ppBullets[i];
+		pBulletObject->bActive = true;
+		break;
+	}
+
+
+	if (pBulletObject)
+	{
+		XMFLOAT3 xmf3Position = GetPosition();
+		XMFLOAT3 xmf3Direction = GetLookVector();
+		XMFLOAT3 xmf3FirePosition = Vector3::Add(xmf3Position, Vector3::ScalarProduct(xmf3Direction, 3.0f, false));
+
+		pBulletObject->m_xmf4x4World = m_xmf4x4World;
+
+		pBulletObject->SetFirePosition(xmf3FirePosition);
+		pBulletObject->SetMovingDirection(xmf3Direction);
+
+		if (pLockedObject)
+		{
+			pBulletObject->m_pLockedObject = pLockedObject;
+		}
+	}
+}
+
+void CTankPlayer::OnUpdateTransform()
+{
+}
+
+void CTankPlayer::Animate(float fElapsedTime)
+{
+	for (int i = 0; i < BULLETS; i++)
+	{
+		if (m_ppBullets[i]->bActive == false) continue;
+		m_ppBullets[i]->Animate(fElapsedTime);
+	}
+}
+
+void CTankPlayer::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera = NULL)
+{
+	CPlayer::Render(pd3dCommandList, pCamera);
+
+	for (int i = 0; i < BULLETS; i++) 
+		m_ppBullets[i]->Render(pd3dCommandList, pCamera);
+}
+
+void CTankPlayer::Rotate(float fPitch, float fYaw, float fRoll)
+{
+	CPlayer::Rotate(fPitch, fYaw, fRoll);
 }

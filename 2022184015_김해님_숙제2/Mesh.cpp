@@ -188,6 +188,14 @@ CCubeMeshDiffused::CCubeMeshDiffused(ID3D12Device* pd3dDevice, ID3D12GraphicsCom
 	m_d3dIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
 	m_d3dIndexBufferView.SizeInBytes = sizeof(UINT) * m_nIndices;
 
+	// 정점 버퍼 생성
+	m_pVertices = new CDiffusedVertex[m_nVertices];
+	memcpy(m_pVertices, pVertices, sizeof(CDiffusedVertex) * m_nVertices);
+
+	// 인덱스 버퍼 생성
+	m_pnIndices = new UINT[m_nIndices];
+	memcpy(m_pnIndices, pnIndices, sizeof(UINT) * m_nIndices);
+
 	m_xmBoundingBox = BoundingOrientedBox(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(fx, fy, fz), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 }
 

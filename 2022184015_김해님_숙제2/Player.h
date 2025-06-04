@@ -118,14 +118,20 @@ public:
 
 ////---------------------------------------------------------------
 
+#define BULLETS 40
 class CTankPlayer : public CPlayer
 {
 public:
-	CTankPlayer();
+	CTankPlayer(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
 	virtual ~CTankPlayer();
 
 	float m_fBulletEffectiveRange = 150.0f;
-	//CBulletObject* m_ppBullets[BULLETS];
+	CBulletObject* m_ppBullets[BULLETS];
 
 	void FireBullet(CGameObject* pLockedObject);
+
+	virtual void OnUpdateTransform();
+	virtual void Animate(float fElapsedTime);
+	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
+	void Rotate(float fPitch = 0.0f, float fYaw = 0.0f, float fRoll = 0.0f);
 };

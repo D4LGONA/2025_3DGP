@@ -55,11 +55,20 @@ public:
 	//게임 객체가 카메라에 보인는 가를 검사한다.
 	bool IsVisible(CCamera* pCamera = NULL);
 
+	bool bActive = true; //게임 객체가 활성화 상태인지 여부를 나타낸다.
+
 public:
 	//모델 좌표계의 픽킹 광선을 생성한다.
 	void GenerateRayForPicking(XMFLOAT3& xmf3PickPosition, XMFLOAT4X4& xmf4x4View, XMFLOAT3* pxmf3PickRayOrigin, XMFLOAT3* pxmf3PickRayDirection);
 	//카메라 좌표계의 한 점에 대한 모델 좌표계의 픽킹 광선을 생성하고 객체와의 교차를 검사한다.
 	int PickObjectByRayIntersection(XMFLOAT3& xmf3PickPosition, XMFLOAT4X4& xmf4x4View, float* pfHitDistance);
+
+	BoundingOrientedBox GetBoundingBox()
+	{
+		BoundingOrientedBox boundingBox = m_pMesh->GetBoundingBox();
+		boundingBox.Transform(boundingBox, XMLoadFloat4x4(&m_xmf4x4World));
+		return boundingBox;
+	}
 };
 
 class CRotatingObject : public CGameObject
@@ -134,12 +143,37 @@ public:
 	float						m_fMovingDistance = 0.0f;
 	float						m_fRotationAngle = 0.0f;
 	XMFLOAT3					m_xmf3FirePosition = XMFLOAT3(0.0f, 0.0f, 1.0f);
+	XMFLOAT3					m_xmf3MovingDirection = XMFLOAT3(0.0f, 0.0f, 1.0f);
 
 	float						m_fElapsedTimeAfterFire = 0.0f;
-	float						m_fLockingDelayTime = 0.3f;
 	float						m_fLockingTime = 4.0f;
+	float						m_fRotationSpeed = 20.0f;
 	CGameObject* m_pLockedObject = NULL;
 
 	void SetFirePosition(XMFLOAT3 xmf3FirePosition);
+	void SetMovingDirection(XMFLOAT3 xmf3Direction) {
+		m_xmf3MovingDirection = xmf3Direction;
+	}
 	void Reset();
+};
+
+//----------------------------------------------------
+
+class CTankObject : public CExplosiveObject
+{
+public:
+	CGameObject* m_pBody = nullptr; // 탱크 몸체 객체
+
+	CTankObject();
+	virtual ~CTankObject();
+	void SetBody(CMesh* pBody) { m_pBody->SetMesh(pBody); }
+	CGameObject* GetBody() const { return m_pBody; }
+	void Animate(float fElapsedTime) override;
+	void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera) override;
+	void SetShader(CShader* pShader)
+	{
+		m_pBody->SetShader(pShader);
+		CGameObject::SetShader(pShader);
+	}
+	int PickObjectByRayIntersection(XMFLOAT3& xmf3PickPosition, XMFLOAT4X4& xmf4x4View, float* pfHitDistance);
 };
