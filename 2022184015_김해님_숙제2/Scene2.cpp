@@ -18,6 +18,13 @@ bool Scene2::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 	{
 		switch (wParam)
 		{
+		case 's':
+		case'S':
+			if (shieldTime < 3.0f && bShield == true) break;
+			shieldTime = 0.0f;
+			bShield = true;
+			break;
+
 		case 'a':
 		case 'A':
 			AutoTarget = !AutoTarget;
@@ -25,21 +32,23 @@ bool Scene2::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 		case 'w':
 		case 'W':
 			// 모든 expobj를 터트린다.
-			for (auto& obj : objects)
+			for (auto& obj : enemies)
 			{
-				auto a = dynamic_cast<CExplosiveObject*>(obj);
-				if (a == nullptr) continue; // CExplosiveObject가 아닌 경우 무시
-				if (!a->m_bBlowingUp)
+				if (obj->bActive == false) continue; // CExplosiveObject가 아닌 경우 무시
+				if (!obj->m_bBlowingUp)
 				{
-					a->StartExplosion(); // 폭발 시작
+					obj->StartExplosion(); // 폭발 시작
 				}
 			}
+			enemie_count = 0;
 			break;
 		case VK_CONTROL:
 		{
+			if (delay < 0.25f) break;
 			auto pl = dynamic_cast<CTankPlayer*>(pPlayer);
 				// 플레이어가 선택한 오브젝트가 없으면 아무것도 안함.
 			pl->FireBullet(pickedObj);
+			delay = 0.0f;
 			pickedObj = nullptr;
 			break;
 		}
@@ -52,7 +61,9 @@ bool Scene2::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 		case VK_F1:
 		case VK_F2:
 		case VK_F3:
-			if (pPlayer) pPlayer->SetCamera(pPlayer->ChangeCamera((wParam - VK_F1 + 1), m_SceneTimer->GetTimeElapsed()));
+			if (pPlayer) 
+				pPlayer->SetCamera(pPlayer->ChangeCamera((wParam - VK_F1 + 1), m_SceneTimer->GetTimeElapsed()));
+			pPlayer->setPitch(0.0f);
 			break;
 		case VK_ESCAPE:
 			::PostQuitMessage(0);
@@ -67,6 +78,7 @@ bool Scene2::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam,
 	switch (nMessageID)
 	{
 	case WM_RBUTTONDOWN:
+		if (AutoTarget == false) break;
 		pickedObj = PickObjectPointedByCursor(LOWORD(lParam), HIWORD(lParam), pPlayer->GetCamera());
 	}
 	return false;
@@ -115,18 +127,54 @@ void Scene2::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	pBody->SetMesh(new CCubeMeshDiffused(pd3dDevice, pd3dCommandList)); // 포신으로 머리.
 	pBody->SetPosition(pPlayer->GetPosition().x, pPlayer->GetPosition().y - 1.0f, pPlayer->GetPosition().z);
 
+	// 쉴드
+	pShield = new CGameObject();
+	pShield->SetShader(pShader);
+	pShield->SetMesh(new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, 4.0f, 4.0f, 4.0f)); // 포신으로 머리.
+	
+	for (int i = 0; i < 5; ++i) {
+		auto obj = new CObstacles(XMFLOAT3(RandF(-1.0f, 1.0f), 0.0f, 0.0f), RandF(1.0f, 5.0f));
+		obj->SetShader(pShader);
+		obj->SetPosition(0.0f, 0.0f, i * 5.0f + 10.0f);
+		obj->SetMesh(new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, 3.0f, 3.0f, 1.0f));
+		obstacles.push_back(obj);
+	}
+
 	// 헤드메쉬 -> 회전 안했을때 카메라쪽 바라보고 있음.
 	// 오브젝트 빌드
-	for (int i = 0; i < 20; ++i) {
+	for (int i = 0; i < 10; ++i) {
 		auto obj = new CTankObject(); // Rotating Object로 만든 후에 피킹이 일어나면 Explosive Object로 변경.
 		obj->setExplosionMesh(new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, 1.0f, 1.0f, 1.0f));
 		obj->CreateShaderVariables(pd3dDevice, pd3dCommandList);
 		obj->SetExpShader(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
 		obj->SetShader(pShader);
-		obj->SetPosition(XMFLOAT3(RandF(-5.0f, 5.0f), 0.0f, RandF(-5.0f, 5.0f) + 10.0f));
+
+		bool bOverlap = true;
+		XMFLOAT3 position;
+
+		do {
+			position = XMFLOAT3(RandF(-5.0f, 5.0f), 0.0f, RandF(-5.0f, 5.0f) + 10.0f); // 위치는 루프 맨 처음에 1회만 생성
+			bOverlap = false;
+			for (auto& ob : enemies)
+			{
+				if (ob == nullptr) continue;
+
+				XMFLOAT3 other = ob->GetPosition();
+				float dx = position.x - other.x;
+				float dz = position.z - other.z;
+				float dist = sqrtf(dx * dx + dz * dz);
+				if (dist <= 3.0f) {
+					bOverlap = true;
+					break;
+				}
+			}
+		} while (bOverlap);
+
+		obj->SetPosition(position);
 		obj->SetMesh(mesh);
 		obj->SetBody(new CCubeMeshDiffused(pd3dDevice, pd3dCommandList));
-		objects.push_back(obj);
+		obj->Rotate(0.0f, 180.0f, 0.0f); // 180도 회전
+		enemies.push_back(obj);
 	}
 
 	map = new CGameObject();
@@ -134,6 +182,12 @@ void Scene2::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	map->SetShader(pShader);
 	map->SetPosition(0.0f, 6.0f, 0.0f);
 	map->SetMesh(new CObjMeshDiffused(pd3dDevice, pd3dCommandList, "map.obj", XMFLOAT4(0.0f, 0.5f, 0.0f, 1.0f)));
+
+	YouWinObject = new CGameObject();
+	YouWinObject->CreateShaderVariables(pd3dDevice, pd3dCommandList);
+	YouWinObject->SetShader(pShader);
+	YouWinObject->SetMesh(new CObjMeshDiffused(pd3dDevice, pd3dCommandList, "YouWin.obj", XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f)));
+	YouWinObject->Rotate(0.0f, 180.0f, 0.0f);
 }
 
 void Scene2::ReleaseObjects()
@@ -153,9 +207,12 @@ void Scene2::Render(ID3D12GraphicsCommandList* pd3dCommandList)
 
 
 	map->Render(pd3dCommandList, pCamera); // 맵 렌더링
+	
+	for (auto& obj : obstacles)
+		obj->Render(pd3dCommandList, pPlayer->GetCamera());
 
 	// 오브젝트 렌더링
-	for (auto& obj : objects)
+	for (auto& obj : enemies)
 	{
 		if (obj)
 			obj->Render(pd3dCommandList, pPlayer->GetCamera());
@@ -172,6 +229,17 @@ void Scene2::Render(ID3D12GraphicsCommandList* pd3dCommandList)
 		pPlayer->Render(pd3dCommandList, pPlayer->GetCamera());
 		pBody->Render(pd3dCommandList, pPlayer->GetCamera()); // 플레이어 몸체 렌더링
 	}
+
+	if (bShield == true) {
+		pShield->SetPosition(pPlayer->GetPosition().x, pPlayer->GetPosition().y - 0.5f, pPlayer->GetPosition().z);
+		pShield->Render(pd3dCommandList, pPlayer->GetCamera());
+	}
+
+	if (enemie_count <= 0)
+	{
+		YouWinObject->Render(pd3dCommandList, pPlayer->GetCamera());
+	}
+
 }
 
 ID3D12RootSignature* Scene2::CreateGraphicsRootSignature(ID3D12Device* pd3dDevice)
@@ -181,17 +249,33 @@ ID3D12RootSignature* Scene2::CreateGraphicsRootSignature(ID3D12Device* pd3dDevic
 
 void Scene2::AnimateObjects(float fTimeElapsed)
 {
+	if (enemie_count <= 0)
+	{
+		YouWinObject->SetPosition(pPlayer->GetPosition().x, pPlayer->GetPosition().y, pPlayer->GetPosition().z + 5.0f);
+	}
+
+	delay += fTimeElapsed;
+	shieldTime += fTimeElapsed;
+	if (shieldTime > 3.0f && bShield == true) bShield = false;
+
 	auto pl = dynamic_cast<CTankPlayer*>(pPlayer);
 	if (pl) pl->Animate(fTimeElapsed); // 플레이어(및 카메라) 업데이트
 	if (pl) pl->Update(fTimeElapsed); // 플레이어(및 카메라) 업데이트
-	for (auto& obj : objects)
+	for (auto& obj : enemies)
 	{
 		if (obj) obj->Animate(fTimeElapsed); // 각 오브젝트 업데이트
 	}
+	for (auto& obj : obstacles)
+		obj->Animate(fTimeElapsed);
 	CScene::AnimateObjects(fTimeElapsed);       // 공통 셰이더 객체들 업데이트
 
+	
 	// 충돌체크
 	CheckEnemyByBulletCollisions();
+
+	CheckEnemyByWallCollisions();
+
+	CheckEnemyByEnemyCollisions();
 }
 
 CGameObject* Scene2::PickObjectPointedByCursor(int xClient, int yClient, CCamera* pCamera)
@@ -209,9 +293,9 @@ CGameObject* Scene2::PickObjectPointedByCursor(int xClient, int yClient, CCamera
 	float fHitDistance = FLT_MAX, fNearestHitDistance = FLT_MAX;
 	CGameObject* pIntersectedObject = NULL, * pNearestObject = NULL;
 
-	for (auto& object : objects)
+	for (auto& obj : enemies)
 	{
-		auto obj = dynamic_cast<CTankObject*>(object);
+		if (obj->bActive == false) continue;
 		if (obj)
 		{
 			nIntersected = obj->PickObjectByRayIntersection(xmf3PickPosition, xmf4x4View, &fHitDistance);
@@ -256,16 +340,46 @@ void Scene2::ProcessInput(const UCHAR* pKeyBuffer, float cxDelta, float cyDelta,
 void Scene2::CheckEnemyByBulletCollisions()
 {
 	CBulletObject** ppBullets = ((CTankPlayer*)pPlayer)->m_ppBullets;
-	for (int i = 0; i < objects.size(); i++)
+	for (int i = 0; i < enemies.size(); i++)
 	{
+		if (enemies[i]->bActive == false) continue;
 		for (int j = 0; j < BULLETS; j++)
 		{
-			if (ppBullets[j]->bActive && objects[i]->GetBoundingBox().Intersects(ppBullets[j]->GetBoundingBox()))
+			if (ppBullets[j]->bActive && enemies[i]->GetBoundingBox().Intersects(ppBullets[j]->GetBoundingBox()))
 			{
-				CExplosiveObject* pExplosiveObject = (CExplosiveObject*)objects[i];
-				if (pExplosiveObject->m_bBlowingUp == true) continue;
-				pExplosiveObject->StartExplosion();
+				if (enemies[i]->m_bBlowingUp == true) continue;
+				enemies[i]->StartExplosion();
 				ppBullets[j]->Reset();
+				enemie_count--;
+			}
+		}
+	}
+}
+
+void Scene2::CheckEnemyByWallCollisions()
+{
+	for (int i = 0; i < enemies.size(); i++) // 탱크들
+	{
+		if (enemies[i]->bActive == false) continue;
+
+		XMFLOAT3 bodyPos = enemies[i]->GetPosition();
+
+		if (bodyPos.x <= -7.0f || bodyPos.x >= 7.0f) {
+			enemies[i]->m_xmf3MoveDirection.x *= -1.0f; // X축 반전
+		}
+	}
+}
+
+void Scene2::CheckEnemyByEnemyCollisions()
+{
+	for (int i = 0; i < enemies.size(); i++)
+	{
+		for (int j = i + 1; j < enemies.size(); ++j)
+		{
+			// 충돌 감지 (OBB 기준)
+			if (enemies[i]->GetBoundingBox().Intersects(enemies[j]->GetBoundingBox()))
+			{
+				std::swap(enemies[i]->m_xmf3MoveDirection, enemies[j]->m_xmf3MoveDirection);
 			}
 		}
 	}

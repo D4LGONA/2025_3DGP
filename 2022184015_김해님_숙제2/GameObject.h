@@ -164,6 +164,9 @@ class CTankObject : public CExplosiveObject
 public:
 	CGameObject* m_pBody = nullptr; // ÅÊÅ© ¸öÃ¼ °´Ã¼
 
+	XMFLOAT3 m_xmf3MoveDirection = XMFLOAT3(0.0f, 0.0f, 1.0f); // ±âº» ÀüÁø ¹æÇâ
+	float m_fSpeed = 1.0f;
+
 	CTankObject();
 	virtual ~CTankObject();
 	void SetBody(CMesh* pBody) { m_pBody->SetMesh(pBody); }
@@ -176,4 +179,17 @@ public:
 		CGameObject::SetShader(pShader);
 	}
 	int PickObjectByRayIntersection(XMFLOAT3& xmf3PickPosition, XMFLOAT4X4& xmf4x4View, float* pfHitDistance);
+};
+
+//-------------------------------------------------
+
+class CObstacles : public CGameObject
+{
+public:
+	CObstacles(XMFLOAT3 dir, float speed);
+	virtual void Animate(float fElapsedTime) override;
+	void Reset();
+private:
+	XMFLOAT3 m_xmf3Direction;
+	float m_fSpeed;
 };

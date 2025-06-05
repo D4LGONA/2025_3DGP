@@ -74,6 +74,8 @@ public:
 	void Move(const XMFLOAT3& xmf3Shift, bool bVelocity = false);
 	void Move(float fxOffset = 0.0f, float fyOffset = 0.0f, float fzOffset = 0.0f);
 
+	void setPitch(float fPitch) { m_fPitch = fPitch; }
+
 	//플레이어를 회전하는 함수이다. 
 	void Rotate(float x, float y, float z);
 
@@ -118,7 +120,7 @@ public:
 
 ////---------------------------------------------------------------
 
-#define BULLETS 40
+#define BULLETS 50
 class CTankPlayer : public CPlayer
 {
 public:

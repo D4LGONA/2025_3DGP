@@ -47,13 +47,16 @@ private:
 	ID3D12GraphicsCommandList* m_pd3dCommandList;
 	//명령 큐, 명령 할당자, 명령 리스트 인터페이스 포인터이다.
 
-	ID3D12PipelineState* m_pd3dPipelineState;
-	//그래픽스 파이프라인 상태 객체에 대한 인터페이스 포인터이다.
-
 	ID3D12Fence* m_pd3dFence;
 	UINT64 m_nFenceValue;
 	HANDLE m_hFenceEvent;
 	//펜스 인터페이스 포인터, 펜스의 값, 이벤트 핸들이다.
+
+protected:
+	ID3D12PipelineState* m_pd3dPipelineState;
+	//그래픽스 파이프라인 상태 객체에 대한 인터페이스 포인터이다.
+
+	
 
 public:
 	CGameFramework();

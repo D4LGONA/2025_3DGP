@@ -25,18 +25,30 @@ public:
 	void ProcessInput(const UCHAR* pKeyBuffer, float cxDelta, float cyDelta, float timeElapsed) override;
 	void CheckEnemyByBulletCollisions();
 	void ClampPlayerBodyPosition();
+	void CheckEnemyByWallCollisions();
+	void CheckEnemyByEnemyCollisions();
 public:
 	//씬의 모든 게임 객체들에 대한 마우스 픽킹을 수행한다.
 	CGameObject* PickObjectPointedByCursor(int xClient, int yClient, CCamera* pCamera);
 private:
 	CPlayer* pPlayer = nullptr;
 	CGameObject* pBody = nullptr; // 탱크 객체
+	CGameObject* pShield = nullptr;
+	bool bShield = false;
+	float shieldTime = 0.0f;
+
+	CGameObject* YouWinObject = nullptr;
+
 
 	bool AutoTarget = false;
 
 	CGameObject* pickedObj = nullptr;
 
 	CGameObject* map = nullptr; 
-	std::vector<CGameObject*> objects;
+	std::vector<CTankObject*> enemies;
+	int enemie_count = 10;
+	std::vector<CObstacles*> obstacles;
+
+	float delay = 0.0f; // 마지막으로 총알을 발사한 시간
 };
 

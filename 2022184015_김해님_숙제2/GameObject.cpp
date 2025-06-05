@@ -255,6 +255,7 @@ void CExplosiveObject::Animate(float fElapsedTime)
 
 		if (m_fElapsedTimes >= m_fDuration) {
 			m_bBlowingUp = false;
+			bActive = false;
 			Reset();
 		}
 	}
@@ -293,6 +294,8 @@ void CExplosiveObject::Reset()
 	m_fElapsedTimes = 0.0f;
 	m_pInstancingShader->Reset();
 }
+
+//------------------------------------------------
 
 CMovingObject::CMovingObject(XMFLOAT3 dir, float speed, float rotationSpeed)
 	: m_xmf3Direction(dir), m_fSpeed(speed), m_fRotationSpeed(rotationSpeed)
@@ -402,7 +405,12 @@ void CBulletObject::Animate(float fElapsedTime)
 CTankObject::CTankObject()
 {
 	m_pBody = new CGameObject();
-	
+	// 랜덤 방향 벡터 생성 (XZ 평면)
+	float fx = (rand() % 2001 - 1000) / 1000.0f; // -1.0 ~ 1.0
+	float fz = (rand() % 2001 - 1000) / 1000.0f;
+
+	XMVECTOR dirVec = XMVector3Normalize(XMVectorSet(fx, 0.0f, fz, 0.0f));
+	XMStoreFloat3(&m_xmf3MoveDirection, dirVec);
 }
 
 CTankObject::~CTankObject()
@@ -411,19 +419,26 @@ CTankObject::~CTankObject()
 
 void CTankObject::Animate(float fElapsedTime)
 {
+	XMFLOAT3 move = Vector3::ScalarProduct(m_xmf3MoveDirection, m_fSpeed * fElapsedTime, false);
+
+	XMFLOAT3 newPos = Vector3::Add(GetPosition(), move);
+	SetPosition(newPos);
+
 	CExplosiveObject::Animate(fElapsedTime);
 	m_pBody->SetPosition(GetPosition().x, GetPosition().y-1.0f, GetPosition().z);
 }
 
 void CTankObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
 {
-	if (m_bBlowingUp && m_pInstancingShader)
+
+	if (m_bBlowingUp && m_pInstancingShader) {
+		m_pBody->bActive = false;
 		m_pInstancingShader->Render(pd3dCommandList, pCamera);
+	}
 	else
 	{
 		if (m_pBody)
 		{
-
 			m_pBody->Render(pd3dCommandList, pCamera);
 		}
 		CGameObject::Render(pd3dCommandList, pCamera);
@@ -448,4 +463,30 @@ int CTankObject::PickObjectByRayIntersection(XMFLOAT3& xmf3PickPosition, XMFLOAT
 		nIntersected += m_pMesh->CheckRayIntersection(xmf3PickRayOrigin, xmf3PickRayDirection, pfHitDistance);
 	}
 	return(nIntersected);
+}
+
+CObstacles::CObstacles(XMFLOAT3 dir, float speed)
+{
+	dir.x = max(dir.x, 1.0f);
+
+	m_xmf3Direction = dir;
+	m_fSpeed = speed;
+
+	// 월드 행렬 초기화 (Identity 또는 필요 시 위치/회전 초기화)
+	XMStoreFloat4x4(&m_xmf4x4World, XMMatrixIdentity());
+}
+
+void CObstacles::Animate(float fElapsedTime)
+{
+	XMFLOAT3 position = GetPosition();
+
+	// 위치 이동
+	position.x += m_xmf3Direction.x * m_fSpeed * fElapsedTime;
+	position.y += m_xmf3Direction.y * m_fSpeed * fElapsedTime;
+	position.z += m_xmf3Direction.z * m_fSpeed * fElapsedTime;
+	SetPosition(position);
+}
+
+void CObstacles::Reset()
+{
 }
