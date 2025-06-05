@@ -189,6 +189,7 @@ public:
 	CObstacles(XMFLOAT3 dir, float speed);
 	virtual void Animate(float fElapsedTime) override;
 	void Reset();
+	void ChangeDir() { m_xmf3Direction.x *= -1.0f; }
 private:
 	XMFLOAT3 m_xmf3Direction;
 	float m_fSpeed;

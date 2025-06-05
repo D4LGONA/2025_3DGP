@@ -370,6 +370,25 @@ void Scene2::CheckEnemyByWallCollisions()
 	}
 }
 
+void Scene2::CheckObstacleByWallCollisions()
+{
+	for (int i = 0; i < obstacles.size(); i++) // 탱크들
+	{
+		if (obstacles[i]->GetPosition().x <= -7.0f || obstacles[i]->GetPosition().x >= 7.0f) {
+			obstacles[i]->ChangeDir(); // X축 반전
+		}
+	}
+}
+
+void Scene2::CheckEnemyByObstacleCollision()
+{
+	for (auto& obs : obstacles)
+	{
+		for (auto&)
+	}
+}
+
+
 void Scene2::CheckEnemyByEnemyCollisions()
 {
 	for (int i = 0; i < enemies.size(); i++)

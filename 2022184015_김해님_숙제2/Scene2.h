@@ -27,6 +27,8 @@ public:
 	void ClampPlayerBodyPosition();
 	void CheckEnemyByWallCollisions();
 	void CheckEnemyByEnemyCollisions();
+	void CheckObstacleByWallCollisions();
+	void CheckEnemyByObstacleCollision();
 public:
 	//씬의 모든 게임 객체들에 대한 마우스 픽킹을 수행한다.
 	CGameObject* PickObjectPointedByCursor(int xClient, int yClient, CCamera* pCamera);
