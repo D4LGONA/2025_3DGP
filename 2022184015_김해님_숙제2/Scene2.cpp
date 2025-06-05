@@ -273,9 +273,13 @@ void Scene2::AnimateObjects(float fTimeElapsed)
 	// 충돌체크
 	CheckEnemyByBulletCollisions();
 
+	CheckObstacleByBulletCollisions();
+
 	CheckEnemyByWallCollisions();
 
 	CheckEnemyByEnemyCollisions();
+
+	CheckObstacleByWallCollisions();
 }
 
 CGameObject* Scene2::PickObjectPointedByCursor(int xClient, int yClient, CCamera* pCamera)
@@ -356,6 +360,21 @@ void Scene2::CheckEnemyByBulletCollisions()
 	}
 }
 
+void Scene2::CheckObstacleByBulletCollisions()
+{
+	CBulletObject** ppBullets = ((CTankPlayer*)pPlayer)->m_ppBullets;
+	for (int i = 0; i < obstacles.size(); i++)
+	{
+		for (int j = 0; j < BULLETS; j++)
+		{
+			if (ppBullets[j]->bActive && obstacles[i]->GetBoundingBox().Intersects(ppBullets[j]->GetBoundingBox()))
+			{
+				ppBullets[j]->Reset();
+			}
+		}
+	}
+}
+
 void Scene2::CheckEnemyByWallCollisions()
 {
 	for (int i = 0; i < enemies.size(); i++) // 탱크들
@@ -384,7 +403,7 @@ void Scene2::CheckEnemyByObstacleCollision()
 {
 	for (auto& obs : obstacles)
 	{
-		for (auto&)
+		//for (auto&)
 	}
 }
 
