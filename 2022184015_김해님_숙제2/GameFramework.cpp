@@ -2,6 +2,7 @@
 #include "GameFramework.h"
 #include "MenuScene.h"
 #include "Scene2.h"
+#include "Scene1.h"
 
 CGameFramework::CGameFramework()
 {
@@ -288,6 +289,7 @@ void CGameFramework::BuildObjects()
 	m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
 	m_pScenes.push_back(new TitleScene(&m_GameTimer));
 	m_pScenes.push_back(new MenuScene(&m_GameTimer));
+	m_pScenes.push_back(new Scene1(&m_GameTimer));
 	m_pScenes.push_back(new Scene2(&m_GameTimer));
 	m_pScene = m_pScenes[2];
 	for (auto& a : m_pScenes)
@@ -301,7 +303,10 @@ void CGameFramework::BuildObjects()
 	m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dCommandLists);
 	WaitForGpuComplete();
 
-	if (m_pScene) m_pScene->ReleaseUploadBuffers();
+	for (auto& a : m_pScenes)
+	{
+		a->ReleaseUploadBuffers();
+	}
 	m_GameTimer.Reset();
 }
 

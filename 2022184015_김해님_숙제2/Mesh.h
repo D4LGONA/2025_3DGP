@@ -4,13 +4,14 @@
 class CVertex
 {
 protected:
-	XMFLOAT3 m_xmf3Position; //정점의 위치 벡터이다(모든 정점은 최소한 위치 벡터를 가져야 한다). 
 
 public:
+	XMFLOAT3 m_xmf3Position; //정점의 위치 벡터이다(모든 정점은 최소한 위치 벡터를 가져야 한다). 
 	CVertex() { m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f); }
 	CVertex(XMFLOAT3 xmf3Position) { m_xmf3Position = xmf3Position; }
 	~CVertex() {}
 };
+
 class CDiffusedVertex : public CVertex
 {
 protected:
@@ -113,4 +114,14 @@ class CObjMeshDiffused : public CMesh // .obj 파일로부터 메쉬를 생성하는 클래스
 public:
 	CObjMeshDiffused(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, const std::string& filename, XMFLOAT4 xmf4Color);
 	virtual ~CObjMeshDiffused();
+};
+
+//-----------------------------------------------------------------
+
+class CTrackMesh : public CObjMeshDiffused
+{
+public:
+	CTrackMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, const std::string& filename, XMFLOAT4 xmf4Color);
+	virtual ~CTrackMesh() {}
+	XMFLOAT3 GetNormal(int i);
 };

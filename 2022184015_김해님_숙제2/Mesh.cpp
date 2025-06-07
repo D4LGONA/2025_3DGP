@@ -300,3 +300,33 @@ CObjMeshDiffused::CObjMeshDiffused(ID3D12Device* pd3dDevice, ID3D12GraphicsComma
 }
 
 CObjMeshDiffused::~CObjMeshDiffused() {}
+
+CTrackMesh::CTrackMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, const std::string& filename, XMFLOAT4 xmf4Color)
+	: CObjMeshDiffused(pd3dDevice, pd3dCommandList, filename, xmf4Color)
+{
+}
+
+XMFLOAT3 CTrackMesh::GetNormal(int i)
+{
+	// 인덱스 3개씩 삼각형을 구성하므로, i는 삼각형의 번호
+	int idx = i * 3;
+	if (idx + 2 >= m_nIndices) return XMFLOAT3(0.0f, 1.0f, 0.0f); // 범위 체크
+
+	// 정점 인덱스를 추출
+	UINT i0 = m_pnIndices[idx];
+	UINT i1 = m_pnIndices[idx + 1];
+	UINT i2 = m_pnIndices[idx + 2];
+
+	// 정점 좌표 가져오기
+	XMFLOAT3 v0 = m_pVertices[i0].m_xmf3Position;
+	XMFLOAT3 v1 = m_pVertices[i1].m_xmf3Position;
+	XMFLOAT3 v2 = m_pVertices[i2].m_xmf3Position;
+
+	// 두 벡터를 생성
+	XMFLOAT3 edge1 = Vector3::Subtract(v1, v0);
+	XMFLOAT3 edge2 = Vector3::Subtract(v2, v0);
+
+	// 법선 계산 (교차곱 후 정규화)
+	XMFLOAT3 normal = Vector3::Normalize(Vector3::CrossProduct(edge1, edge2));
+	return normal;
+}

@@ -36,6 +36,9 @@
 #include <map>
 #include <tuple>
 #include <algorithm>
+#include <array>
+#include <unordered_map>
+#include <unordered_set>
 
 
 using namespace DirectX;

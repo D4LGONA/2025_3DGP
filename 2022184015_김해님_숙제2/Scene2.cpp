@@ -27,8 +27,9 @@ bool Scene2::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 
 		case 'a':
 		case 'A':
-			AutoTarget = !AutoTarget;
+			AutoTarget = !AutoTarget; // 자동 타겟팅 토글
 			break;
+
 		case 'w':
 		case 'W':
 			// 모든 expobj를 터트린다.
@@ -66,7 +67,8 @@ bool Scene2::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 			pPlayer->setPitch(0.0f);
 			break;
 		case VK_ESCAPE:
-			::PostQuitMessage(0);
+			change = true;
+			idx = 1;
 			break;
 		}
 		return false;
@@ -135,7 +137,7 @@ void Scene2::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	for (int i = 0; i < 5; ++i) {
 		auto obj = new CObstacles(XMFLOAT3(RandF(-1.0f, 1.0f), 0.0f, 0.0f), RandF(1.0f, 5.0f));
 		obj->SetShader(pShader);
-		obj->SetPosition(0.0f, 0.0f, i * 5.0f + 10.0f);
+		obj->SetPosition(0.0f, 0.0f, i * 15.0f + 10.0f);
 		obj->SetMesh(new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, 3.0f, 3.0f, 1.0f));
 		obstacles.push_back(obj);
 	}
@@ -153,8 +155,10 @@ void Scene2::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 		XMFLOAT3 position;
 
 		do {
-			position = XMFLOAT3(RandF(-5.0f, 5.0f), 0.0f, RandF(-5.0f, 5.0f) + 10.0f); // 위치는 루프 맨 처음에 1회만 생성
+			position = XMFLOAT3(RandF(-5.0f, 5.0f), 0.0f, RandF(-0.0f, 10.0f) + 10.0f);
 			bOverlap = false;
+
+			// 기존 적과의 거리 확인
 			for (auto& ob : enemies)
 			{
 				if (ob == nullptr) continue;
@@ -168,12 +172,29 @@ void Scene2::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 					break;
 				}
 			}
+
+			// 장애물과의 거리 확인
+			if (!bOverlap) {
+				for (auto& obs : obstacles)
+				{
+					if (obs == nullptr) continue;
+
+					XMFLOAT3 other = obs->GetPosition();
+					float dx = position.x - other.x;
+					float dz = position.z - other.z;
+					float dist = sqrtf(dx * dx + dz * dz);
+					if (dist <= 3.0f) {
+						bOverlap = true;
+						break;
+					}
+				}
+			}
 		} while (bOverlap);
 
 		obj->SetPosition(position);
 		obj->SetMesh(mesh);
 		obj->SetBody(new CCubeMeshDiffused(pd3dDevice, pd3dCommandList));
-		obj->Rotate(0.0f, 180.0f, 0.0f); // 180도 회전
+		obj->Rotate(0.0f, 180.0f, 0.0f);
 		enemies.push_back(obj);
 	}
 
@@ -253,6 +274,12 @@ void Scene2::AnimateObjects(float fTimeElapsed)
 	{
 		YouWinObject->SetPosition(pPlayer->GetPosition().x, pPlayer->GetPosition().y, pPlayer->GetPosition().z + 5.0f);
 	}
+	if (hp <= 0)
+	{
+		change = true;
+		idx = 1; 
+		return;
+	}
 
 	delay += fTimeElapsed;
 	shieldTime += fTimeElapsed;
@@ -280,6 +307,10 @@ void Scene2::AnimateObjects(float fTimeElapsed)
 	CheckEnemyByEnemyCollisions();
 
 	CheckObstacleByWallCollisions();
+
+	CheckEnemyByObstacleCollision();
+
+	CheckEnemyByPlayerCollision();
 }
 
 CGameObject* Scene2::PickObjectPointedByCursor(int xClient, int yClient, CCamera* pCamera)
@@ -399,14 +430,6 @@ void Scene2::CheckObstacleByWallCollisions()
 	}
 }
 
-void Scene2::CheckEnemyByObstacleCollision()
-{
-	for (auto& obs : obstacles)
-	{
-		//for (auto&)
-	}
-}
-
 
 void Scene2::CheckEnemyByEnemyCollisions()
 {
@@ -415,7 +438,7 @@ void Scene2::CheckEnemyByEnemyCollisions()
 		for (int j = i + 1; j < enemies.size(); ++j)
 		{
 			// 충돌 감지 (OBB 기준)
-			if (enemies[i]->GetBoundingBox().Intersects(enemies[j]->GetBoundingBox()))
+			if (enemies[i]->GetBody()->GetBoundingBox().Intersects(enemies[j]->GetBody()->GetBoundingBox()))
 			{
 				std::swap(enemies[i]->m_xmf3MoveDirection, enemies[j]->m_xmf3MoveDirection);
 			}
@@ -439,4 +462,49 @@ void Scene2::ClampPlayerBodyPosition()
 	pPlayer->SetPosition(XMFLOAT3(bodyPos.x, bodyPos.y + 1.0f, bodyPos.z));
 
 	map->SetPosition(0.0f, 6.0f, pPlayer->GetPosition().z);
+}
+
+void Scene2::CheckEnemyByObstacleCollision()
+{
+	for (int i = 0; i < enemies.size(); ++i)
+	{
+		if (!enemies[i] || enemies[i]->bActive == false) continue;
+		for (int j = 0; j < obstacles.size(); ++j)
+		{
+			if (enemies[i]->GetBody()->GetBoundingBox().Intersects(obstacles[j]->GetBoundingBox()))
+			{
+				XMFLOAT3 enemyPos = enemies[i]->GetPosition();
+				XMFLOAT3 obstaclePos = obstacles[j]->GetPosition();
+
+				float dx = fabs(enemyPos.x - obstaclePos.x);
+				float dz = fabs(enemyPos.z - obstaclePos.z);
+
+				if (dx > dz)
+				{
+					enemies[i]->m_xmf3MoveDirection.x *= -1.0f;
+				}
+				else
+				{
+					enemies[i]->m_xmf3MoveDirection.z *= -1.0f;
+				}
+			}
+		}
+	}
+}
+
+void Scene2::CheckEnemyByPlayerCollision()
+{
+	if (bShield == true) return;
+	for (int i = 0; i < enemies.size(); ++i)
+	{
+		if (!enemies[i] || enemies[i]->bActive == false) continue;
+
+		if (enemies[i]->m_bBlowingUp == false &&
+			enemies[i]->GetBoundingBox().Intersects(pBody->GetBoundingBox())) // 몸체 기준 충돌
+		{
+			enemies[i]->StartExplosion();
+			hp--;
+			enemie_count--;
+		}
+	}
 }
