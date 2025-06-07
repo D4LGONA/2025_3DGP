@@ -113,7 +113,6 @@ void Scene2::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	//플레이어의 위치를 설정한다. 
 	pPlayer->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
 
-	//플레이어(비행기) 메쉬를 렌더링할 때 사용할 셰이더를 생성한다.
 	CDiffusedShader* pShader = new CDiffusedShader();
 	pShader->CreateShader(pd3dDevice, m_pd3dGraphicsRootSignature);
 	pPlayer->SetShader(pShader);
@@ -149,7 +148,7 @@ void Scene2::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	// 헤드메쉬 -> 회전 안했을때 카메라쪽 바라보고 있음.
 	// 오브젝트 빌드
 	for (int i = 0; i < 10; ++i) {
-		auto obj = new CTankObject(); // Rotating Object로 만든 후에 피킹이 일어나면 Explosive Object로 변경.
+		auto obj = new CTankObject();
 		obj->setExplosionMesh(new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, 1.0f, 1.0f, 1.0f));
 		obj->CreateShaderVariables(pd3dDevice, pd3dCommandList);
 		obj->SetExpShader(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
@@ -278,7 +277,8 @@ void Scene2::Reset(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dComm
 		} while (bOverlap);
 
 		enemies[i]->SetPosition(position);
-		enemies[i]->Rotate(0.0f, 180.0f, 0.0f);
+		enemies[i]->Rotate(0.0f, 0.0f, 0.0f);
+		enemies[i]->Reset();
 	}
 
 	YouWinObject->Rotate(0.0f, 0.0f, 0.0f);
@@ -435,8 +435,6 @@ void Scene2::ProcessInput(const UCHAR* pKeyBuffer, float cxDelta, float cyDelta,
 		if (pKeyBuffer[VK_DOWN] & 0xF0) dwDirection |= DIR_BACKWARD;
 		if (pKeyBuffer[VK_LEFT] & 0xF0) dwDirection |= DIR_LEFT;
 		if (pKeyBuffer[VK_RIGHT] & 0xF0) dwDirection |= DIR_RIGHT;
-		if (pKeyBuffer[VK_PRIOR] & 0xF0) dwDirection |= DIR_UP;
-		if (pKeyBuffer[VK_NEXT] & 0xF0) dwDirection |= DIR_DOWN;
 
 		float speed = 500.0f * timeElapsed;
 

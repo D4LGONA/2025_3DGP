@@ -165,7 +165,6 @@ ID3D12RootSignature* Scene1::CreateGraphicsRootSignature(ID3D12Device* pd3dDevic
 void Scene1::AnimateObjects(float fTimeElapsed)
 {
 	if (m_iCurrentPathIndex >= m_vTrackPoints.size()) {
-		timer = 0.0f;
 		timer += fTimeElapsed;
 		if (timer >= 2.0f) {
 			change = true;
@@ -173,6 +172,7 @@ void Scene1::AnimateObjects(float fTimeElapsed)
 		}
 		return;
 	}
+	timer = 0.0f;
 
 	XMFLOAT3 curPos = m_pPlayer->GetPosition();
 	XMFLOAT3 targetPos = m_vTrackPoints[m_iCurrentPathIndex];

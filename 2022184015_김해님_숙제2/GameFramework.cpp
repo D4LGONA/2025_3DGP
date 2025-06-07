@@ -291,7 +291,7 @@ void CGameFramework::BuildObjects()
 	m_pScenes.push_back(new MenuScene(&m_GameTimer));
 	m_pScenes.push_back(new Scene1(&m_GameTimer));
 	m_pScenes.push_back(new Scene2(&m_GameTimer));
-	m_pScene = m_pScenes[2];
+	m_pScene = m_pScenes[0];
 	for (auto& a : m_pScenes)
 	{
 		a->BuildObjects(m_pd3dDevice, m_pd3dCommandList);

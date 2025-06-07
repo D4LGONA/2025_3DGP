@@ -27,10 +27,9 @@ bool TitleScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPa
 	switch (nMessageID)
 	{
 	case WM_LBUTTONDOWN:
-	case WM_RBUTTONDOWN:
-		if (nMessageID == WM_RBUTTONDOWN || nMessageID == WM_LBUTTONDOWN) {
+		if (nMessageID == WM_LBUTTONDOWN) {
 			if (objects.back() == PickObjectPointedByCursor(LOWORD(lParam), HIWORD(lParam), pPlayer->GetCamera())) {
-				auto a = reinterpret_cast<CExplosiveObject*>(objects.back());
+				auto a = dynamic_cast<CExplosiveObject*>(objects.back());
 				if (!a->m_bBlowingUp)
 				{
 					a->StartExplosion(); // 폭발 시작
@@ -86,6 +85,13 @@ ID3D12RootSignature* TitleScene::CreateGraphicsRootSignature(ID3D12Device* pd3dD
 	return CScene::CreateGraphicsRootSignature(pd3dDevice); // CScene 공통 루트 시그니처 사용
 }
 
+void TitleScene::Reset(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
+{
+	isExplosive = false;
+	reinterpret_cast<CExplosiveObject*>(objects.back())->m_bBlowingUp = false;
+	objects.back()->bActive = true;
+}
+
 void TitleScene::AnimateObjects(float fTimeElapsed)
 {
 	if (isExplosive && false == reinterpret_cast<CExplosiveObject*>(objects.back())->m_bBlowingUp) {
@@ -104,7 +110,6 @@ void TitleScene::AnimateObjects(float fTimeElapsed)
 // 쉐이더 -> 모든 오브젝트에 대해 DiffusedShader 사용
 void TitleScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
 {
-
 	// 루트 시그니처 생성
 	m_pd3dGraphicsRootSignature = CreateGraphicsRootSignature(pd3dDevice);
 
@@ -170,24 +175,12 @@ CGameObject* TitleScene::PickObjectPointedByCursor(int xClient, int yClient, CCa
 	XMFLOAT4X4 xmf4x4Projection = pCamera->GetProjectionMatrix();
 	D3D12_VIEWPORT d3dViewport = pCamera->GetViewport();
 	XMFLOAT3 xmf3PickPosition;
-	/*화면 좌표계의 점 (xClient, yClient)를 화면 좌표 변환의 역변환과 투영 변환의 역변환을 한다. 그 결과는 카메라
-   좌표계의 점이다. 투영 평면이 카메라에서 z-축으로 거리가 1이므로 z-좌표는 1로 설정한다.*/
 	xmf3PickPosition.x = (((2.0f * xClient) / d3dViewport.Width) - 1) / xmf4x4Projection._11;
 	xmf3PickPosition.y = -(((2.0f * yClient) / d3dViewport.Height) - 1) / xmf4x4Projection._22;
 	xmf3PickPosition.z = 1.0f;
 	int nIntersected = 0;
 	float fHitDistance = FLT_MAX, fNearestHitDistance = FLT_MAX;
 	CGameObject* pIntersectedObject = NULL, * pNearestObject = NULL;
-	//셰이더의 모든 게임 객체들에 대한 마우스 픽킹을 수행하여 카메라와 가장 가까운 게임 객체를 구한다.
-	/*for (int i = 0; i < m_nShaders; i++)
-	{
-		pIntersectedObject = m_pShaders[i].PickObjectByRayIntersection(xmf3PickPosition, xmf4x4View, &fHitDistance);
-		if (pIntersectedObject && (fHitDistance < fNearestHitDistance))
-		{
-			fNearestHitDistance = fHitDistance;
-			pNearestObject = pIntersectedObject;
-		}
-	}*/
 
 	for (auto& obj : objects)
 	{
