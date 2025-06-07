@@ -21,6 +21,7 @@ public:
 public:
 	//씬의 모든 게임 객체들에 대한 마우스 픽킹을 수행한다.
 	CGameObject* PickObjectPointedByCursor(int xClient, int yClient, CCamera* pCamera);
+	virtual void Reset(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList) {};
 private:
 	CPlayer* pPlayer = nullptr;
 

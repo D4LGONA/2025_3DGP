@@ -24,7 +24,10 @@ private:
 	float m_fCurrentSpeed = 20.0f;
 	float timer = 0.0f;
 
+
 public:
+	bool build = false;
+	
 	virtual bool OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	virtual bool OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 
@@ -38,5 +41,6 @@ public:
 
 	void ProcessInput(const UCHAR* pKeyBuffer, float cxDelta, float cyDelta, float timeElapsed) override;
 	CGameObject* PickObjectPointedByCursor(int xClient, int yClient, CCamera* pCamera) { return nullptr; };
+	virtual void Reset(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
 };
 

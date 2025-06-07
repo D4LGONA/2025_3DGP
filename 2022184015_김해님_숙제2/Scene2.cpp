@@ -97,7 +97,11 @@ void Scene2::CreateGraphicsPipelineState(ID3D12Device* pd3dDevice)
 void Scene2::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
 {
 	// 루트 시그니처 생성
-	m_pd3dGraphicsRootSignature = CreateGraphicsRootSignature(pd3dDevice);
+	if (build == false)
+	{
+		m_pd3dGraphicsRootSignature = CreateGraphicsRootSignature(pd3dDevice);
+		build = true;
+	}
 
 	auto mesh = new CObjMeshDiffused(pd3dDevice, pd3dCommandList, "head.obj", XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f));
 
@@ -209,6 +213,84 @@ void Scene2::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	YouWinObject->SetShader(pShader);
 	YouWinObject->SetMesh(new CObjMeshDiffused(pd3dDevice, pd3dCommandList, "YouWin.obj", XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f)));
 	YouWinObject->Rotate(0.0f, 180.0f, 0.0f);
+}
+
+void Scene2::Reset(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
+{
+	auto mesh = new CObjMeshDiffused(pd3dDevice, pd3dCommandList, "head.obj", XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f));
+
+	pPlayer->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
+
+	CCamera* pCamera = new CCamera();
+	pPlayer->SetFriction(200.0f);
+	pPlayer->SetGravity(XMFLOAT3(0.0f, 0.0f, 0.0f));
+	pPlayer->SetMaxVelocityXZ(125.0f);
+	pPlayer->SetMaxVelocityY(400.0f);
+	pPlayer->SetCamera(pCamera);
+	pPlayer->SetCamera(pPlayer->ChangeCamera(THIRD_PERSON_CAMERA, m_SceneTimer->GetTimeElapsed()));
+
+	pBody->SetPosition(pPlayer->GetPosition().x, pPlayer->GetPosition().y - 1.0f, pPlayer->GetPosition().z);
+
+	for (int i = 0; i < 10; ++i) {
+
+		enemies[i]->bActive = true;
+		enemies[i]->GetBody()->bActive = true;
+		enemies[i]->m_bBlowingUp = false;
+
+		bool bOverlap = true;
+		XMFLOAT3 position;
+
+		do {
+			position = XMFLOAT3(RandF(-5.0f, 5.0f), 0.0f, RandF(-0.0f, 20.0f) + 10.0f);
+			bOverlap = false;
+
+			// 기존 적과의 거리 확인
+			for (auto& ob : enemies)
+			{
+				if (ob == nullptr) continue;
+
+				XMFLOAT3 other = ob->GetPosition();
+				float dx = position.x - other.x;
+				float dz = position.z - other.z;
+				float dist = sqrtf(dx * dx + dz * dz);
+				if (dist <= 3.0f) {
+					bOverlap = true;
+					break;
+				}
+			}
+
+			// 장애물과의 거리 확인
+			if (!bOverlap) {
+				for (auto& obs : obstacles)
+				{
+					if (obs == nullptr) continue;
+
+					XMFLOAT3 other = obs->GetPosition();
+					float dx = position.x - other.x;
+					float dz = position.z - other.z;
+					float dist = sqrtf(dx * dx + dz * dz);
+					if (dist <= 3.0f) {
+						bOverlap = true;
+						break;
+					}
+				}
+			}
+		} while (bOverlap);
+
+		enemies[i]->SetPosition(position);
+		enemies[i]->Rotate(0.0f, 180.0f, 0.0f);
+	}
+
+	YouWinObject->Rotate(0.0f, 0.0f, 0.0f);
+
+	// 상태 변수 초기화
+	bShield = false;
+	shieldTime = 0.0f;
+	delay = 0.0f;
+	pickedObj = nullptr;
+	AutoTarget = false;
+	hp = 3;
+	enemie_count = 10;
 }
 
 void Scene2::ReleaseObjects()
@@ -356,6 +438,38 @@ void Scene2::ProcessInput(const UCHAR* pKeyBuffer, float cxDelta, float cyDelta,
 		if (pKeyBuffer[VK_PRIOR] & 0xF0) dwDirection |= DIR_UP;
 		if (pKeyBuffer[VK_NEXT] & 0xF0) dwDirection |= DIR_DOWN;
 
+		float speed = 500.0f * timeElapsed;
+
+		XMFLOAT3 curPos = pPlayer->GetPosition();
+		XMFLOAT3 look = pPlayer->GetLook();
+		XMFLOAT3 right = pPlayer->GetRight();
+		XMVECTOR moveVec = XMVectorZero();
+
+		if (dwDirection & DIR_FORWARD) moveVec += XMLoadFloat3(&look);
+		if (dwDirection & DIR_BACKWARD) moveVec -= XMLoadFloat3(&look);
+		if (dwDirection & DIR_LEFT) moveVec -= XMLoadFloat3(&right);
+		if (dwDirection & DIR_RIGHT) moveVec += XMLoadFloat3(&right);
+
+		moveVec = XMVector3Normalize(moveVec) * speed;
+		XMFLOAT3 nextPos;
+		XMStoreFloat3(&nextPos, XMLoadFloat3(&curPos) + moveVec);
+
+		BoundingOrientedBox nextBox = pBody->GetBoundingBox();
+		nextBox.Center = nextPos;
+
+		bool bCollision = false;
+		for (auto& obs : obstacles)
+		{
+			if (obs->GetBoundingBox().Intersects(nextBox))
+			{
+				bCollision = true;
+				break;
+			}
+		}
+
+		if (!bCollision && dwDirection)
+			pPlayer->Move(dwDirection, speed, true);
+
 		if (cxDelta || cyDelta)
 		{
 			if (pKeyBuffer[VK_RBUTTON] & 0xF0)
@@ -364,9 +478,8 @@ void Scene2::ProcessInput(const UCHAR* pKeyBuffer, float cxDelta, float cyDelta,
 				pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
 		}
 
-		if (dwDirection) pPlayer->Move(dwDirection, 500.0f * timeElapsed, true);
 		pPlayer->Update(timeElapsed);
-		pBody->SetPosition(pPlayer->GetPosition().x, pPlayer->GetPosition().y - 1.0f, pPlayer->GetPosition().z); // 플레이어 몸체 위치 업데이트
+		pBody->SetPosition(pPlayer->GetPosition().x, pPlayer->GetPosition().y - 1.0f, pPlayer->GetPosition().z);
 		ClampPlayerBodyPosition();
 	}
 }

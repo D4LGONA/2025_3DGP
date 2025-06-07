@@ -27,6 +27,26 @@ bool MenuScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 			auto obj = PickObjectPointedByCursor(LOWORD(lParam), HIWORD(lParam), pPlayer->GetCamera());
 			if (obj == nullptr)
 				return false;
+			else if (obj == objects[0]) // Tutorial
+			{
+				change = true;
+				idx = 0; 
+			}
+			else if (obj == objects[1]) // Lv1
+			{
+				change = true;
+				idx = 2;
+			}
+			else if (obj == objects[2]) // Lv2
+			{
+				change = true;
+				idx = 3; 
+			}
+			else if (obj == objects[3]) // Start
+			{
+				change = true;
+				idx = 2;
+			}
 			else
 			{
 				if (obj == objects.back()) exit(0);

@@ -19,6 +19,7 @@ public:
 	virtual void CreateGraphicsPipelineState(ID3D12Device* pd3dDevice) = 0;
 	virtual void BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList) = 0;
 	virtual void ReleaseObjects() = 0;
+	virtual void Reset(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList) = 0;
 
 	// 프레임 업데이트
 

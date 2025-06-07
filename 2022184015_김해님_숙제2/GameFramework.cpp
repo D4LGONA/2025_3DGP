@@ -395,6 +395,7 @@ void CGameFramework::AnimateObjects()
 	if (m_pScene->change == true)
 	{
 		m_pScene->change = false;
+		m_pScene->Reset(m_pd3dDevice, m_pd3dCommandList);
 		m_pScene = m_pScenes[m_pScene->idx];
 	}
 	if (m_pScene) m_pScene->AnimateObjects(m_GameTimer.GetTimeElapsed());

@@ -103,7 +103,10 @@ void Scene1::CreateGraphicsPipelineState(ID3D12Device* pd3dDevice)
 void Scene1::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
 {
 	// 风飘 矫弊聪贸 积己
-	m_pd3dGraphicsRootSignature = CreateGraphicsRootSignature(pd3dDevice);
+	if (build == false) {
+		m_pd3dGraphicsRootSignature = CreateGraphicsRootSignature(pd3dDevice);
+		build = true;
+	}
 
 	// 飘发 积己
 	std::vector<XMFLOAT3> tmps;
@@ -301,4 +304,12 @@ void Scene1::ProcessInput(const UCHAR* pKeyBuffer, float cxDelta, float cyDelta,
 		}
 		m_pPlayer->Update(timeElapsed);
 	}
+}
+
+void Scene1::Reset(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
+{
+	m_iCurrentPathIndex = 0;
+	m_fCurrentSpeed = 20.0f;
+	timer = 0.0f;
+	m_pPlayer->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
 }

@@ -20,6 +20,8 @@ public:
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList) override;
 	virtual ID3D12RootSignature* CreateGraphicsRootSignature(ID3D12Device* pd3dDevice) override;
 
+	virtual void Reset(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
+
 	virtual void AnimateObjects(float fTimeElapsed) override;
 
 	void ProcessInput(const UCHAR* pKeyBuffer, float cxDelta, float cyDelta, float timeElapsed) override;
@@ -34,6 +36,8 @@ public:
 public:
 	//씬의 모든 게임 객체들에 대한 마우스 픽킹을 수행한다.
 	CGameObject* PickObjectPointedByCursor(int xClient, int yClient, CCamera* pCamera);
+	
+	bool build = false;
 private:
 	CPlayer* pPlayer = nullptr;
 	CGameObject* pBody = nullptr; // 탱크 객체

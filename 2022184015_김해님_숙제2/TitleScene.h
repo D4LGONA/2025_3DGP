@@ -20,6 +20,8 @@ public:
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList) override;
 	virtual ID3D12RootSignature* CreateGraphicsRootSignature(ID3D12Device* pd3dDevice) override;
 
+	virtual void Reset(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList) {};
+
 	virtual void AnimateObjects(float fTimeElapsed) override;
 
 public:
