@@ -800,6 +800,9 @@ CHummerObject::~CHummerObject()
 //
 CTankObject::CTankObject()
 {
+	m_pTurretFrame = FindFrame("TURRET");
+	m_pCannonFrame = FindFrame("cannon");
+	m_pGunFrame = FindFrame("gun");
 }
 
 CTankObject::~CTankObject()

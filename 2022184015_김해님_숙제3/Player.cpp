@@ -62,8 +62,6 @@ void CPlayer::Move(DWORD dwDirection, float fDistance, bool bUpdateVelocity)
 		if (dwDirection & DIR_BACKWARD) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -fDistance);
 		if (dwDirection & DIR_RIGHT) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, fDistance);
 		if (dwDirection & DIR_LEFT) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -fDistance);
-		if (dwDirection & DIR_UP) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, fDistance);
-		if (dwDirection & DIR_DOWN) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, -fDistance);
 
 		Move(xmf3Shift, bUpdateVelocity);
 	}
@@ -337,3 +335,102 @@ CCamera *CAirplanePlayer::ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed)
 	return(m_pCamera);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+CTankPlayer::CTankPlayer(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature)
+{
+	m_pCamera = ChangeCamera(THIRD_PERSON_CAMERA, 0.0f);
+
+	CGameObject* pGameObject = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature, "Model/M26.bin");
+
+	pGameObject->Rotate(15.0f, 0.0f, 0.0f);
+	pGameObject->SetScale(8.5f, 8.5f, 8.5f);
+	SetChild(pGameObject, true);
+
+	OnInitialize();
+
+	CreateShaderVariables(pd3dDevice, pd3dCommandList);
+}
+
+CTankPlayer::~CTankPlayer()
+{
+}
+
+void CTankPlayer::OnInitialize()
+{
+	m_pTurretFrame = FindFrame("TURRET");
+	m_pCannonFrame = FindFrame("cannon");
+	m_pGunFrame = FindFrame("gun");
+}
+
+void CTankPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
+{
+
+	CPlayer::Animate(fTimeElapsed, pxmf4x4Parent);
+}
+
+void CTankPlayer::Rotate(float x, float y, float z)
+{
+	if (m_pTurretFrame && y != 0.0f)
+	{
+		XMMATRIX xmmtxRotate = XMMatrixRotationY(XMConvertToRadians(y));
+		m_pTurretFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pTurretFrame->m_xmf4x4Transform);
+	}
+}
+
+CCamera* CTankPlayer::ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed)
+{
+	DWORD nCurrentCameraMode = (m_pCamera) ? m_pCamera->GetMode() : 0x00;
+	if (nCurrentCameraMode == nNewCameraMode) return(m_pCamera);
+	switch (nNewCameraMode)
+	{
+	case FIRST_PERSON_CAMERA:
+		SetFriction(2.0f);
+		SetGravity(XMFLOAT3(0.0f, 0.0f, 0.0f));
+		SetMaxVelocityXZ(2.5f);
+		SetMaxVelocityY(40.0f);
+		m_pCamera = OnChangeCamera(FIRST_PERSON_CAMERA, nCurrentCameraMode);
+		m_pCamera->SetTimeLag(0.0f);
+		m_pCamera->SetOffset(XMFLOAT3(0.0f, 20.0f, 0.0f));
+		m_pCamera->GenerateProjectionMatrix(1.01f, 5000.0f, ASPECT_RATIO, 60.0f);
+		m_pCamera->SetViewport(0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.0f, 1.0f);
+		m_pCamera->SetScissorRect(0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT);
+		break;
+	case SPACESHIP_CAMERA:
+		SetFriction(100.5f);
+		SetGravity(XMFLOAT3(0.0f, 0.0f, 0.0f));
+		SetMaxVelocityXZ(40.0f);
+		SetMaxVelocityY(40.0f);
+		m_pCamera = OnChangeCamera(SPACESHIP_CAMERA, nCurrentCameraMode);
+		m_pCamera->SetTimeLag(0.0f);
+		m_pCamera->SetOffset(XMFLOAT3(0.0f, 0.0f, 0.0f));
+		m_pCamera->GenerateProjectionMatrix(1.01f, 5000.0f, ASPECT_RATIO, 60.0f);
+		m_pCamera->SetViewport(0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.0f, 1.0f);
+		m_pCamera->SetScissorRect(0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT);
+		break;
+	case THIRD_PERSON_CAMERA:
+		SetFriction(20.5f);
+		SetGravity(XMFLOAT3(0.0f, 0.0f, 0.0f));
+		SetMaxVelocityXZ(25.5f);
+		SetMaxVelocityY(40.0f);
+		m_pCamera = OnChangeCamera(THIRD_PERSON_CAMERA, nCurrentCameraMode);
+		m_pCamera->SetTimeLag(0.25f);
+		m_pCamera->SetOffset(XMFLOAT3(0.0f, 105.0f, -140.0f));
+		m_pCamera->GenerateProjectionMatrix(1.01f, 5000.0f, ASPECT_RATIO, 60.0f);
+		m_pCamera->SetViewport(0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0.0f, 1.0f);
+		m_pCamera->SetScissorRect(0, 0, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT);
+		break;
+	default:
+		break;
+	}
+
+	m_pCamera->SetPosition(Vector3::Add(m_xmf3Position, m_pCamera->GetOffset()));
+	Update(fTimeElapsed);
+
+	return(m_pCamera);
+}
+
+void CTankPlayer::OnPrepareRender()
+{
+	CPlayer::OnPrepareRender();
+}

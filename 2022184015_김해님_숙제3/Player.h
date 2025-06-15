@@ -99,3 +99,23 @@ public:
 	virtual void OnPrepareRender();
 };
 
+class CTankPlayer : public CPlayer
+{
+public:
+	CTankPlayer(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature);
+	virtual ~CTankPlayer();
+
+	CGameObject* m_pTurretFrame = NULL;
+	CGameObject* m_pCannonFrame = NULL;
+	CGameObject* m_pGunFrame = NULL;
+	void Rotate(float x, float y, float z);
+
+
+private:
+	virtual void OnInitialize();
+	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent = NULL);
+
+public:
+	virtual CCamera* ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed);
+	virtual void OnPrepareRender();
+};
