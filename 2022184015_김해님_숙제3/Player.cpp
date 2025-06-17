@@ -246,18 +246,12 @@ CCamera* CPlayer::OnChangeCamera(DWORD nNewCameraMode, DWORD nCurrentCameraMode)
 Up 벡터가 두 번째 행 벡터, Look 벡터가 세 번째 행 벡터, 플레이어의 위치 벡터가 네 번째 행 벡터가 된다.*/
 void CPlayer::OnPrepareRender()
 {
-	m_xmf4x4World._11 = m_xmf3Right.x;
-	m_xmf4x4World._12 = m_xmf3Right.y;
-	m_xmf4x4World._13 = m_xmf3Right.z;
-	m_xmf4x4World._21 = m_xmf3Up.x;
-	m_xmf4x4World._22 = m_xmf3Up.y;
-	m_xmf4x4World._23 = m_xmf3Up.z;
-	m_xmf4x4World._31 = m_xmf3Look.x;
-	m_xmf4x4World._32 = m_xmf3Look.y;
-	m_xmf4x4World._33 = m_xmf3Look.z;
-	m_xmf4x4World._41 = m_xmf3Position.x;
-	m_xmf4x4World._42 = m_xmf3Position.y;
-	m_xmf4x4World._43 = m_xmf3Position.z;
+	m_xmf4x4Transform._11 = m_xmf3Right.x; m_xmf4x4Transform._12 = m_xmf3Right.y; m_xmf4x4Transform._13 = m_xmf3Right.z;
+	m_xmf4x4Transform._21 = m_xmf3Up.x; m_xmf4x4Transform._22 = m_xmf3Up.y; m_xmf4x4Transform._23 = m_xmf3Up.z;
+	m_xmf4x4Transform._31 = m_xmf3Look.x; m_xmf4x4Transform._32 = m_xmf3Look.y; m_xmf4x4Transform._33 = m_xmf3Look.z;
+	m_xmf4x4Transform._41 = m_xmf3Position.x; m_xmf4x4Transform._42 = m_xmf3Position.y; m_xmf4x4Transform._43 = m_xmf3Position.z;
+
+	UpdateTransform(NULL);
 }
 
 void CPlayer::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
@@ -278,18 +272,25 @@ CTerrainPlayer::CTerrainPlayer(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandLi
 	: CPlayer(nMeshes)
 {
 	m_pCamera = ChangeCamera(THIRD_PERSON_CAMERA, 0.0f);
+
 	CHeightMapTerrain* pTerrain = (CHeightMapTerrain*)pContext; 
 	float fHeight = pTerrain->GetHeight(pTerrain->GetWidth() * 0.5f, pTerrain->GetLength() * 0.5f);
 	SetPosition(XMFLOAT3(pTerrain->GetWidth() * 0.5f, fHeight + 1500.0f, pTerrain->GetLength() * 0.5f));
 	SetPlayerUpdatedContext(pTerrain);
 	SetCameraUpdatedContext(pTerrain);
 
-	CCubeMeshDiffused* pCubeMesh = new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, 4.0f, 12.0f, 4.0f);
-	SetMesh(pCubeMesh); // 자식으로 추가할 때는 반드시 CGameObject* 타입
+	CGameObject* pGameObject = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature, "M26.bin");
+
+	pGameObject->Rotate(0.0f, 180.0f, 0.0f);
+	pGameObject->SetScale(5.0f, 5.0f, 5.0f);
+	SetChild(pGameObject, true);
 
 	CPlayerShader* pShader = new CPlayerShader();
 	pShader->CreateShader(pd3dDevice, pd3dGraphicsRootSignature);
 	SetShader(pShader);
+
+	OnInitialize();
+	
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 }
 
@@ -364,8 +365,7 @@ void CTerrainPlayer::OnCameraUpdateCallback(float fTimeElapsed)
 {
 	XMFLOAT3 xmf3CameraPosition = m_pCamera->GetPosition();
 	CHeightMapTerrain* pTerrain = (CHeightMapTerrain*)m_pCameraUpdatedContext;
-	float fHeight = pTerrain->GetHeight(xmf3CameraPosition.x, xmf3CameraPosition.z) +
-		5.0f;
+	float fHeight = pTerrain->GetHeight(xmf3CameraPosition.x, xmf3CameraPosition.z) + 5.0f;
 	if (xmf3CameraPosition.y <= fHeight)
 	{
 		xmf3CameraPosition.y = fHeight;
@@ -375,5 +375,62 @@ void CTerrainPlayer::OnCameraUpdateCallback(float fTimeElapsed)
 			CThirdPersonCamera* p3rdPersonCamera = (CThirdPersonCamera*)m_pCamera;
 			p3rdPersonCamera->SetLookAt(GetPosition());
 		}
+	}
+}
+
+void CTerrainPlayer::OnPrepareRender()
+{
+	CPlayer::OnPrepareRender();
+}
+
+void CTerrainPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
+{
+	CPlayer::Animate(fTimeElapsed, pxmf4x4Parent);
+}
+
+void CTerrainPlayer::OnInitialize()
+{
+	m_pTurretFrame = FindFrame("TURRET");
+	m_pCannonFrame = FindFrame("cannon");
+	m_pGunFrame = FindFrame("gun");
+
+	XMMATRIX xmmtxRotate = XMMatrixRotationY(XMConvertToRadians(-17.0f));
+	m_pTurretFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pTurretFrame->m_xmf4x4Transform);
+}
+
+void CTerrainPlayer::Rotate(float x, float y, float z)
+{
+	if (m_pTurretFrame && y != 0.0f)
+	{
+		XMMATRIX xmmtxRotate = XMMatrixRotationY(XMConvertToRadians(y));
+		m_pTurretFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pTurretFrame->m_xmf4x4Transform);
+		//RotateTurretAndCamera(y);
+	}
+}
+
+void CTerrainPlayer::RotateTurretAndCamera(float turretYaw)
+{
+	// 2. 트랜스폼 계층 갱신
+	UpdateTransform(nullptr);
+
+	// 3. 카메라 위치/방향을 터렛에 맞게 갱신
+	if (m_pTurretFrame && m_pCamera)
+	{
+		XMFLOAT3 turretPos = m_pTurretFrame->GetPosition();
+		XMFLOAT3 camOffset = m_pCamera->GetOffset();
+
+
+		// 오프셋을 (터렛 회전 + 163도)만큼 회전
+		XMMATRIX cameraRot = XMMatrixRotationY(XMConvertToRadians(turretYaw));
+		XMVECTOR vOffset = XMLoadFloat3(&camOffset);
+		XMVECTOR vRotatedOffset = XMVector3TransformNormal(vOffset, cameraRot);
+
+		// 카메라 위치 = 터렛 위치 + 회전된 오프셋
+		XMFLOAT3 camPos;
+		XMStoreFloat3(&camPos, XMVectorAdd(XMLoadFloat3(&turretPos), vRotatedOffset));
+
+		m_pCamera->SetPosition(camPos);
+		m_pCamera->SetLookAt(turretPos);
+		m_pCamera->RegenerateViewMatrix();
 	}
 }

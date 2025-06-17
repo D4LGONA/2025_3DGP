@@ -387,8 +387,6 @@ void CGameFramework::ProcessInput()
 		if (pKeyBuffer[VK_DOWN] & 0xF0) dwDirection |= DIR_BACKWARD;
 		if (pKeyBuffer[VK_LEFT] & 0xF0) dwDirection |= DIR_LEFT;
 		if (pKeyBuffer[VK_RIGHT] & 0xF0) dwDirection |= DIR_RIGHT;
-		if (pKeyBuffer[VK_PRIOR] & 0xF0) dwDirection |= DIR_UP;
-		if (pKeyBuffer[VK_NEXT] & 0xF0) dwDirection |= DIR_DOWN;
 	}
 	float cxDelta = 0.0f, cyDelta = 0.0f;
 	POINT ptCursorPos;
@@ -409,7 +407,7 @@ void CGameFramework::ProcessInput()
 			if (pKeyBuffer[VK_RBUTTON] & 0xF0)
 				m_pPlayer->Rotate(cyDelta, 0.0f, -cxDelta);
 			else
-				m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
+				((CTerrainPlayer*)m_pPlayer)->Rotate(cyDelta, cxDelta, 0.0f);
 		}
 		if (dwDirection) 
 			m_pPlayer->Move(dwDirection, 200.0f * m_GameTimer.GetTimeElapsed(), true);
@@ -436,7 +434,7 @@ void CGameFramework::WaitForGpuComplete()
 	}
 }
 
-#define _WITH_PLAYER_TOP
+//#define _WITH_PLAYER_TOP
 void CGameFramework::FrameAdvance()
 {
 	m_GameTimer.Tick(0.0f);

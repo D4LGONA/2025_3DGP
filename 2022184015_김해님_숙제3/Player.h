@@ -85,10 +85,20 @@ public:
 class CTerrainPlayer : public CPlayer
 {
 public:
-	CTerrainPlayer(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList,
-		ID3D12RootSignature* pd3dGraphicsRootSignature, void* pContext, int nMeshes = 1);
+	CTerrainPlayer(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature,
+		void* pContext, int nMeshes = 1);
 	virtual ~CTerrainPlayer();
 	virtual CCamera* ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed);
 	virtual void OnPlayerUpdateCallback(float fTimeElapsed);
 	virtual void OnCameraUpdateCallback(float fTimeElapsed);
+	void OnPrepareRender();
+	void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent = NULL);
+	void Rotate(float x, float y, float z);
+	void RotateTurretAndCamera(float turretYaw);
+
+	CGameObject* m_pTurretFrame = NULL;
+	CGameObject* m_pCannonFrame = NULL;
+	CGameObject* m_pGunFrame = NULL;
+
+	void OnInitialize();
 };

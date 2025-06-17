@@ -18,6 +18,8 @@ public:
 
 // º¯¼öµé
 public:
+	int m_nSubMeshes = 1;
+
 	char m_pstrFrameName[64];
 	XMFLOAT4X4 m_xmf4x4World;
 	XMFLOAT4X4 m_xmf4x4Transform;
@@ -34,6 +36,7 @@ public:
 	void SetMesh(CMesh* pMesh);
 	virtual void SetShader(CShader* pShader);
 	void SetChild(CGameObject* pChild, bool bReferenceUpdate = false);
+	void SetScale(float x, float y, float z);
 
 	void ReleaseUploadBuffers();
 	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent = NULL);
@@ -61,11 +64,11 @@ public:
 	void Rotate(float fPitch = 10.0f, float fYaw = 10.0f, float fRoll = 10.0f);
 
 public:
-
 	virtual void CreateShaderVariables(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList);
 	virtual void UpdateShaderVariable(ID3D12GraphicsCommandList* pd3dCommandList, XMFLOAT4X4* pxmf4x4World);
 	virtual void ReleaseShaderVariables();
 
+	static CMeshLoadInfo* LoadMeshInfoFromFile(FILE* pInFile);
 	CGameObject* LoadFrameHierarchyFromFile(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, FILE* pInFile);
 	CGameObject* LoadGeometryFromFile(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, char* pstrFileName);
 };
