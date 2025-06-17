@@ -1,8 +1,8 @@
-﻿// 2022184015_김해님_숙제3.cpp : 애플리케이션에 대한 진입점을 정의합니다.
+﻿// LabProject14.cpp : 애플리케이션에 대한 진입점을 정의합니다.
 //
 
 #include "stdafx.h"
-#include "2022184015_김해님_숙제3.h"
+#include "LabProject14.h"
 #include "GameFramework.h"
 
 #define MAX_LOADSTRING 100
@@ -31,7 +31,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     // 전역 문자열을 초기화합니다.
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadStringW(hInstance, IDC_MY20221840153, szWindowClass, MAX_LOADSTRING);
+    LoadStringW(hInstance, IDC_LABPROJECT14, szWindowClass, MAX_LOADSTRING);
     MyRegisterClass(hInstance);
 
     // 애플리케이션 초기화를 수행합니다:
@@ -40,7 +40,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         return FALSE;
     }
 
-    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDI_MY20221840153));
+    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDI_LABPROJECT14));
 
     MSG msg;
 
@@ -87,7 +87,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.cbClsExtra = 0;
     wcex.cbWndExtra = 0;
     wcex.hInstance = hInstance;
-    wcex.hIcon = ::LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MY20221840153));
+    wcex.hIcon = ::LoadIcon(hInstance, MAKEINTRESOURCE(IDI_LABPROJECT14));
     wcex.hCursor = ::LoadCursor(NULL, IDC_ARROW);
     wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
     //주 윈도우의 메뉴가 나타나지 않도록 한다.

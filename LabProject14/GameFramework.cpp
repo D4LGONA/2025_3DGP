@@ -17,7 +17,7 @@ CGameFramework::CGameFramework()
 	for (int i = 0; i < m_nSwapChainBuffers; i++)
 	{
 		m_ppd3dSwapChainBackBuffers[i] = NULL;
-		m_nFenceValues[i] = 0; 
+		m_nFenceValues[i] = 0;  // ← 위치 여기로 이동하는 게 자연스럽습니다.
 	}
 
 	// RTV/DSV 관련
@@ -98,6 +98,35 @@ void CGameFramework::CreateSwapChain()
 	::GetClientRect(m_hWnd, &rcClient);
 	m_nWndClientWidth = rcClient.right - rcClient.left;
 	m_nWndClientHeight = rcClient.bottom - rcClient.top;
+	//DXGI_SWAP_CHAIN_DESC1 dxgiSwapChainDesc;
+	//::ZeroMemory(&dxgiSwapChainDesc, sizeof(DXGI_SWAP_CHAIN_DESC1));
+	//dxgiSwapChainDesc.Width = m_nWndClientWidth;
+	//dxgiSwapChainDesc.Height = m_nWndClientHeight;
+	//dxgiSwapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	//dxgiSwapChainDesc.SampleDesc.Count = (m_bMsaa4xEnable) ? 4 : 1;
+	//dxgiSwapChainDesc.SampleDesc.Quality = (m_bMsaa4xEnable) ? (m_nMsaa4xQualityLevels -
+	//	1) : 0;
+	//dxgiSwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	//dxgiSwapChainDesc.BufferCount = m_nSwapChainBuffers;
+	//dxgiSwapChainDesc.Scaling = DXGI_SCALING_NONE;
+	//dxgiSwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	//dxgiSwapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+	//dxgiSwapChainDesc.Flags = 0;
+	//DXGI_SWAP_CHAIN_FULLSCREEN_DESC dxgiSwapChainFullScreenDesc;
+	//::ZeroMemory(&dxgiSwapChainFullScreenDesc, sizeof(DXGI_SWAP_CHAIN_FULLSCREEN_DESC));
+	//dxgiSwapChainFullScreenDesc.RefreshRate.Numerator = 60;
+	//dxgiSwapChainFullScreenDesc.RefreshRate.Denominator = 1;
+	//dxgiSwapChainFullScreenDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+	//dxgiSwapChainFullScreenDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+	//dxgiSwapChainFullScreenDesc.Windowed = TRUE;
+	//m_pdxgiFactory->CreateSwapChainForHwnd(m_pd3dCommandQueue, m_hWnd,
+	//	&dxgiSwapChainDesc, &dxgiSwapChainFullScreenDesc, NULL, (IDXGISwapChain1
+	//		**)&m_pdxgiSwapChain);
+	////스왑체인을 생성한다. 
+	//m_pdxgiFactory->MakeWindowAssociation(m_hWnd, DXGI_MWA_NO_ALT_ENTER);
+	////“Alt+Enter” 키의 동작을 비활성화한다. 
+	//m_nSwapChainBufferIndex = m_pdxgiSwapChain->GetCurrentBackBufferIndex();
+	////스왑체인의 현재 후면버퍼 인덱스를 저장한다. 
 
 	DXGI_SWAP_CHAIN_DESC dxgiSwapChainDesc;
 	dxgiSwapChainDesc.BufferDesc.Width = m_nWndClientWidth;
@@ -124,6 +153,7 @@ void CGameFramework::CreateSwapChain()
 #ifndef _WITH_SWAPCHAIN_FULLSCREEN_STATE
 	CreateRenderTargetViews();
 #endif
+
 }
 
 void CGameFramework::CreateDirect3DDevice()
@@ -177,6 +207,10 @@ void CGameFramework::CreateDirect3DDevice()
 	m_nFenceValue = 0;
 	//펜스를 생성하고 펜스 값을 0으로 설정한다.
 	m_hFenceEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
+	/*펜스와 동기화를 위한 이벤트 객체를 생성한다(이벤트 객체의 초기값을 FALSE이다). 이벤트가 실행되면(Signal) 이
+   벤트의 값을 자동적으로 FALSE가 되도록 생성한다.*/
+
+	//씨저 사각형을 주 윈도우의 클라이언트 영역 전체로 설정한다.
 	if (pd3dAdapter) pd3dAdapter->Release();
 }
 
@@ -250,7 +284,8 @@ void CGameFramework::CreateDepthStencilView()
 	d3dResourceDesc.MipLevels = 1;
 	d3dResourceDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	d3dResourceDesc.SampleDesc.Count = (m_bMsaa4xEnable) ? 4 : 1;
-	d3dResourceDesc.SampleDesc.Quality = (m_bMsaa4xEnable) ? (m_nMsaa4xQualityLevels - 1) : 0;
+	d3dResourceDesc.SampleDesc.Quality = (m_bMsaa4xEnable) ? (m_nMsaa4xQualityLevels - 1)
+		: 0;
 	d3dResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	d3dResourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 	D3D12_HEAP_PROPERTIES d3dHeapProperties;
@@ -280,7 +315,8 @@ void CGameFramework::BuildObjects()
 	m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
 	m_pScene = new CScene();
 	if (m_pScene) m_pScene->BuildObjects(m_pd3dDevice, m_pd3dCommandList);
-	m_pPlayer = new CTerrainPlayer(m_pd3dDevice, m_pd3dCommandList, m_pScene->GetGraphicsRootSignature(), m_pScene->GetTerrain(), 1);
+	m_pPlayer = new CTerrainPlayer(m_pd3dDevice, m_pd3dCommandList,
+		m_pScene->GetGraphicsRootSignature(), m_pScene->GetTerrain(), 1);
 	m_pCamera = m_pPlayer->GetCamera();
 	m_pd3dCommandList->Close();
 	ID3D12CommandList* ppd3dCommandLists[] = { m_pd3dCommandList };
@@ -381,6 +417,8 @@ void CGameFramework::ProcessInput()
 {
 	static UCHAR pKeyBuffer[256];
 	DWORD dwDirection = 0;
+	/*키보드의 상태 정보를 반환한다. 화살표 키(‘→’, ‘←’, ‘↑’, ‘↓’)를 누르면 플레이어를 오른쪽/왼쪽(로컬 x-축), 앞/
+	뒤(로컬 z-축)로 이동한다. ‘Page Up’과 ‘Page Down’ 키를 누르면 플레이어를 위/아래(로컬 y-축)로 이동한다.*/
 	if (::GetKeyboardState(pKeyBuffer))
 	{
 		if (pKeyBuffer[VK_UP] & 0xF0) dwDirection |= DIR_FORWARD;
@@ -393,27 +431,38 @@ void CGameFramework::ProcessInput()
 	float cxDelta = 0.0f, cyDelta = 0.0f;
 	POINT ptCursorPos;
 
+	/*마우스를 캡쳐했으면 마우스가 얼마만큼 이동하였는 가를 계산한다. 마우스 왼쪽 또는 오른쪽 버튼이 눌러질 때의
+	메시지(WM_LBUTTONDOWN, WM_RBUTTONDOWN)를 처리할 때 마우스를 캡쳐하였다. 그러므로 마우스가 캡쳐된
+	것은 마우스 버튼이 눌려진 상태를 의미한다. 마우스 버튼이 눌려진 상태에서 마우스를 좌우 또는 상하로 움직이면 플레이어를 x-축 또는 y-축으로 회전한다.*/
 	if (::GetCapture() == m_hWnd)
 	{
+		//마우스 커서를 화면에서 없앤다(보이지 않게 한다).
 		::SetCursor(NULL);
+		//현재 마우스 커서의 위치를 가져온다. 
 		::GetCursorPos(&ptCursorPos);
+		//마우스 버튼이 눌린 상태에서 마우스가 움직인 양을 구한다. 
 		cxDelta = (float)(ptCursorPos.x - m_ptOldCursorPos.x) / 3.0f;
 		cyDelta = (float)(ptCursorPos.y - m_ptOldCursorPos.y) / 3.0f;
+		//마우스 커서의 위치를 마우스가 눌려졌던 위치로 설정한다. 
 		::SetCursorPos(m_ptOldCursorPos.x, m_ptOldCursorPos.y);
 	}
 
+	//마우스 또는 키 입력이 있으면 플레이어를 이동하거나(dwDirection) 회전한다(cxDelta 또는 cyDelta).
 	if ((dwDirection != 0) || (cxDelta != 0.0f) || (cyDelta != 0.0f))
 	{
 		if (cxDelta || cyDelta)
 		{
+			/*cxDelta는 y-축의 회전을 나타내고 cyDelta는 x-축의 회전을 나타낸다. 오른쪽 마우스 버튼이 눌려진 경우
+			cxDelta는 z-축의 회전을 나타낸다.*/
 			if (pKeyBuffer[VK_RBUTTON] & 0xF0)
 				m_pPlayer->Rotate(cyDelta, 0.0f, -cxDelta);
 			else
 				m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
 		}
-		if (dwDirection) 
-			m_pPlayer->Move(dwDirection, 200.0f * m_GameTimer.GetTimeElapsed(), true);
+		/*플레이어를 dwDirection 방향으로 이동한다(실제로는 속도 벡터를 변경한다). 이동 거리는 시간에 비례하도록 한다. 플레이어의 이동 속력은 (50/초)로 가정한다.*/
+		if (dwDirection) m_pPlayer->Move(dwDirection, 50.0f * m_GameTimer.GetTimeElapsed(), true);
 	}
+	//플레이어를 실제로 이동하고 카메라를 갱신한다. 중력과 마찰력의 영향을 속도 벡터에 적용한다. 
 	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
 }
 

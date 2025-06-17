@@ -256,7 +256,8 @@ void CObjectsShader::CreateShader(ID3D12Device* pd3dDevice, ID3D12RootSignature
 	CShader::CreateShader(pd3dDevice, pd3dGraphicsRootSignature);
 }
 
-void CObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, void* pContext)
+void CObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList
+	* pd3dCommandList, void* pContext)
 {
 	CHeightMapTerrain* pTerrain = (CHeightMapTerrain*)pContext;
 	float fTerrainWidth = pTerrain->GetWidth(), fTerrainLength = pTerrain->GetLength();
@@ -279,7 +280,7 @@ void CObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsComman
 			for (int y = 0; y < yObjects; y++)
 			{
 				pRotatingObject = new CRotatingObject(1);
-				pRotatingObject->SetMesh(pCubeMesh);
+				pRotatingObject->SetMesh(0, pCubeMesh);
 				float xPosition = x * fxPitch;
 				float zPosition = z * fzPitch;
 				float fHeight = pTerrain->GetHeight(xPosition, zPosition);

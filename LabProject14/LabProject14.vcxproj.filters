@@ -24,7 +24,7 @@
     <ClInclude Include="Resource.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="2022184015_김해님_숙제3.h">
+    <ClInclude Include="LabProject14.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
@@ -56,7 +56,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="2022184015_김해님_숙제3.cpp">
+    <ClCompile Include="LabProject14.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Camera.cpp">
@@ -88,7 +88,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="2022184015_김해님_숙제3.rc">
+    <ResourceCompile Include="LabProject14.rc">
       <Filter>리소스 파일</Filter>
     </ResourceCompile>
   </ItemGroup>
@@ -96,7 +96,7 @@
     <Image Include="small.ico">
       <Filter>리소스 파일</Filter>
     </Image>
-    <Image Include="2022184015_김해님_숙제3.ico">
+    <Image Include="LabProject14.ico">
       <Filter>리소스 파일</Filter>
     </Image>
   </ItemGroup>

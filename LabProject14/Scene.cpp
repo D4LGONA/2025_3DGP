@@ -138,10 +138,10 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList
 		m_pd3dGraphicsRootSignature, _T("HeightMap.raw"), 257, 257, 257,
 		257, xmf3Scale, xmf4Color);
 #endif
-	//m_nShaders = 1;
-	//m_pShaders = new CObjectsShader[m_nShaders];
-	//m_pShaders[0].CreateShader(pd3dDevice, m_pd3dGraphicsRootSignature);
-	//m_pShaders[0].BuildObjects(pd3dDevice, pd3dCommandList, m_pTerrain);
+	m_nShaders = 1;
+	m_pShaders = new CObjectsShader[m_nShaders];
+	m_pShaders[0].CreateShader(pd3dDevice, m_pd3dGraphicsRootSignature);
+	m_pShaders[0].BuildObjects(pd3dDevice, pd3dCommandList, m_pTerrain);
 }
 
 void CScene::ReleaseObjects()
@@ -170,12 +170,14 @@ void CScene::AnimateObjects(float fTimeElapsed)
 	}
 }
 
-bool CScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
+bool CScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM
+	lParam)
 {
 	return(false);
 }
 
-bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
+bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam,
+	LPARAM lParam)
 {
 	return(false);
 }
@@ -187,15 +189,10 @@ bool CScene::ProcessInput(UCHAR* pKeysBuffer)
 
 void CScene::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
 {
-	pd3dCommandList->SetGraphicsRootSignature(m_pd3dGraphicsRootSignature);
-
 	pCamera->SetViewportsAndScissorRects(pd3dCommandList);
+	pd3dCommandList->SetGraphicsRootSignature(m_pd3dGraphicsRootSignature);
 	pCamera->UpdateShaderVariables(pd3dCommandList);
-
-	if (m_pTerrain) {
-		m_pTerrain->UpdateTransform(NULL);
-		m_pTerrain->Render(pd3dCommandList, pCamera);
-	}
+	if (m_pTerrain) m_pTerrain->Render(pd3dCommandList, pCamera);
 	for (int i = 0; i < m_nShaders; i++)
 	{
 		m_pShaders[i].Render(pd3dCommandList, pCamera);
