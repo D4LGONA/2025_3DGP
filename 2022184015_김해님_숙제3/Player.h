@@ -82,6 +82,7 @@ public:
 
 //---------------------------------------------------------------
 
+#define BULLETS 50
 class CTerrainPlayer : public CPlayer
 {
 public:
@@ -100,5 +101,10 @@ public:
 	CGameObject* m_pCannonFrame = NULL;
 	CGameObject* m_pGunFrame = NULL;
 
+	float m_fBulletEffectiveRange = 150.0f;
+	CBulletObject* m_ppBullets[BULLETS];
+	void FireBullet(CGameObject* pLockedObject);
+
 	void OnInitialize();
+	void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera = NULL);
 };

@@ -291,6 +291,15 @@ CTerrainPlayer::CTerrainPlayer(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandLi
 
 	OnInitialize();
 	
+	CCubeMeshDiffused* pBulletMesh = new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, 2.0f, 2.0f, 2.0f);
+	for (int i = 0; i < BULLETS; i++)
+	{
+		m_ppBullets[i] = new CBulletObject(m_fBulletEffectiveRange);
+		m_ppBullets[i]->SetMesh(pBulletMesh);
+		m_ppBullets[i]->SetShader(pShader);
+		m_ppBullets[i]->bActive = false;
+	}
+
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 }
 
@@ -385,7 +394,70 @@ void CTerrainPlayer::OnPrepareRender()
 
 void CTerrainPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
 {
+
+	for (int i = 0; i < BULLETS; i++)
+	{
+		m_ppBullets[i]->Animate(fTimeElapsed);
+	}
+
+
 	CPlayer::Animate(fTimeElapsed, pxmf4x4Parent);
+}
+
+void CTerrainPlayer::FireBullet(CGameObject* pLockedObject)
+{
+	if (pLockedObject)
+	{
+		auto target = pLockedObject->GetPosition();
+		XMFLOAT3 position = GetPosition();
+		// 방향 벡터 (XZ 평면 기준)
+		float dx = target.x - position.x;
+		float dz = target.z - position.z;
+
+		// 원하는 yaw 각도 (라디안 → degree 변환)
+		float yawRadians = atan2f(dx, dz);  // +Z 기준
+		float yawDegrees = XMConvertToDegrees(yawRadians);
+
+		// 현재 yaw와의 차이 계산 후 회전 (또는 절대 yaw 설정)
+		float deltaYaw = yawDegrees - m_fYaw;
+
+		Rotate(0.0f, deltaYaw, 0.0f);
+
+		UpdateTransform(NULL);  // 월드행렬 갱신
+	}
+
+	CBulletObject* pBulletObject = NULL;
+	for (int i = 0; i < BULLETS; i++)
+	{
+		if (m_ppBullets[i]->bActive == true) continue;
+		pBulletObject = m_ppBullets[i];
+		pBulletObject->bActive = true;
+		break;
+	}
+
+
+	if (pBulletObject)
+	{
+		XMFLOAT3 xmf3Position = m_pCannonFrame->GetPosition();
+		XMMATRIX xmmtxYaw = XMMatrixRotationY(XMConvertToRadians(180.0f));
+		XMFLOAT3 xmf3Direction = m_pTurretFrame->GetLook();
+		XMVECTOR vDir = XMLoadFloat3(&xmf3Direction);
+		vDir = XMVector3TransformNormal(vDir, xmmtxYaw);
+		XMStoreFloat3(&xmf3Direction, vDir);
+		XMFLOAT3 xmf3FirePosition = Vector3::Add(xmf3Position, Vector3::ScalarProduct(xmf3Direction, 20.0f, false));
+
+		xmf3FirePosition.y += 2.0f;
+
+		pBulletObject->m_xmf4x4World = m_xmf4x4World;
+
+		pBulletObject->SetFirePosition(xmf3FirePosition);
+		pBulletObject->SetMovingDirection(xmf3Direction);
+
+		if (pLockedObject)
+		{
+			pBulletObject->m_pLockedObject = pLockedObject;
+		}
+	}
 }
 
 void CTerrainPlayer::OnInitialize()
@@ -404,8 +476,9 @@ void CTerrainPlayer::Rotate(float x, float y, float z)
 	{
 		XMMATRIX xmmtxRotate = XMMatrixRotationY(XMConvertToRadians(y));
 		m_pTurretFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pTurretFrame->m_xmf4x4Transform);
-		//RotateTurretAndCamera(y);
 	}
+
+	UpdateTransform(nullptr);
 }
 
 void CTerrainPlayer::RotateTurretAndCamera(float turretYaw)
@@ -433,4 +506,12 @@ void CTerrainPlayer::RotateTurretAndCamera(float turretYaw)
 		m_pCamera->SetLookAt(turretPos);
 		m_pCamera->RegenerateViewMatrix();
 	}
+}
+
+void CTerrainPlayer::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
+{
+	CPlayer::Render(pd3dCommandList, pCamera);
+
+	for (int i = 0; i < BULLETS; i++)
+		m_ppBullets[i]->Render(pd3dCommandList, pCamera);
 }

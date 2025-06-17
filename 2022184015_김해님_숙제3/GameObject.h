@@ -6,6 +6,8 @@ class CShader;
 class CGameObject
 {
 public:
+	bool bActive = true;
+
 	CGameObject();
 	virtual ~CGameObject();
 
@@ -117,4 +119,31 @@ public:
 	XMFLOAT3 GetScale() { return(m_xmf3Scale); }
 	float GetWidth() { return(m_nWidth * m_xmf3Scale.x); }
 	float GetLength() { return(m_nLength * m_xmf3Scale.z); }
+};
+
+class CBulletObject : public CGameObject
+{
+public:
+	CBulletObject(float fEffectiveRange);
+	virtual ~CBulletObject();
+
+public:
+	virtual void Animate(float fElapsedTime);
+
+	float						m_fBulletEffectiveRange = 50.0f;
+	float						m_fMovingDistance = 0.0f;
+	float						m_fRotationAngle = 0.0f;
+	XMFLOAT3					m_xmf3FirePosition = XMFLOAT3(0.0f, 0.0f, 1.0f);
+	XMFLOAT3					m_xmf3MovingDirection = XMFLOAT3(0.0f, 0.0f, 1.0f);
+
+	float						m_fElapsedTimeAfterFire = 0.0f;
+	float						m_fLockingTime = 4.0f;
+	float						m_fRotationSpeed = 150.0f;
+	CGameObject* m_pLockedObject = NULL;
+
+	void SetFirePosition(XMFLOAT3 xmf3FirePosition);
+	void SetMovingDirection(XMFLOAT3 xmf3Direction) {
+		m_xmf3MovingDirection = xmf3Direction;
+	}
+	void Reset();
 };

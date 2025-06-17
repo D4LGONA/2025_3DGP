@@ -341,6 +341,8 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 		case VK_F9:
 			ChangeSwapChainState();
 			break;
+		case VK_CONTROL:
+			dynamic_cast<CTerrainPlayer*>(m_pPlayer)->FireBullet(m_pTarget);
 		default:
 			break;
 		}
@@ -418,7 +420,7 @@ void CGameFramework::ProcessInput()
 void CGameFramework::AnimateObjects()
 {
 	if (m_pScene) m_pScene->AnimateObjects(m_GameTimer.GetTimeElapsed());
-
+	m_pPlayer->Animate(m_GameTimer.GetTimeElapsed());
 }
 
 void CGameFramework::WaitForGpuComplete()

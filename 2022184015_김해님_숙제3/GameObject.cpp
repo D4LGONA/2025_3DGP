@@ -523,3 +523,59 @@ CHeightMapTerrain::~CHeightMapTerrain()
 {
 	if (m_pHeightMapImage) delete m_pHeightMapImage;
 }
+
+CBulletObject::CBulletObject(float fEffectiveRange)
+{
+	m_fBulletEffectiveRange = fEffectiveRange;
+}
+
+CBulletObject::~CBulletObject()
+{
+}
+
+void CBulletObject::SetFirePosition(XMFLOAT3 xmf3FirePosition)
+{
+	m_xmf3FirePosition = xmf3FirePosition;
+	SetPosition(xmf3FirePosition);
+}
+
+void CBulletObject::Reset()
+{
+	m_pLockedObject = NULL;
+	m_fElapsedTimeAfterFire = 0;
+	m_fMovingDistance = 0;
+	m_fRotationAngle = 0.0f;
+	bActive = false;
+}
+
+void CBulletObject::Animate(float fElapsedTime)
+{
+	m_fElapsedTimeAfterFire += fElapsedTime;
+
+	float fDistance = m_fRotationSpeed * fElapsedTime;
+
+	if (m_pLockedObject)
+	{
+		XMFLOAT3 xmf3Position = GetPosition();
+		XMVECTOR xmvPosition = XMLoadFloat3(&xmf3Position);
+
+		XMFLOAT3 xmf3TargetPosition = m_pLockedObject->GetPosition();
+		XMVECTOR xmvTargetPosition = XMLoadFloat3(&xmf3TargetPosition);
+
+		XMVECTOR xmvToTarget = XMVector3Normalize(xmvTargetPosition - xmvPosition);
+		XMVECTOR xmvCurrent = XMLoadFloat3(&m_xmf3MovingDirection);
+		XMVECTOR xmvSmoothed = XMVector3Normalize(XMVectorLerp(xmvCurrent, xmvToTarget, 0.25f));
+		XMStoreFloat3(&m_xmf3MovingDirection, xmvSmoothed);
+	}
+
+	// 이동
+	XMFLOAT3 xmf3Move = Vector3::ScalarProduct(m_xmf3MovingDirection, fDistance, false);
+	XMFLOAT3 xmf3Position = Vector3::Add(GetPosition(), xmf3Move);
+	SetPosition(xmf3Position);
+	m_fMovingDistance += fDistance;
+
+
+	// 유효 범위 또는 생존 시간 초과 시 리셋
+	if ((m_fMovingDistance > m_fBulletEffectiveRange) || (m_fElapsedTimeAfterFire > m_fLockingTime))
+		Reset();
+}

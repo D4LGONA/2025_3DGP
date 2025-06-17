@@ -111,7 +111,9 @@ public: // 따라하기 6 추가
 
 public:
 	//플레이어 객체에 대한 포인터이다.
-	CPlayer* m_pPlayer = NULL;
+	CTerrainPlayer* m_pPlayer = NULL;
 	//마지막으로 마우스 버튼을 클릭할 때의 마우스 커서의 위치이다. 
 	POINT m_ptOldCursorPos;
+
+	CGameObject* m_pTarget = nullptr;
 };
