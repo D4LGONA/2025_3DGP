@@ -37,6 +37,10 @@ using Microsoft::WRL::ComPtr;
 #pragma comment(lib, "dxguid.lib")
 #pragma comment(lib, "winmm.lib")
 
+// 추가 라이브러리
+
+#include <iostream>
+#include <vector>
 
 #define FRAME_BUFFER_WIDTH 640
 #define FRAME_BUFFER_HEIGHT 480
@@ -56,6 +60,10 @@ inline bool IsEqual(float fA, float fB) { return(::IsZero(fA - fB)); }
 inline float InverseSqrt(float fValue) { return 1.0f / sqrtf(fValue); }
 inline void Swap(float* pfS, float* pfT) { float fTemp = *pfS; *pfS = *pfT; *pfT = fTemp; }
 
+inline float RandF(float fMin, float fMax)
+{
+	return(fMin + ((float)rand() / (float)RAND_MAX) * (fMax - fMin));
+}
 
 //3차원 벡터의 연산
 namespace Vector3
@@ -246,3 +254,5 @@ namespace Matrix4x4
 		return(xmmtx4x4Result);
 	}
 }
+
+XMVECTOR RandomUnitVectorOnSphere();

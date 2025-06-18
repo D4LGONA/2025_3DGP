@@ -2,6 +2,7 @@
 #include "Mesh.h"
 #include "Camera.h"
 class CShader;
+class CInstancingShader;
 
 class CGameObject
 {
@@ -44,6 +45,7 @@ public:
 	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent = NULL);
 	virtual void OnPrepareRender();
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
+	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, UINT nInstances);
 
 
 // °èÃþ±¸Á¶
@@ -146,4 +148,62 @@ public:
 		m_xmf3MovingDirection = xmf3Direction;
 	}
 	void Reset();
+};
+
+class CExplosiveObject : public CGameObject
+{
+public:
+	CExplosiveObject();
+	virtual ~CExplosiveObject();
+
+	bool m_bBlowingUp = false;
+	float m_fElapsedTimes = 0.0f;
+	float m_fDuration = 2.0f;
+	float m_fExplosionSpeed = 10.0f;
+	float m_fExplosionRotation = 720.0f;
+
+	CInstancingShader* m_pInstancingShader = nullptr;
+	CMesh* m_expMesh = nullptr;
+
+	void setExplosionMesh(CMesh* mesh);
+	void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent = NULL);
+	void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
+	void SetExpShader(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* m_pd3dGraphicsRootSignature);
+	void StartExplosion();
+	void Reset();
+};
+
+class CMovingObject : public CGameObject
+{
+public:
+	CMovingObject(XMFLOAT3 dir, float speed, float rotationSpeed);
+	void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent = NULL);
+	void Reset();
+private:
+	XMFLOAT3 m_xmf3Direction;
+	float m_fSpeed;
+	float m_fRotationSpeed;
+	float m_fTimeElapsed = 0.0f;
+};
+
+class CTankObject : public CExplosiveObject
+{
+public:
+	CGameObject* m_pBody = nullptr; // ÅÊÅ© ¸öÃ¼ °´Ã¼
+
+	XMFLOAT3 m_xmf3MoveDirection = XMFLOAT3(0.0f, 0.0f, 1.0f); // ±âº» ÀüÁø ¹æÇâ
+	float m_fSpeed = 1.0f;
+
+	CTankObject();
+	virtual ~CTankObject();
+	void SetBody(CMesh* pBody) { m_pBody->SetMesh(pBody); }
+	CGameObject* GetBody() const { return m_pBody; }
+	void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent = NULL);
+	void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera) override;
+	void SetShader(CShader* pShader)
+	{
+		m_pBody->SetShader(pShader);
+		CGameObject::SetShader(pShader);
+	}
+	int PickObjectByRayIntersection(XMFLOAT3& xmf3PickPosition, XMFLOAT4X4& xmf4x4View, float* pfHitDistance);
 };

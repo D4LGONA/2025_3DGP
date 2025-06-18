@@ -69,6 +69,7 @@ protected:
 
 public:
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, int nSubSet);
+	void Render(ID3D12GraphicsCommandList* pd3dCommandList, UINT nInstances = 1);
 };
 
 //-----------------------------------------------------------------
