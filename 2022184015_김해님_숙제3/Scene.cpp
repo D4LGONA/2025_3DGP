@@ -1,6 +1,17 @@
 #include "stdafx.h"
 #include "Scene.h"
 
+
+void CollectBoundingBoxes(CGameObject* pObject, std::vector<BoundingOrientedBox>& boxes)
+{
+	if (!pObject) return;
+	auto box = pObject->GetBoundingBox();
+	if (box.Extents.x != 0 && box.Extents.y != 0 && box.Extents.z != 0) 
+		boxes.push_back(box);
+	for (CGameObject* pChild = pObject->m_pChild; pChild; pChild = pChild->m_pSibling)
+		CollectBoundingBoxes(pChild, boxes);
+}
+
 CScene::CScene()
 {
 }
@@ -68,6 +79,24 @@ void CScene::CheckEnemyByBulletCollisions()
 					pEnemy->StartExplosion();
 					ppBullets[j]->Reset();
 				}
+			}
+		}
+	}
+}
+
+void CScene::CheckEnemyByPlayerCollisions()
+{
+	std::vector<BoundingOrientedBox> playerBoxes;
+	CollectBoundingBoxes(Player, playerBoxes);
+
+	for (auto& pEnemy : enemies) {
+		if (!pEnemy->bActive || pEnemy->m_bBlowingUp) continue;
+
+		for (const auto& playerBox : playerBoxes) {
+			if (pEnemy->CheckCollisionRecursive(pEnemy, playerBox)) {
+				pEnemy->StartExplosion();
+				bHit = true;
+				break; 
 			}
 		}
 	}
@@ -225,7 +254,7 @@ void CScene::ReleaseUploadBuffers()
 
 void CScene::AnimateObjects(float fTimeElapsed)
 {
-	if (enemycount == 0) {
+	if (enemycount == 0 || bHit == true) {
 		delay += fTimeElapsed;
 		if (delay >= 3.0f)
 			PostQuitMessage(0);
@@ -238,6 +267,7 @@ void CScene::AnimateObjects(float fTimeElapsed)
 		pEnemy->Animate(fTimeElapsed, nullptr);
 	}
 	CheckEnemyByBulletCollisions();
+	CheckEnemyByPlayerCollisions();
 }
 
 bool CScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)

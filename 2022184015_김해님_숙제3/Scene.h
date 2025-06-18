@@ -31,6 +31,7 @@ public:
 
 public: // Ãæµ¹
 	void CheckEnemyByBulletCollisions();
+	void CheckEnemyByPlayerCollisions();
 
 protected:
 	CHeightMapTerrain* m_pTerrain = NULL;
@@ -47,6 +48,7 @@ protected:
 	std::vector<CTankObject*> enemies;
 public:
 	int enemycount = 10;
+	bool bHit = false;
 	CTerrainPlayer* Player = nullptr;
 
 	float delay = 0.0f;

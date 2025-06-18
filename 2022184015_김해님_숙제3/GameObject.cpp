@@ -403,26 +403,6 @@ CGameObject* CGameObject::LoadFrameHierarchyFromFile(ID3D12Device* pd3dDevice, I
 		}
 		else if (!strcmp(pstrToken, "<Materials>:"))
 		{
-			/*MATERIALSLOADINFO* pMaterialsInfo = pGameObject->LoadMaterialsInfoFromFile(pd3dDevice, pd3dCommandList, pInFile);
-			if (pMaterialsInfo && (pMaterialsInfo->m_nMaterials > 0))
-			{
-				pGameObject->m_nMaterials = pMaterialsInfo->m_nMaterials;
-				pGameObject->m_ppMaterials = new CMaterial * [pMaterialsInfo->m_nMaterials];
-
-				for (int i = 0; i < pMaterialsInfo->m_nMaterials; i++)
-				{
-					pGameObject->m_ppMaterials[i] = NULL;
-
-					CMaterial* pMaterial = new CMaterial();
-
-					CMaterialColors* pMaterialColors = new CMaterialColors(&pMaterialsInfo->m_pMaterials[i]);
-					pMaterial->SetMaterialColors(pMaterialColors);
-
-					if (pGameObject->GetMeshType() & VERTEXT_NORMAL) pMaterial->SetIlluminatedShader();
-
-					pGameObject->SetMaterial(i, pMaterial);
-				}
-			}*/
 		}
 		else if (!strcmp(pstrToken, "<Children>:"))
 		{

@@ -397,15 +397,34 @@ void CTerrainPlayer::FireBullet(CGameObject* pLockedObject)
 	{
 		auto target = pLockedObject->GetPosition();
 		XMFLOAT3 position = GetPosition();
-
 		float dx = target.x - position.x;
 		float dz = target.z - position.z;
-		float yawRadians = atan2f(dx, dz);
-		float yawDegrees = XMConvertToDegrees(yawRadians);
 
-		Rotate(0.0f, yawDegrees, 0.0f); // 절대 yaw로 설정
+		// 타겟을 향한 절대 yaw 각도 계산
+		float targetYawRadians = atan2f(dx, dz);
+		float targetYawDegrees = XMConvertToDegrees(targetYawRadians);
+
+		// 현재 오브젝트의 yaw(도 단위) 추출
+		float currentYaw = m_fYaw; // m_fYaw는 누적 yaw 각도(도 단위)로 관리
+
+		// 각도 차이(상대 회전량) 계산
+		float deltaYaw = targetYawDegrees - currentYaw;
+
+		// 각도 wrap-around 처리 (-180~+180도)
+		if (deltaYaw > 180.0f) deltaYaw -= 360.0f;
+		if (deltaYaw < -180.0f) deltaYaw += 360.0f;
+
+		// 상대회전 적용
+		Rotate(0.0f, deltaYaw, 0.0f);
+
+		// 누적 yaw 갱신
+		m_fYaw += deltaYaw;
+		if (m_fYaw > 180.0f) m_fYaw -= 360.0f;
+		if (m_fYaw < -180.0f) m_fYaw += 360.0f;
+
 		UpdateTransform(nullptr);
 	}
+
 
 	CBulletObject* pBulletObject = NULL;
 	for (int i = 0; i < BULLETS; i++)
@@ -442,7 +461,6 @@ void CTerrainPlayer::OnInitialize()
 {
 	m_pTurretFrame = FindFrame("TURRET");
 	m_pCannonFrame = FindFrame("cannon");
-	m_pGunFrame = FindFrame("gun");
 
 	XMMATRIX xmmtxRotate = XMMatrixRotationY(XMConvertToRadians(-17.0f));
 	m_pTurretFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pTurretFrame->m_xmf4x4Transform);
