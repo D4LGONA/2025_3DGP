@@ -44,7 +44,20 @@ protected:
 
 	ID3D12RootSignature* m_pd3dGraphicsRootSignature = NULL;
 
-	CTankObject* Enemy = nullptr;
+	std::vector<CTankObject*> enemies;
 public:
+	int enemycount = 10;
 	CTerrainPlayer* Player = nullptr;
+
+	float delay = 0.0f;
+
+	CGameObject* PickObjectPointedByCursor(int xClient, int yClient, CCamera* pCamera);
+	void ExplosiveAllEnemies()
+	{
+		for (auto& pEnemy : enemies) {
+			if (pEnemy->m_bBlowingUp) continue;
+			pEnemy->StartExplosion();
+		}
+		enemycount = 0;
+	}
 };

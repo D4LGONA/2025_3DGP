@@ -326,24 +326,21 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 	case WM_KEYUP:
 		switch (wParam)
 		{
-		/*‘F1’ 키를 누르면 1인칭 카메라, ‘F2’ 키를 누르면 스페이스-쉽 카메라로 변경한다, ‘F3’ 키를 누르면 3인칭 카메라로 변경한다.*/ 
-		case VK_F1:
-		case VK_F2:
-		case VK_F3:
-			if (m_pPlayer) m_pCamera = m_pPlayer->ChangeCamera((wParam - VK_F1 + 1),
-				m_GameTimer.GetTimeElapsed());
-			break;
 		case VK_ESCAPE:
 			::PostQuitMessage(0);
 			break;
-		case VK_RETURN:
-			break;
-			//“F9” 키가 눌려지면 윈도우 모드와 전체화면 모드의 전환을 처리한다.
 		case VK_F9:
 			ChangeSwapChainState();
 			break;
 		case VK_CONTROL:
+			if (delay < 0.25f) break;
 			m_pPlayer->FireBullet(m_pTarget);
+			delay = 0.0f;
+			m_pTarget = nullptr;
+			break;
+		case 'W':
+		case 'w':
+			m_pScene->ExplosiveAllEnemies();
 			break;
 		default:
 			break;
@@ -366,10 +363,11 @@ LRESULT CALLBACK CGameFramework::OnProcessingWindowMessage(HWND hWnd, UINT nMess
 		m_nWndClientHeight = HIWORD(lParam);
 		break;
 	}
-	case WM_LBUTTONDOWN:
 	case WM_RBUTTONDOWN:
-	case WM_LBUTTONUP:
+		m_pTarget = m_pScene->PickObjectPointedByCursor(LOWORD(lParam), HIWORD(lParam),m_pPlayer->GetCamera());
 	case WM_RBUTTONUP:
+	case WM_LBUTTONDOWN:
+	case WM_LBUTTONUP:
 	case WM_MOUSEMOVE:
 		OnProcessingMouseMessage(hWnd, nMessageID, wParam, lParam);
 		break;
@@ -409,9 +407,9 @@ void CGameFramework::ProcessInput()
 		if (cxDelta || cyDelta)
 		{
 			if (pKeyBuffer[VK_RBUTTON] & 0xF0)
-				m_pPlayer->Rotate(cyDelta, 0.0f, -cxDelta);
+				((CPlayer*)m_pPlayer)->Rotate(0.0f, cxDelta, 0.0f);
 			else
-				((CTerrainPlayer*)m_pPlayer)->Rotate(cyDelta, cxDelta, 0.0f);
+				m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
 		}
 		if (dwDirection) 
 			m_pPlayer->Move(dwDirection, 200.0f * m_GameTimer.GetTimeElapsed(), true);
@@ -421,6 +419,7 @@ void CGameFramework::ProcessInput()
 
 void CGameFramework::AnimateObjects()
 {
+	delay += m_GameTimer.GetTimeElapsed();
 	if (m_pScene) m_pScene->AnimateObjects(m_GameTimer.GetTimeElapsed());
 	m_pPlayer->Animate(m_GameTimer.GetTimeElapsed());
 }

@@ -108,8 +108,21 @@ void CGameObject::OnPrepareRender()
 	
 }
 
+bool CGameObject::IsVisible(CCamera* pCamera)
+{
+	if (m_pMesh == nullptr) return true;
+	OnPrepareRender();
+	bool bIsVisible = false;
+	BoundingOrientedBox localOBB = m_pMesh->m_xmBoundingBox;
+	BoundingOrientedBox worldOBB;
+	localOBB.Transform(worldOBB, XMLoadFloat4x4(&m_xmf4x4World));
+	if (pCamera) bIsVisible = pCamera->IsInFrustum(localOBB);
+	return(bIsVisible);
+}
+
 void CGameObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
 {
+	if (false == bActive) return;
 	OnPrepareRender();
 	UpdateShaderVariable(pd3dCommandList, &m_xmf4x4World);
 	m_pShader->OnPrepareRender(pd3dCommandList);
@@ -599,6 +612,7 @@ void CBulletObject::Reset()
 
 void CBulletObject::Animate(float fElapsedTime)
 {
+	if (!bActive) return;
 	m_fElapsedTimeAfterFire += fElapsedTime;
 
 	float fDistance = m_fRotationSpeed * fElapsedTime;
@@ -826,7 +840,12 @@ int CTankObject::PickObjectByRayIntersection(XMFLOAT3& xmf3PickPosition, XMFLOAT
 		GenerateRayForPicking(xmf3PickPosition, xmf4x4View, &xmf3PickRayOrigin, &xmf3PickRayDirection);
 		nIntersected += m_pMesh->CheckRayIntersection(xmf3PickRayOrigin, xmf3PickRayDirection, pfHitDistance);
 	}
-	return(nIntersected);
+	// 자식 오브젝트 재귀 검사
+	for (CGameObject* pChild = m_pChild; pChild != nullptr; pChild = pChild->m_pSibling)
+	{
+		nIntersected += pChild->PickObjectByRayIntersection(xmf3PickPosition, xmf4x4View, pfHitDistance);
+	}
+	return nIntersected;
 }
 
 void CTankObject::OnObjectUpdateCallback(float fTimeElapsed)

@@ -470,13 +470,16 @@ CMeshFromFile::CMeshFromFile(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList
 	}
 
 	// 2. 인덱스 배열 초기화
+	m_nSubMeshes = pMeshInfo->m_nSubMeshes;
+	m_pnSubSetIndices = new int[m_nSubMeshes];
+	for (int i = 0; i < m_nSubMeshes; ++i)
+		m_pnSubSetIndices[i] = pMeshInfo->m_pnSubSetIndices[i];
+
 	m_ppnIndices = new UINT * [m_nSubMeshes];
 	for (int i = 0; i < m_nSubMeshes; ++i) {
 		m_ppnIndices[i] = new UINT[m_pnSubSetIndices[i]];
-		// 각 서브메시의 인덱스 복사
-		for (int j = 0; j < m_pnSubSetIndices[i]; ++j) {
+		for (int j = 0; j < m_pnSubSetIndices[i]; ++j)
 			m_ppnIndices[i][j] = pMeshInfo->m_ppnSubSetIndices[i][j];
-		}
 	}
 
 	m_pd3dVertexBuffer = CreateBufferResource(

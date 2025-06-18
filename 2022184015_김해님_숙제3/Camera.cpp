@@ -131,6 +131,18 @@ void CCamera::SetViewportsAndScissorRects(ID3D12GraphicsCommandList* pd3dCommand
 	pd3dCommandList->RSSetScissorRects(1, &m_d3dScissorRect);
 }
 
+void CCamera::GenerateFrustum()
+{
+	m_xmFrustum.CreateFromMatrix(m_xmFrustum, XMLoadFloat4x4(&m_xmf4x4Projection));
+	XMMATRIX xmmtxInversView = XMMatrixInverse(NULL, XMLoadFloat4x4(&m_xmf4x4View));
+	m_xmFrustum.Transform(m_xmFrustum, xmmtxInversView);
+}
+
+bool CCamera::IsInFrustum(BoundingOrientedBox& xmBoundingBox)
+{
+	return(m_xmFrustum.Intersects(xmBoundingBox));
+}
+
 //---------------------------------------------------------
 
 CSpaceShipCamera::CSpaceShipCamera(CCamera* pCamera) : CCamera(pCamera)

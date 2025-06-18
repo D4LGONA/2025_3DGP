@@ -95,13 +95,13 @@ public:
 	void OnPrepareRender();
 	void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent = NULL);
 	void Rotate(float x, float y, float z);
-	void RotateTurretAndCamera(float turretYaw);
 
+	float m_fCannonPitch = 0.0f;
 	CGameObject* m_pTurretFrame = NULL;
 	CGameObject* m_pCannonFrame = NULL;
 	CGameObject* m_pGunFrame = NULL;
 
-	float m_fBulletEffectiveRange = 150.0f;
+	float m_fBulletEffectiveRange = 2000.0f;
 	CBulletObject* m_ppBullets[BULLETS];
 	void FireBullet(CGameObject* pLockedObject);
 

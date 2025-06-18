@@ -59,19 +59,50 @@ ID3D12RootSignature* CScene::GetGraphicsRootSignature()
 void CScene::CheckEnemyByBulletCollisions()
 {
 	CBulletObject** ppBullets = Player->m_ppBullets;
-	for (int j = 0; j < BULLETS; j++)
-	{
-		if (ppBullets[j]->bActive)
-		{
+	for (int j = 0; j < BULLETS; j++) {
+		if (ppBullets[j]->bActive) {
 			const BoundingOrientedBox& bulletBox = ppBullets[j]->GetBoundingBox();
-			if (Enemy->CheckCollisionRecursive(Enemy, bulletBox))
-			{
-				if (Enemy->m_bBlowingUp == true) continue;
-				Enemy->StartExplosion();
-				ppBullets[j]->Reset();
+			for (auto& pEnemy : enemies) {
+				if (pEnemy->CheckCollisionRecursive(pEnemy, bulletBox)) {
+					if (pEnemy->m_bBlowingUp || (pEnemy->bActive == false)) continue;
+					pEnemy->StartExplosion();
+					ppBullets[j]->Reset();
+				}
 			}
 		}
 	}
+}
+
+CGameObject* CScene::PickObjectPointedByCursor(int xClient, int yClient, CCamera* pCamera)
+{
+	if (!pCamera) return(NULL);
+	XMFLOAT4X4 xmf4x4View = pCamera->GetViewMatrix();
+	XMFLOAT4X4 xmf4x4Projection = pCamera->GetProjectionMatrix();
+	D3D12_VIEWPORT d3dViewport = pCamera->GetViewport();
+	XMFLOAT3 xmf3PickPosition;
+
+	xmf3PickPosition.x = (((2.0f * xClient) / d3dViewport.Width) - 1) / xmf4x4Projection._11;
+	xmf3PickPosition.y = -(((2.0f * yClient) / d3dViewport.Height) - 1) / xmf4x4Projection._22;
+	xmf3PickPosition.z = 1.0f;
+	int nIntersected = 0;
+	float fHitDistance = FLT_MAX, fNearestHitDistance = FLT_MAX;
+	CGameObject* pIntersectedObject = NULL, * pNearestObject = NULL;
+
+	for (auto& obj : enemies)
+	{
+		if (obj->bActive == false) continue;
+		if (obj->m_bBlowingUp == true) continue;
+		if (obj)
+		{
+			nIntersected = obj->PickObjectByRayIntersection(xmf3PickPosition, xmf4x4View, &fHitDistance);
+			if (nIntersected > 0 && fHitDistance < fNearestHitDistance)
+			{
+				fNearestHitDistance = fHitDistance;
+				pNearestObject = obj;
+			}
+		}
+	}
+	return(pNearestObject);
 }
 
 void CScene::CreateGraphicsPipelineState(ID3D12Device* pd3dDevice)
@@ -159,8 +190,15 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 #endif
 
 	// 캐릭터 추가.
-	Enemy = new CTankObject(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, GetTerrain(), 1);
-	Enemy->UpdateTransform(NULL);
+	for (int i = 0; i < 10; ++i) {
+		float x = RandF(0.0f, 257.0f * 8.0f);
+		float z = RandF(0.0f, 257.0f * 8.0f);
+		XMFLOAT3 pos(x, m_pTerrain->GetHeight(x, z) + 6.0f, z);
+		CTankObject* pEnemy = new CTankObject(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, GetTerrain(), 1);
+		pEnemy->SetPosition(pos); 
+		pEnemy->UpdateTransform(nullptr);
+		enemies.push_back(pEnemy);
+	}
 }
 
 void CScene::ReleaseObjects()
@@ -173,6 +211,10 @@ void CScene::ReleaseObjects()
 	}
 	if (m_pShaders) delete[] m_pShaders;
 	if (m_pTerrain) delete m_pTerrain;
+	for (auto& pEnemy : enemies) {
+		delete pEnemy;
+	}
+	enemies.clear();
 }
 
 void CScene::ReleaseUploadBuffers()
@@ -183,12 +225,18 @@ void CScene::ReleaseUploadBuffers()
 
 void CScene::AnimateObjects(float fTimeElapsed)
 {
+	if (enemycount == 0) {
+		delay += fTimeElapsed;
+		if (delay >= 3.0f)
+			PostQuitMessage(0);
+	}
 	for (int i = 0; i < m_nShaders; i++)
 	{
 		m_pShaders[i].AnimateObjects(fTimeElapsed);
 	}
-	Enemy->Animate(fTimeElapsed, NULL);
-
+	for (auto& pEnemy : enemies) {
+		pEnemy->Animate(fTimeElapsed, nullptr);
+	}
 	CheckEnemyByBulletCollisions();
 }
 
@@ -222,8 +270,8 @@ void CScene::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera
 	{
 		m_pShaders[i].Render(pd3dCommandList, pCamera);
 	}
-	if (Enemy) {
-		Enemy->UpdateTransform(NULL);
-		Enemy->Render(pd3dCommandList, pCamera);
+	for (auto& pEnemy : enemies) {
+		pEnemy->UpdateTransform(nullptr);
+		pEnemy->Render(pd3dCommandList, pCamera);
 	}
 }

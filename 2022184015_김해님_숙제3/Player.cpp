@@ -189,10 +189,8 @@ void CPlayer::Update(float fTimeElapsed)
 	m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, Vector3::ScalarProduct(m_xmf3Velocity, -fDeceleration, true));
 }
 
-/*카메라를 변경할 때 ChangeCamera() 함수에서 호출되는 함수이다. nCurrentCameraMode는 현재 카메라의 모드이고 nNewCameraMode는 새로 설정할 카메라 모드이다.*/
 CCamera* CPlayer::OnChangeCamera(DWORD nNewCameraMode, DWORD nCurrentCameraMode)
 {
-	//새로운 카메라의 모드에 따라 카메라를 새로 생성한다. 
 	CCamera *pNewCamera = NULL;
 	switch (nNewCameraMode)
 	{
@@ -207,11 +205,6 @@ CCamera* CPlayer::OnChangeCamera(DWORD nNewCameraMode, DWORD nCurrentCameraMode)
 		break;
 	}
 
-	/*현재 카메라의 모드가 스페이스-쉽 모드의 카메라이고 새로운 카메라가 1인칭 또는 3인칭 카메라이면 플레이어의
-	Up 벡터를 월드좌표계의 y-축 방향 벡터(0, 1, 0)이 되도록 한다. 즉, 똑바로 서도록 한다. 그리고 스페이스-쉽 카메라의 경우 플레이어의 이동에는 제약이 없다. 
-	특히, y-축 방향의 움직임이 자유롭다. 그러므로 플레이어의 위치는 공중(위치 벡터의 y-좌표가 0보다 크다)이 될 수 있다. 이때 새로운 카메라가 1인칭 또는 3인칭 카메라이면 플레이어의
-	위치는 지면이 되어야 한다. 그러므로 플레이어의 Right 벡터와 Look 벡터의 y 값을 0으로 만든다. 
-	이제 플레이어의 Right 벡터와 Look 벡터는 단위벡터가 아니므로 정규화한다.*/
 	if (nCurrentCameraMode == SPACESHIP_CAMERA)
 	{
 		m_xmf3Right = Vector3::Normalize(XMFLOAT3(m_xmf3Right.x, 0.0f, m_xmf3Right.z));
@@ -220,14 +213,11 @@ CCamera* CPlayer::OnChangeCamera(DWORD nNewCameraMode, DWORD nCurrentCameraMode)
 		m_fPitch = 0.0f;
 		m_fRoll = 0.0f;
 
-		/*Look 벡터와 월드좌표계의 z-축(0, 0, 1)이 이루는 각도(내적=cos)를 계산하여 
-		플레이어의 y-축의 회전 각도 m_fYaw로 설정한다.*/
 		m_fYaw = Vector3::Angle(XMFLOAT3(0.0f, 0.0f, 1.0f), m_xmf3Look);
 		if (m_xmf3Look.x < 0.0f) m_fYaw = -m_fYaw;
 	}
 	else if ((nNewCameraMode == SPACESHIP_CAMERA) && m_pCamera)
 	{
-		/*새로운 카메라의 모드가 스페이스-쉽 모드의 카메라이고 현재 카메라 모드가 1인칭 또는 3인칭 카메라이면 플레이어의 로컬 축을 현재 카메라의 로컬 축과 같게 만든다.*/
 		m_xmf3Right = m_pCamera->GetRightVector();
 		m_xmf3Up = m_pCamera->GetUpVector();
 		m_xmf3Look = m_pCamera->GetLookVector();
@@ -235,15 +225,12 @@ CCamera* CPlayer::OnChangeCamera(DWORD nNewCameraMode, DWORD nCurrentCameraMode)
 	if (pNewCamera)
 	{
 		pNewCamera->SetMode(nNewCameraMode);
-		//현재 카메라를 사용하는 플레이어 객체를 설정한다. 
 		pNewCamera->SetPlayer(this);
 	}
 	if (m_pCamera) delete m_pCamera;
 	return(pNewCamera);
 }
 
-/*플레이어의 위치와 회전축으로부터 월드 변환 행렬을 생성하는 함수이다. 플레이어의 Right 벡터가 월드 변환 행렬의 첫 번째 행 벡터, 
-Up 벡터가 두 번째 행 벡터, Look 벡터가 세 번째 행 벡터, 플레이어의 위치 벡터가 네 번째 행 벡터가 된다.*/
 void CPlayer::OnPrepareRender()
 {
 	m_xmf4x4Transform._11 = m_xmf3Right.x; m_xmf4x4Transform._12 = m_xmf3Right.y; m_xmf4x4Transform._13 = m_xmf3Right.z;
@@ -410,20 +397,14 @@ void CTerrainPlayer::FireBullet(CGameObject* pLockedObject)
 	{
 		auto target = pLockedObject->GetPosition();
 		XMFLOAT3 position = GetPosition();
-		// 방향 벡터 (XZ 평면 기준)
+
 		float dx = target.x - position.x;
 		float dz = target.z - position.z;
-
-		// 원하는 yaw 각도 (라디안 → degree 변환)
-		float yawRadians = atan2f(dx, dz);  // +Z 기준
+		float yawRadians = atan2f(dx, dz);
 		float yawDegrees = XMConvertToDegrees(yawRadians);
 
-		// 현재 yaw와의 차이 계산 후 회전 (또는 절대 yaw 설정)
-		float deltaYaw = yawDegrees - m_fYaw;
-
-		Rotate(0.0f, deltaYaw, 0.0f);
-
-		UpdateTransform(NULL);  // 월드행렬 갱신
+		Rotate(0.0f, yawDegrees, 0.0f); // 절대 yaw로 설정
+		UpdateTransform(nullptr);
 	}
 
 	CBulletObject* pBulletObject = NULL;
@@ -439,14 +420,11 @@ void CTerrainPlayer::FireBullet(CGameObject* pLockedObject)
 	if (pBulletObject)
 	{
 		XMFLOAT3 xmf3Position = m_pCannonFrame->GetPosition();
-		XMMATRIX xmmtxYaw = XMMatrixRotationY(XMConvertToRadians(180.0f));
-		XMFLOAT3 xmf3Direction = m_pTurretFrame->GetLook();
-		XMVECTOR vDir = XMLoadFloat3(&xmf3Direction);
-		vDir = XMVector3TransformNormal(vDir, xmmtxYaw);
-		XMStoreFloat3(&xmf3Direction, vDir);
+		XMFLOAT3 xmf3Direction = m_pCannonFrame->GetLook();
+		xmf3Direction.x *= -1.0f;
+		xmf3Direction.y *= -1.0f;
+		xmf3Direction.z *= -1.0f;
 		XMFLOAT3 xmf3FirePosition = Vector3::Add(xmf3Position, Vector3::ScalarProduct(xmf3Direction, 20.0f, false));
-
-		xmf3FirePosition.y += 2.0f;
 
 		pBulletObject->m_xmf4x4World = m_xmf4x4World;
 
@@ -474,38 +452,23 @@ void CTerrainPlayer::Rotate(float x, float y, float z)
 {
 	if (m_pTurretFrame && y != 0.0f)
 	{
-		XMMATRIX xmmtxRotate = XMMatrixRotationY(XMConvertToRadians(y));
-		m_pTurretFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pTurretFrame->m_xmf4x4Transform);
+		m_pTurretFrame->Rotate(0.0f, y, 0.0f);
 	}
 
-	UpdateTransform(nullptr);
-}
-
-void CTerrainPlayer::RotateTurretAndCamera(float turretYaw)
-{
-	// 2. 트랜스폼 계층 갱신
-	UpdateTransform(nullptr);
-
-	// 3. 카메라 위치/방향을 터렛에 맞게 갱신
-	if (m_pTurretFrame && m_pCamera)
+	if (m_pCannonFrame && x != 0.0f)
 	{
-		XMFLOAT3 turretPos = m_pTurretFrame->GetPosition();
-		XMFLOAT3 camOffset = m_pCamera->GetOffset();
+		float newPitch = m_fCannonPitch + x;
+		if (newPitch > 20.0f) x = 20.0f - m_fCannonPitch;
+		if (newPitch < -20.0f) x = -20.0f - m_fCannonPitch;
 
-
-		// 오프셋을 (터렛 회전 + 163도)만큼 회전
-		XMMATRIX cameraRot = XMMatrixRotationY(XMConvertToRadians(turretYaw));
-		XMVECTOR vOffset = XMLoadFloat3(&camOffset);
-		XMVECTOR vRotatedOffset = XMVector3TransformNormal(vOffset, cameraRot);
-
-		// 카메라 위치 = 터렛 위치 + 회전된 오프셋
-		XMFLOAT3 camPos;
-		XMStoreFloat3(&camPos, XMVectorAdd(XMLoadFloat3(&turretPos), vRotatedOffset));
-
-		m_pCamera->SetPosition(camPos);
-		m_pCamera->SetLookAt(turretPos);
-		m_pCamera->RegenerateViewMatrix();
+		if (x != 0.0f)
+		{
+			m_pCannonFrame->Rotate(-x, 0.0f, 0.0f);
+			m_fCannonPitch += x;
+		}
 	}
+
+	UpdateTransform(nullptr);
 }
 
 void CTerrainPlayer::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)

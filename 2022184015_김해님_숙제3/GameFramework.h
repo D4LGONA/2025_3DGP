@@ -116,4 +116,5 @@ public:
 	POINT m_ptOldCursorPos;
 
 	CGameObject* m_pTarget = nullptr;
+	float delay = 0.0f;
 };
