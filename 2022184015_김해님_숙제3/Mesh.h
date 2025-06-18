@@ -70,6 +70,12 @@ protected:
 public:
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, int nSubSet);
 	void Render(ID3D12GraphicsCommandList* pd3dCommandList, UINT nInstances = 1);
+	int CheckRayIntersection(XMFLOAT3& xmf3RayOrigin, XMFLOAT3& xmf3RayDirection, float* pfNearHitDistance);
+
+	//정점을 픽킹을 위하여 저장한다(정점 버퍼를 Map()하여 읽지 않아도 되도록).
+	CDiffusedVertex* m_pVertices = NULL;
+	//메쉬의 인덱스를 저장한다(인덱스 버퍼를 Map()하여 읽지 않아도 되도록).
+	UINT* m_pnIndices = NULL;
 };
 
 //-----------------------------------------------------------------

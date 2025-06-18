@@ -75,6 +75,10 @@ public:
 	static CMeshLoadInfo* LoadMeshInfoFromFile(FILE* pInFile);
 	CGameObject* LoadFrameHierarchyFromFile(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, FILE* pInFile);
 	CGameObject* LoadGeometryFromFile(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, char* pstrFileName);
+
+public:
+	void GenerateRayForPicking(XMFLOAT3& xmf3PickPosition, XMFLOAT4X4& xmf4x4View, XMFLOAT3* pxmf3PickRayOrigin, XMFLOAT3* pxmf3PickRayDirection);
+	int PickObjectByRayIntersection(XMFLOAT3& xmf3PickPosition, XMFLOAT4X4& xmf4x4View, float* pfHitDistance);
 };
 
 class CRotatingObject : public CGameObject
@@ -189,21 +193,26 @@ private:
 class CTankObject : public CExplosiveObject
 {
 public:
-	CGameObject* m_pBody = nullptr; // ÅÊÅ© ¸öÃ¼ °´Ã¼
+	CGameObject* m_pTurretFrame = NULL;
+	CGameObject* m_pCannonFrame = NULL;
+	CGameObject* m_pGunFrame = NULL;
+
+	LPVOID m_pObjectUpdatedContext;
 
 	XMFLOAT3 m_xmf3MoveDirection = XMFLOAT3(0.0f, 0.0f, 1.0f); // ±âº» ÀüÁø ¹æÇâ
 	float m_fSpeed = 1.0f;
 
-	CTankObject();
+	CTankObject(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature,
+		void* pContext, int nMeshes);
 	virtual ~CTankObject();
-	void SetBody(CMesh* pBody) { m_pBody->SetMesh(pBody); }
-	CGameObject* GetBody() const { return m_pBody; }
 	void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent = NULL);
 	void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera) override;
 	void SetShader(CShader* pShader)
 	{
-		m_pBody->SetShader(pShader);
 		CGameObject::SetShader(pShader);
 	}
 	int PickObjectByRayIntersection(XMFLOAT3& xmf3PickPosition, XMFLOAT4X4& xmf4x4View, float* pfHitDistance);
+	void SetObjectUpdatedContext(LPVOID pContext) { m_pObjectUpdatedContext = pContext; }
+	void OnObjectUpdateCallback(float fTimeElapsed);
+	void OnInitialize();
 };

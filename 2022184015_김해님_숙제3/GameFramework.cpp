@@ -342,7 +342,8 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 			ChangeSwapChainState();
 			break;
 		case VK_CONTROL:
-			dynamic_cast<CTerrainPlayer*>(m_pPlayer)->FireBullet(m_pTarget);
+			m_pPlayer->FireBullet(m_pTarget);
+			break;
 		default:
 			break;
 		}

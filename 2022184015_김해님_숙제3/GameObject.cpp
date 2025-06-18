@@ -470,6 +470,39 @@ CGameObject* CGameObject::LoadGeometryFromFile(ID3D12Device* pd3dDevice, ID3D12G
 	return(pGameObject);
 }
 
+void CGameObject::GenerateRayForPicking(XMFLOAT3& xmf3PickPosition, XMFLOAT4X4& xmf4x4View, XMFLOAT3* pxmf3PickRayOrigin, XMFLOAT3* pxmf3PickRayDirection)
+{
+	XMFLOAT4X4 xmf4x4WorldView = Matrix4x4::Multiply(m_xmf4x4World, xmf4x4View);
+	XMFLOAT4X4 xmf4x4Inverse = Matrix4x4::Inverse(xmf4x4WorldView);
+	XMFLOAT3 xmf3CameraOrigin(0.0f, 0.0f, 0.0f);
+	*pxmf3PickRayOrigin = Vector3::TransformCoord(xmf3CameraOrigin, xmf4x4Inverse);
+	*pxmf3PickRayDirection = Vector3::TransformCoord(xmf3PickPosition, xmf4x4Inverse);
+	*pxmf3PickRayDirection = Vector3::Normalize(Vector3::Subtract(*pxmf3PickRayDirection, *pxmf3PickRayOrigin));
+}
+
+int CGameObject::PickObjectByRayIntersection(XMFLOAT3& xmf3PickPosition, XMFLOAT4X4& xmf4x4View, float* pfHitDistance)
+{
+	int nIntersected = 0;
+
+	// 1. 현재 오브젝트의 메시 충돌 검사
+	if (m_pMesh)
+	{
+		XMFLOAT3 xmf3PickRayOrigin, xmf3PickRayDirection;
+		GenerateRayForPicking(xmf3PickPosition, xmf4x4View, &xmf3PickRayOrigin, &xmf3PickRayDirection);
+		nIntersected += m_pMesh->CheckRayIntersection(xmf3PickRayOrigin, xmf3PickRayDirection, pfHitDistance);
+	}
+
+	// 2. 자식 오브젝트 재귀 검사
+	if (m_pChild)
+		nIntersected += m_pChild->PickObjectByRayIntersection(xmf3PickPosition, xmf4x4View, pfHitDistance);
+
+	// 3. 형제 오브젝트 재귀 검사
+	if (m_pSibling)
+		nIntersected += m_pSibling->PickObjectByRayIntersection(xmf3PickPosition, xmf4x4View, pfHitDistance);
+
+	return(nIntersected);
+}
+
 //----------------------------------------------------------------------------------------
 
 CRotatingObject::CRotatingObject(int nMeshes) : CGameObject()
@@ -715,4 +748,84 @@ void CMovingObject::Animate(float fElapsedTime, XMFLOAT4X4* pxmf4x4Parent)
 void CMovingObject::Reset()
 {
 	m_fTimeElapsed = 0.0f;
+}
+
+CTankObject::CTankObject(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, void* pContext, int nMeshes)
+{
+	CHeightMapTerrain* pTerrain = (CHeightMapTerrain*)pContext;
+	float fHeight = pTerrain->GetHeight(pTerrain->GetWidth() * 0.5f + 10.0f, pTerrain->GetLength() * 0.5f + 10.0f);
+	SetPosition(XMFLOAT3(pTerrain->GetWidth() * 0.5f + 10.0f, fHeight + 6.0f, pTerrain->GetLength() * 0.5f + 10.0f)); // 여기 초기위치
+	SetObjectUpdatedContext(pTerrain);
+
+	CGameObject* pGameObject = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature, "M26.bin");
+
+	pGameObject->Rotate(0.0f, 180.0f, 0.0f);
+	pGameObject->SetScale(5.0f, 5.0f, 5.0f);
+	SetChild(pGameObject, true);
+
+	CPlayerShader* pShader = new CPlayerShader();
+	pShader->CreateShader(pd3dDevice, pd3dGraphicsRootSignature);
+	SetShader(pShader);
+
+	OnInitialize();
+
+	CCubeMeshDiffused* pBulletMesh = new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, 2.0f, 2.0f, 2.0f);
+
+	CreateShaderVariables(pd3dDevice, pd3dCommandList);
+}
+
+CTankObject::~CTankObject()
+{
+}
+
+void CTankObject::OnInitialize()
+{
+	m_pTurretFrame = FindFrame("TURRET");
+	m_pCannonFrame = FindFrame("cannon");
+	m_pGunFrame = FindFrame("gun");
+
+	XMMATRIX xmmtxRotate = XMMatrixRotationY(XMConvertToRadians(-17.0f));
+	m_pTurretFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pTurretFrame->m_xmf4x4Transform);
+}
+
+void CTankObject::Animate(float fElapsedTime, XMFLOAT4X4* pxmf4x4Parent)
+{
+	CExplosiveObject::Animate(fElapsedTime);
+}
+
+void CTankObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
+{
+
+	if (m_bBlowingUp && m_pInstancingShader) {
+		m_pInstancingShader->Render(pd3dCommandList, pCamera);
+	}
+	else
+	{
+		CGameObject::Render(pd3dCommandList, pCamera);
+	}
+}
+
+int CTankObject::PickObjectByRayIntersection(XMFLOAT3& xmf3PickPosition, XMFLOAT4X4& xmf4x4View, float* pfHitDistance)
+{
+	int nIntersected = 0;
+	if (m_pMesh)
+	{
+		XMFLOAT3 xmf3PickRayOrigin, xmf3PickRayDirection;
+		GenerateRayForPicking(xmf3PickPosition, xmf4x4View, &xmf3PickRayOrigin, &xmf3PickRayDirection);
+		nIntersected += m_pMesh->CheckRayIntersection(xmf3PickRayOrigin, xmf3PickRayDirection, pfHitDistance);
+	}
+	return(nIntersected);
+}
+
+void CTankObject::OnObjectUpdateCallback(float fTimeElapsed)
+{
+	XMFLOAT3 xmf3PlayerPosition = GetPosition();
+	CHeightMapTerrain* pTerrain = (CHeightMapTerrain*)m_pObjectUpdatedContext;
+	float fHeight = pTerrain->GetHeight(xmf3PlayerPosition.x, xmf3PlayerPosition.z) +
+		6.0f; // 플레이어가 지형 위에 있을 때 높이
+	if (xmf3PlayerPosition.y < fHeight)
+	{
+		xmf3PlayerPosition.y = fHeight;
+		SetPosition(xmf3PlayerPosition);
+	}
 }
