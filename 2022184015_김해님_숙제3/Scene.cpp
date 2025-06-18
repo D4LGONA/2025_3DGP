@@ -8,23 +8,29 @@ CScene::CScene()
 ID3D12RootSignature* CScene::CreateGraphicsRootSignature(ID3D12Device* pd3dDevice)
 {
 	ID3D12RootSignature* pd3dGraphicsRootSignature = NULL;
-	D3D12_ROOT_PARAMETER pd3dRootParameters[2];
+	D3D12_ROOT_PARAMETER pd3dRootParameters[3];
 	pd3dRootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
 	pd3dRootParameters[0].Constants.Num32BitValues = 16;
-	pd3dRootParameters[0].Constants.ShaderRegister = 0;
+	pd3dRootParameters[0].Constants.ShaderRegister = 0; //b0: Player
 	pd3dRootParameters[0].Constants.RegisterSpace = 0;
 	pd3dRootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 	pd3dRootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
 	pd3dRootParameters[1].Constants.Num32BitValues = 32;
-	pd3dRootParameters[1].Constants.ShaderRegister = 1;
+	pd3dRootParameters[1].Constants.ShaderRegister = 1; //b1: Camera
 	pd3dRootParameters[1].Constants.RegisterSpace = 0;
 	pd3dRootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+	pd3dRootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
+	pd3dRootParameters[2].Descriptor.ShaderRegister = 0; //t0
+	pd3dRootParameters[2].Descriptor.RegisterSpace = 0;
+	pd3dRootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+
 	D3D12_ROOT_SIGNATURE_FLAGS d3dRootSignatureFlags =
 		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
+
 	D3D12_ROOT_SIGNATURE_DESC d3dRootSignatureDesc;
 	::ZeroMemory(&d3dRootSignatureDesc, sizeof(D3D12_ROOT_SIGNATURE_DESC));
 	d3dRootSignatureDesc.NumParameters = _countof(pd3dRootParameters);
@@ -32,9 +38,10 @@ ID3D12RootSignature* CScene::CreateGraphicsRootSignature(ID3D12Device* pd3dDevic
 	d3dRootSignatureDesc.NumStaticSamplers = 0;
 	d3dRootSignatureDesc.pStaticSamplers = NULL;
 	d3dRootSignatureDesc.Flags = d3dRootSignatureFlags;
+
 	ID3DBlob* pd3dSignatureBlob = NULL;
 	ID3DBlob* pd3dErrorBlob = NULL;
-	::D3D12SerializeRootSignature(&d3dRootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1,
+	D3D12SerializeRootSignature(&d3dRootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1,
 		&pd3dSignatureBlob, &pd3dErrorBlob);
 	pd3dDevice->CreateRootSignature(0, pd3dSignatureBlob->GetBufferPointer(),
 		pd3dSignatureBlob->GetBufferSize(), __uuidof(ID3D12RootSignature), (void
@@ -47,6 +54,24 @@ ID3D12RootSignature* CScene::CreateGraphicsRootSignature(ID3D12Device* pd3dDevic
 ID3D12RootSignature* CScene::GetGraphicsRootSignature()
 {
 	return(m_pd3dGraphicsRootSignature);
+}
+
+void CScene::CheckEnemyByBulletCollisions()
+{
+	CBulletObject** ppBullets = Player->m_ppBullets;
+	for (int j = 0; j < BULLETS; j++)
+	{
+		if (ppBullets[j]->bActive)
+		{
+			const BoundingOrientedBox& bulletBox = ppBullets[j]->GetBoundingBox();
+			if (Enemy->CheckCollisionRecursive(Enemy, bulletBox))
+			{
+				if (Enemy->m_bBlowingUp == true) continue;
+				Enemy->StartExplosion();
+				ppBullets[j]->Reset();
+			}
+		}
+	}
 }
 
 void CScene::CreateGraphicsPipelineState(ID3D12Device* pd3dDevice)
@@ -135,6 +160,7 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 
 	// 캐릭터 추가.
 	Enemy = new CTankObject(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, GetTerrain(), 1);
+	Enemy->UpdateTransform(NULL);
 }
 
 void CScene::ReleaseObjects()
@@ -161,6 +187,9 @@ void CScene::AnimateObjects(float fTimeElapsed)
 	{
 		m_pShaders[i].AnimateObjects(fTimeElapsed);
 	}
+	Enemy->Animate(fTimeElapsed, NULL);
+
+	CheckEnemyByBulletCollisions();
 }
 
 bool CScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)

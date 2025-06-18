@@ -503,6 +503,15 @@ int CGameObject::PickObjectByRayIntersection(XMFLOAT3& xmf3PickPosition, XMFLOAT
 	return(nIntersected);
 }
 
+bool CGameObject::CheckCollisionRecursive(CGameObject* pObject, const BoundingOrientedBox& bulletBox)
+{
+	if (!pObject) return false;
+	if (pObject->GetBoundingBox().Intersects(bulletBox)) return true;
+	if (CheckCollisionRecursive(pObject->m_pChild, bulletBox)) return true;
+	if (CheckCollisionRecursive(pObject->m_pSibling, bulletBox)) return true;
+	return false;
+}
+
 //----------------------------------------------------------------------------------------
 
 CRotatingObject::CRotatingObject(int nMeshes) : CGameObject()
@@ -764,8 +773,11 @@ CTankObject::CTankObject(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd
 	SetChild(pGameObject, true);
 
 	CPlayerShader* pShader = new CPlayerShader();
+	setExplosionMesh(new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, 1.0f, 1.0f, 1.0f));
 	pShader->CreateShader(pd3dDevice, pd3dGraphicsRootSignature);
 	SetShader(pShader);
+
+	SetExpShader(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
 
 	OnInitialize();
 

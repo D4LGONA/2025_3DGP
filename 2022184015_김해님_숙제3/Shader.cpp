@@ -135,8 +135,11 @@ void CShader::CreateShader(ID3D12Device *pd3dDevice, ID3D12RootSignature *pd3dGr
 	d3dPipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	d3dPipelineStateDesc.SampleDesc.Count = 1;
 	d3dPipelineStateDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
-	pd3dDevice->CreateGraphicsPipelineState(&d3dPipelineStateDesc,
+	HRESULT hr = pd3dDevice->CreateGraphicsPipelineState(&d3dPipelineStateDesc,
 		__uuidof(ID3D12PipelineState), (void**)&m_ppd3dPipelineStates[0]);
+	if (FAILED(hr)) {
+		// 에러 로그 출력
+	}
 	if (pd3dVertexShaderBlob) pd3dVertexShaderBlob->Release();
 	if (pd3dPixelShaderBlob) pd3dPixelShaderBlob->Release();
 	if (d3dPipelineStateDesc.InputLayout.pInputElementDescs) delete[]
@@ -216,6 +219,12 @@ void CPlayerShader::CreateShader(ID3D12Device* pd3dDevice, ID3D12RootSignature* 
 
 CObjectsShader::CObjectsShader(std::vector<CGameObject*> objs)
 {
+	m_nObjects = objs.size();
+	m_ppObjects = new CGameObject * [m_nObjects];
+	for (int i = 0; i < m_nObjects; i++)
+	{
+		m_ppObjects[i] = objs[i];
+	}
 }
 
 CObjectsShader::CObjectsShader()

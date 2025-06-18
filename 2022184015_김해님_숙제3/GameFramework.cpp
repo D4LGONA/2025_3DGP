@@ -287,6 +287,7 @@ void CGameFramework::BuildObjects()
 	m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dCommandLists);
 	WaitForGpuComplete();
 	if (m_pScene) m_pScene->ReleaseUploadBuffers();
+	m_pScene->Player = m_pPlayer;
 	m_GameTimer.Reset();
 }
 

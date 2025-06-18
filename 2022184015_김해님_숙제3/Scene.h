@@ -2,6 +2,7 @@
 #include "Timer.h"
 #include "Shader.h"
 #include "Camera.h"
+#include "Player.h"
 
 class CScene
 {
@@ -28,6 +29,9 @@ public:
 	ID3D12PipelineState *m_pd3dPipelineState = NULL;
 	//파이프라인 상태를 나타내는 인터페이스 포인터이다. 
 
+public: // 충돌
+	void CheckEnemyByBulletCollisions();
+
 protected:
 	CHeightMapTerrain* m_pTerrain = NULL;
 public:
@@ -41,4 +45,6 @@ protected:
 	ID3D12RootSignature* m_pd3dGraphicsRootSignature = NULL;
 
 	CTankObject* Enemy = nullptr;
+public:
+	CTerrainPlayer* Player = nullptr;
 };

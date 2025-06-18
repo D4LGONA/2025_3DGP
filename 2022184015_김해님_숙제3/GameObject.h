@@ -79,6 +79,24 @@ public:
 public:
 	void GenerateRayForPicking(XMFLOAT3& xmf3PickPosition, XMFLOAT4X4& xmf4x4View, XMFLOAT3* pxmf3PickRayOrigin, XMFLOAT3* pxmf3PickRayDirection);
 	int PickObjectByRayIntersection(XMFLOAT3& xmf3PickPosition, XMFLOAT4X4& xmf4x4View, float* pfHitDistance);
+
+
+	bool CGameObject::CheckCollisionRecursive(CGameObject* pObject, const BoundingOrientedBox& bulletBox);
+
+	BoundingOrientedBox GetBoundingBox()
+	{
+		if (m_pMesh == nullptr) {
+			// 빈 박스: 중심 (0,0,0), extents (0,0,0), 회전 없음
+			BoundingOrientedBox emptyBox;
+			emptyBox.Center = XMFLOAT3(0.0f, 0.0f, 0.0f);
+			emptyBox.Extents = XMFLOAT3(0.0f, 0.0f, 0.0f);
+			emptyBox.Orientation = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+			return emptyBox;
+		}
+		BoundingOrientedBox boundingBox = m_pMesh->m_xmBoundingBox;
+		boundingBox.Transform(boundingBox, XMLoadFloat4x4(&m_xmf4x4World));
+		return boundingBox;
+	}
 };
 
 class CRotatingObject : public CGameObject

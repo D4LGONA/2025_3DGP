@@ -4,9 +4,9 @@
 class CVertex
 {
 protected:
-	XMFLOAT3 m_xmf3Position; //정점의 위치 벡터이다(모든 정점은 최소한 위치 벡터를 가져야 한다). 
 
 public:
+	XMFLOAT3 m_xmf3Position; //정점의 위치 벡터이다(모든 정점은 최소한 위치 벡터를 가져야 한다). 
 	CVertex() { m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f); }
 	CVertex(XMFLOAT3 xmf3Position) { m_xmf3Position = xmf3Position; }
 	~CVertex() {}
@@ -75,17 +75,15 @@ public:
 	//정점을 픽킹을 위하여 저장한다(정점 버퍼를 Map()하여 읽지 않아도 되도록).
 	CDiffusedVertex* m_pVertices = NULL;
 	//메쉬의 인덱스를 저장한다(인덱스 버퍼를 Map()하여 읽지 않아도 되도록).
-	UINT* m_pnIndices = NULL;
+	UINT** m_ppnIndices = NULL;
+
+	BoundingOrientedBox m_xmBoundingBox;
+
+
 };
 
 //-----------------------------------------------------------------
 
-class CTriangleMesh : public CMesh
-{
-public:
-	CTriangleMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
-	virtual ~CTriangleMesh() {}
-};
 
 //-----------------------------------------------------------------
 
@@ -96,17 +94,6 @@ public:
 	CCubeMeshDiffused(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList
 		* pd3dCommandList, float fWidth = 2.0f, float fHeight = 2.0f, float fDepth = 2.0f);
 	virtual ~CCubeMeshDiffused();
-};
-
-//-----------------------------------------------------------------------------
-
-class CAirplaneMeshDiffused : public CMesh
-{
-public:
-	CAirplaneMeshDiffused(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList
-		* pd3dCommandList, float fWidth = 20.0f, float fHeight = 20.0f, float fDepth = 4.0f,
-		XMFLOAT4 xmf4Color = XMFLOAT4(1.0f, 1.0f, 0.0f, 0.0f));
-	virtual ~CAirplaneMeshDiffused();
 };
 
 //-----------------------------------------------------------------------------
@@ -197,20 +184,3 @@ public:
 	void ReleaseUploadBuffers();
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, int nSubSet);
 };
-
-//class CMeshIlluminatedFromFile : public CMeshFromFile
-//{
-//public:
-//	CMeshIlluminatedFromFile(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, CMeshLoadInfo* pMeshInfo);
-//	virtual ~CMeshIlluminatedFromFile();
-//
-//	virtual void ReleaseUploadBuffers();
-//
-//protected:
-//	ID3D12Resource* m_pd3dNormalBuffer = NULL;
-//	ID3D12Resource* m_pd3dNormalUploadBuffer = NULL;
-//	D3D12_VERTEX_BUFFER_VIEW		m_d3dNormalBufferView;
-//
-//public:
-//	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, int nSubSet);
-//};
