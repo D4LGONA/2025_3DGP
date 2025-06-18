@@ -1,17 +1,6 @@
 #include "stdafx.h"
 #include "Scene.h"
 
-
-void CollectBoundingBoxes(CGameObject* pObject, std::vector<BoundingOrientedBox>& boxes)
-{
-	if (!pObject) return;
-	auto box = pObject->GetBoundingBox();
-	if (box.Extents.x != 0 && box.Extents.y != 0 && box.Extents.z != 0) 
-		boxes.push_back(box);
-	for (CGameObject* pChild = pObject->m_pChild; pChild; pChild = pChild->m_pSibling)
-		CollectBoundingBoxes(pChild, boxes);
-}
-
 CScene::CScene()
 {
 }
@@ -74,8 +63,22 @@ void CScene::CheckEnemyByBulletCollisions()
 		if (ppBullets[j]->bActive) {
 			const BoundingOrientedBox& bulletBox = ppBullets[j]->GetBoundingBox();
 			for (auto& pEnemy : enemies) {
-				if (pEnemy->CheckCollisionRecursive(pEnemy, bulletBox)) {
-					if (pEnemy->m_bBlowingUp || (pEnemy->bActive == false)) continue;
+				if (pEnemy->m_bBlowingUp || !pEnemy->bActive) continue;
+
+				// Enemy의 3개 바운딩박스 수집
+				std::vector<BoundingOrientedBox> enemyBoxes;
+				pEnemy->CollectBoundingBoxes(enemyBoxes);
+
+				// 3개 바운딩박스 각각과 충돌 검사
+				bool bHit = false;
+				for (const auto& box : enemyBoxes) {
+					if (box.Intersects(bulletBox)) {
+						bHit = true;
+						break;
+					}
+				}
+
+				if (bHit) {
 					pEnemy->StartExplosion();
 					ppBullets[j]->Reset();
 				}
@@ -87,17 +90,23 @@ void CScene::CheckEnemyByBulletCollisions()
 void CScene::CheckEnemyByPlayerCollisions()
 {
 	std::vector<BoundingOrientedBox> playerBoxes;
-	CollectBoundingBoxes(Player, playerBoxes);
+	Player->CollectBoundingBoxes(playerBoxes);
 
 	for (auto& pEnemy : enemies) {
 		if (!pEnemy->bActive || pEnemy->m_bBlowingUp) continue;
 
+		std::vector<BoundingOrientedBox> enemyBoxes;
+		pEnemy->CollectBoundingBoxes(enemyBoxes);
+
 		for (const auto& playerBox : playerBoxes) {
-			if (pEnemy->CheckCollisionRecursive(pEnemy, playerBox)) {
-				pEnemy->StartExplosion();
-				bHit = true;
-				break; 
+			for (const auto& enemyBox : enemyBoxes) {
+				if (playerBox.Intersects(enemyBox)) {
+					pEnemy->StartExplosion();
+					bHit = true;
+					break;
+				}
 			}
+			if (bHit) break;
 		}
 	}
 }

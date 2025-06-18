@@ -99,7 +99,7 @@ public:
 	float m_fCannonPitch = 0.0f;
 	CGameObject* m_pTurretFrame = NULL;
 	CGameObject* m_pCannonFrame = NULL;
-	CGameObject* m_pGunFrame = NULL;
+	CGameObject* m_pBodyFrame = NULL;
 
 	float m_fBulletEffectiveRange = 2000.0f;
 	CBulletObject* m_ppBullets[BULLETS];
@@ -107,4 +107,11 @@ public:
 
 	void OnInitialize();
 	void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera = NULL);
+
+	void CollectBoundingBoxes(std::vector<BoundingOrientedBox>& boxes)
+	{
+		boxes.push_back(m_pTurretFrame->GetBoundingBox());
+		boxes.push_back(m_pCannonFrame->GetBoundingBox());
+		boxes.push_back(m_pBodyFrame->GetBoundingBox());
+	}
 };

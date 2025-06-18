@@ -215,7 +215,7 @@ class CTankObject : public CExplosiveObject
 public:
 	CGameObject* m_pTurretFrame = NULL;
 	CGameObject* m_pCannonFrame = NULL;
-	CGameObject* m_pGunFrame = NULL;
+	CGameObject* m_pBodyFrame = NULL;
 
 	LPVOID m_pObjectUpdatedContext;
 
@@ -235,4 +235,11 @@ public:
 	void SetObjectUpdatedContext(LPVOID pContext) { m_pObjectUpdatedContext = pContext; }
 	void OnObjectUpdateCallback(float fTimeElapsed);
 	void OnInitialize();
+
+	void CollectBoundingBoxes(std::vector<BoundingOrientedBox>& boxes)
+	{
+		boxes.push_back(m_pTurretFrame->GetBoundingBox());
+		boxes.push_back(m_pCannonFrame->GetBoundingBox());
+		boxes.push_back(m_pBodyFrame->GetBoundingBox());
+	}
 };

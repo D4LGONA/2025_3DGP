@@ -788,7 +788,7 @@ void CTankObject::OnInitialize()
 {
 	m_pTurretFrame = FindFrame("TURRET");
 	m_pCannonFrame = FindFrame("cannon");
-	m_pGunFrame = FindFrame("gun");
+	m_pBodyFrame = FindFrame("BODY");
 
 	XMMATRIX xmmtxRotate = XMMatrixRotationY(XMConvertToRadians(-17.0f));
 	m_pTurretFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pTurretFrame->m_xmf4x4Transform);
