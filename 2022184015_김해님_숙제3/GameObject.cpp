@@ -757,7 +757,7 @@ CTankObject::CTankObject(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd
 {
 	CHeightMapTerrain* pTerrain = (CHeightMapTerrain*)pContext;
 	float fHeight = pTerrain->GetHeight(pTerrain->GetWidth() * 0.5f + 10.0f, pTerrain->GetLength() * 0.5f + 10.0f);
-	SetPosition(XMFLOAT3(pTerrain->GetWidth() * 0.5f + 10.0f, fHeight + 6.0f, pTerrain->GetLength() * 0.5f + 10.0f)); // 여기 초기위치
+	SetPosition(XMFLOAT3(pTerrain->GetWidth() * 0.5f + 10.0f, fHeight + TANK_HEIGHT, pTerrain->GetLength() * 0.5f + 10.0f)); // 여기 초기위치
 	SetObjectUpdatedContext(pTerrain);
 
 	CGameObject* pGameObject = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature, "M26.bin");
@@ -832,8 +832,7 @@ void CTankObject::OnObjectUpdateCallback(float fTimeElapsed)
 {
 	XMFLOAT3 xmf3PlayerPosition = GetPosition();
 	CHeightMapTerrain* pTerrain = (CHeightMapTerrain*)m_pObjectUpdatedContext;
-	float fHeight = pTerrain->GetHeight(xmf3PlayerPosition.x, xmf3PlayerPosition.z) +
-		6.0f; // 플레이어가 지형 위에 있을 때 높이
+	float fHeight = pTerrain->GetHeight(xmf3PlayerPosition.x, xmf3PlayerPosition.z) + TANK_HEIGHT; // 플레이어가 지형 위에 있을 때 높이
 	if (xmf3PlayerPosition.y < fHeight)
 	{
 		xmf3PlayerPosition.y = fHeight;

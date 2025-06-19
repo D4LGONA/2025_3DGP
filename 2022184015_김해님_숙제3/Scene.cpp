@@ -231,7 +231,7 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	for (int i = 0; i < 10; ++i) {
 		float x = RandF(0.0f, 257.0f * 8.0f);
 		float z = RandF(0.0f, 257.0f * 8.0f);
-		XMFLOAT3 pos(x, m_pTerrain->GetHeight(x, z) + 6.0f, z);
+		XMFLOAT3 pos(x, m_pTerrain->GetHeight(x, z) + TANK_HEIGHT, z);
 		CTankObject* pEnemy = new CTankObject(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, GetTerrain(), 1);
 		pEnemy->SetPosition(pos); 
 		pEnemy->UpdateTransform(nullptr);
@@ -275,6 +275,7 @@ void CScene::AnimateObjects(float fTimeElapsed)
 	for (auto& pEnemy : enemies) {
 		pEnemy->Animate(fTimeElapsed, nullptr);
 	}
+
 	CheckEnemyByBulletCollisions();
 	CheckEnemyByPlayerCollisions();
 }
