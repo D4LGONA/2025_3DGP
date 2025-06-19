@@ -379,43 +379,44 @@ void CTerrainPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
 
 void CTerrainPlayer::FireBullet(CGameObject* pLockedObject)
 {
-	if (pLockedObject)
+	if(pLockedObject)
 	{
 		XMFLOAT3 turretPos = m_pTurretFrame->GetPosition();
 		XMFLOAT3 targetPos = pLockedObject->GetPosition();
 
-		XMFLOAT3 toTarget = { targetPos.x - turretPos.x, 0.0f, targetPos.z - turretPos.z };
-		float len = sqrtf(toTarget.x * toTarget.x + toTarget.z * toTarget.z);
-		if (len > 0.0f) {
-			toTarget.x /= len; toTarget.z /= len;
-		}
-		else {
-			toTarget.x = 0.0f; toTarget.z = 1.0f;
-		}
+		XMFLOAT3 toTarget = { targetPos.x - turretPos.x, targetPos.y - turretPos.y, targetPos.z - turretPos.z };
+
+		float xzLen = sqrtf(toTarget.x * toTarget.x + toTarget.z * toTarget.z);
+
+		float targetPitch = 0.0f;
+		if (xzLen > 0.0001f)
+			targetPitch = atan2f(toTarget.y, xzLen); 
+
+		float targetYaw = atan2f(toTarget.x, toTarget.z); 
 
 		XMFLOAT3 turretLook = m_pTurretFrame->GetLook();
-		XMFLOAT3 lookXZ = { turretLook.x, 0.0f, turretLook.z };
-		float lookLen = sqrtf(lookXZ.x * lookXZ.x + lookXZ.z * lookXZ.z);
-		if (lookLen > 0.0f) {
-			lookXZ.x /= lookLen; lookXZ.z /= lookLen;
-		}
-		else {
-			lookXZ.x = 0.0f; lookXZ.z = 1.0f;
-		}
+		float lookXZLen = sqrtf(turretLook.x * turretLook.x + turretLook.z * turretLook.z);
 
-		float turretYaw = atan2f(lookXZ.x, lookXZ.z);
-		float targetYaw = atan2f(toTarget.x, toTarget.z);
+		float turretPitch = 0.0f;
+		if (lookXZLen > 0.0001f)
+			turretPitch = atan2f(turretLook.y, lookXZLen);
 
-		float deltaYaw = targetYaw - turretYaw + 180.0f;
+		float turretYaw = atan2f(turretLook.x, turretLook.z);
+
+		float deltaYaw = targetYaw - turretYaw;
+		float deltaPitch = targetPitch - turretPitch;
 
 		if (deltaYaw > XM_PI) deltaYaw -= XM_2PI;
 		if (deltaYaw < -XM_PI) deltaYaw += XM_2PI;
+		if (deltaPitch > XM_PI) deltaPitch -= XM_2PI;
+		if (deltaPitch < -XM_PI) deltaPitch += XM_2PI;
 
-		float angleDeg = XMConvertToDegrees(deltaYaw);
-		Rotate(0.0f, angleDeg, 0.0f);
+		float angleYawDeg = XMConvertToDegrees(deltaYaw);
+		float anglePitchDeg = XMConvertToDegrees(deltaPitch);
+
+		Rotate(-anglePitchDeg, angleYawDeg + 180.0f, 0.0f);
 		UpdateTransform(nullptr);
 	}
-
 
 	CBulletObject* pBulletObject = NULL;
 	for (int i = 0; i < BULLETS; i++)
