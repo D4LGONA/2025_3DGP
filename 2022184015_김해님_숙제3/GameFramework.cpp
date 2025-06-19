@@ -411,8 +411,42 @@ void CGameFramework::ProcessInput()
 			else
 				m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
 		}
-		if (dwDirection) 
-			m_pPlayer->Move(dwDirection, 200.0f * m_GameTimer.GetTimeElapsed(), true);
+		if (dwDirection)
+		{
+			XMFLOAT3 oldPos = m_pPlayer->GetPosition();
+			m_pPlayer->Move(dwDirection, 300.0f * m_GameTimer.GetTimeElapsed(), true);
+			XMFLOAT3 newPos = m_pPlayer->GetPosition();
+
+			const float MIN_X = 10.0f;
+			const float MAX_X = 257.0f * 8.0f - 10.0f;
+			const float MIN_Z = 10.0f;
+			const float MAX_Z = 257.0f * 8.0f - 10.0f;
+
+			bool bPositionAdjusted = false;
+
+			if (newPos.x < MIN_X) {
+				newPos.x = MIN_X;
+				bPositionAdjusted = true;
+			}
+			else if (newPos.x > MAX_X) {
+				newPos.x = MAX_X;
+				bPositionAdjusted = true;
+			}
+
+			if (newPos.z < MIN_Z) {
+				newPos.z = MIN_Z;
+				bPositionAdjusted = true;
+			}
+			else if (newPos.z > MAX_Z) {
+				newPos.z = MAX_Z;
+				bPositionAdjusted = true;
+			}
+
+			if (bPositionAdjusted) {
+				newPos.y = m_pScene->GetTerrain()->GetHeight(newPos.x, newPos.z) + TANK_HEIGHT;
+				m_pPlayer->SetPosition(newPos);
+			}
+		}
 	}
 	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
 }

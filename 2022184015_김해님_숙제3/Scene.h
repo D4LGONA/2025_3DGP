@@ -32,7 +32,8 @@ public:
 public: // Ãæµ¹
 	void CheckEnemyByBulletCollisions();
 	void CheckEnemyByPlayerCollisions();
-
+	void CheckEnemyByEnemyCollisions();
+	void CheckEnemyNearbyPlayer();
 protected:
 	CHeightMapTerrain* m_pTerrain = NULL;
 public:

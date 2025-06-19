@@ -65,11 +65,9 @@ void CScene::CheckEnemyByBulletCollisions()
 			for (auto& pEnemy : enemies) {
 				if (pEnemy->m_bBlowingUp || !pEnemy->bActive) continue;
 
-				// Enemy의 3개 바운딩박스 수집
 				std::vector<BoundingOrientedBox> enemyBoxes;
 				pEnemy->CollectBoundingBoxes(enemyBoxes);
 
-				// 3개 바운딩박스 각각과 충돌 검사
 				bool bHit = false;
 				for (const auto& box : enemyBoxes) {
 					if (box.Intersects(bulletBox)) {
@@ -107,6 +105,52 @@ void CScene::CheckEnemyByPlayerCollisions()
 				}
 			}
 			if (bHit) break;
+		}
+		if (bHit) break;
+	}
+}
+
+void CScene::CheckEnemyByEnemyCollisions()
+{
+	for (int i = 0; i < enemies.size(); ++i) {
+		if (enemies[i]->m_bBlowingUp || false == enemies[i]->bActive) continue;
+
+		std::vector<BoundingOrientedBox> enemyBoxes1;
+		enemies[i]->CollectBoundingBoxes(enemyBoxes1);
+		for (int j = i + 1; j < enemies.size(); ++j) {
+			if (enemies[j]->m_bBlowingUp || false == enemies[j]->bActive) continue;
+			std::vector<BoundingOrientedBox> enemyBoxes2;
+			enemies[j]->CollectBoundingBoxes(enemyBoxes2);
+			for (const auto& box1 : enemyBoxes1) {
+				for (const auto& box2 : enemyBoxes2) {
+					if (box1.Intersects(box2)) {
+						std::swap(enemies[i]->m_xmf3MoveDirection, enemies[j]->m_xmf3MoveDirection);
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+void CScene::CheckEnemyNearbyPlayer()
+{
+	for (auto& pEnemy : enemies) {
+		if (!pEnemy->bActive) continue;
+
+		XMFLOAT3 enemyPos = pEnemy->GetPosition();
+		XMFLOAT3 playerPos = Player->GetPosition();
+
+		float dx = playerPos.x - enemyPos.x;
+		float dz = playerPos.z - enemyPos.z;
+		float distance = sqrtf(dx * dx + dz * dz);
+
+		if (distance < 200.0f) {
+			float len = sqrtf(dx * dx + dz * dz);
+			if (len > 0.0f) {
+				XMFLOAT3 dir = XMFLOAT3(dx / len, 0.0f, dz / len);
+				pEnemy->m_xmf3MoveDirection = dir;
+			}
 		}
 	}
 }
@@ -276,8 +320,11 @@ void CScene::AnimateObjects(float fTimeElapsed)
 		pEnemy->Animate(fTimeElapsed, nullptr);
 	}
 
+	CheckEnemyNearbyPlayer();
+
 	CheckEnemyByBulletCollisions();
 	CheckEnemyByPlayerCollisions();
+	CheckEnemyByEnemyCollisions();
 }
 
 bool CScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)

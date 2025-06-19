@@ -86,7 +86,6 @@ public:
 	BoundingOrientedBox GetBoundingBox()
 	{
 		if (m_pMesh == nullptr) {
-			// 빈 박스: 중심 (0,0,0), extents (0,0,0), 회전 없음
 			BoundingOrientedBox emptyBox;
 			emptyBox.Center = XMFLOAT3(0.0f, 0.0f, 0.0f);
 			emptyBox.Extents = XMFLOAT3(0.0f, 0.0f, 0.0f);

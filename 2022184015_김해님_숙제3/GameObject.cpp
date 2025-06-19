@@ -694,7 +694,6 @@ void CExplosiveObject::StartExplosion()
 	m_bBlowingUp = true;
 	m_fElapsedTimes = 0.0f;
 
-	// 이 시점에 초기 위치를 지정해줘야 각 debris 위치가 기준점 주변에서 시작됨
 	XMFLOAT3 origin = GetPosition();
 	m_pInstancingShader->SetPosition(origin);
 }
@@ -813,6 +812,16 @@ void CTankObject::Animate(float fElapsedTime, XMFLOAT4X4* pxmf4x4Parent)
 		float terrainHeight = pTerrain->GetHeight(currentPos.x, currentPos.z) + TANK_HEIGHT;
 		currentPos.y = terrainHeight;
 
+		// 맵 밖으로 안나가게 -> 일부러 좀 크게 잡음
+		if (currentPos.x <= 10.0f || currentPos.x >= 257.0f * 8.0f - 10.0f)
+		{
+			m_xmf3MoveDirection.x = -m_xmf3MoveDirection.x; 
+		}
+		if (currentPos.z <= 10.0f || currentPos.z >= 257.0f * 8.0f - 10.0f)
+		{
+			m_xmf3MoveDirection.z = -m_xmf3MoveDirection.z;
+		}
+
 		SetPosition(currentPos);
 	}
 
@@ -841,7 +850,6 @@ int CTankObject::PickObjectByRayIntersection(XMFLOAT3& xmf3PickPosition, XMFLOAT
 		GenerateRayForPicking(xmf3PickPosition, xmf4x4View, &xmf3PickRayOrigin, &xmf3PickRayDirection);
 		nIntersected += m_pMesh->CheckRayIntersection(xmf3PickRayOrigin, xmf3PickRayDirection, pfHitDistance);
 	}
-	// 자식 오브젝트 재귀 검사
 	for (CGameObject* pChild = m_pChild; pChild != nullptr; pChild = pChild->m_pSibling)
 	{
 		nIntersected += pChild->PickObjectByRayIntersection(xmf3PickPosition, xmf4x4View, pfHitDistance);
