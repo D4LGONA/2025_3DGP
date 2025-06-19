@@ -101,6 +101,9 @@ public:
 	CGameObject* m_pCannonFrame = NULL;
 	CGameObject* m_pBodyFrame = NULL;
 
+	XMFLOAT4X4 m_InitialTurretFrame;
+	XMFLOAT4X4 m_InitialCannonFrame;
+
 	float m_fBulletEffectiveRange = 2000.0f;
 	CBulletObject* m_ppBullets[BULLETS];
 	void FireBullet(CGameObject* pLockedObject);

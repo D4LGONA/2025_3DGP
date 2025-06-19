@@ -69,6 +69,18 @@ inline float RandF(float fMin, float fMax)
 //3차원 벡터의 연산
 namespace Vector3
 {
+	inline float Dot(const XMFLOAT3& a, const XMFLOAT3& b)
+	{
+		return a.x * b.x + a.y * b.y + a.z * b.z;
+	}
+	inline XMFLOAT3 Cross(const XMFLOAT3& a, const XMFLOAT3& b)
+	{
+		return XMFLOAT3(
+			a.y * b.z - a.z * b.y,
+			a.z * b.x - a.x * b.z,
+			a.x * b.y - a.y * b.x
+		);
+	}
 	inline bool IsZero(XMFLOAT3& xmf3Vector)
 	{
 		if (::IsZero(xmf3Vector.x) && ::IsZero(xmf3Vector.y) && ::IsZero(xmf3Vector.z))

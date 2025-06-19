@@ -381,33 +381,38 @@ void CTerrainPlayer::FireBullet(CGameObject* pLockedObject)
 {
 	if (pLockedObject)
 	{
-		auto target = pLockedObject->GetPosition();
-		XMFLOAT3 position = GetPosition();
-		float dx = target.x - position.x;
-		float dz = target.z - position.z;
+		XMFLOAT3 turretPos = m_pTurretFrame->GetPosition();
+		XMFLOAT3 targetPos = pLockedObject->GetPosition();
 
-		// 타겟을 향한 절대 yaw 각도 계산
-		float targetYawRadians = atan2f(dx, dz);
-		float targetYawDegrees = XMConvertToDegrees(targetYawRadians);
+		XMFLOAT3 toTarget = { targetPos.x - turretPos.x, 0.0f, targetPos.z - turretPos.z };
+		float len = sqrtf(toTarget.x * toTarget.x + toTarget.z * toTarget.z);
+		if (len > 0.0f) {
+			toTarget.x /= len; toTarget.z /= len;
+		}
+		else {
+			toTarget.x = 0.0f; toTarget.z = 1.0f;
+		}
 
-		// 현재 오브젝트의 yaw(도 단위) 추출
-		float currentYaw = m_fYaw; // m_fYaw는 누적 yaw 각도(도 단위)로 관리
+		XMFLOAT3 turretLook = m_pTurretFrame->GetLook();
+		XMFLOAT3 lookXZ = { turretLook.x, 0.0f, turretLook.z };
+		float lookLen = sqrtf(lookXZ.x * lookXZ.x + lookXZ.z * lookXZ.z);
+		if (lookLen > 0.0f) {
+			lookXZ.x /= lookLen; lookXZ.z /= lookLen;
+		}
+		else {
+			lookXZ.x = 0.0f; lookXZ.z = 1.0f;
+		}
 
-		// 각도 차이(상대 회전량) 계산
-		float deltaYaw = targetYawDegrees - currentYaw;
+		float turretYaw = atan2f(lookXZ.x, lookXZ.z);
+		float targetYaw = atan2f(toTarget.x, toTarget.z);
 
-		// 각도 wrap-around 처리 (-180~+180도)
-		if (deltaYaw > 180.0f) deltaYaw -= 360.0f;
-		if (deltaYaw < -180.0f) deltaYaw += 360.0f;
+		float deltaYaw = targetYaw - turretYaw + 180.0f;
 
-		// 상대회전 적용
-		Rotate(0.0f, deltaYaw, 0.0f);
+		if (deltaYaw > XM_PI) deltaYaw -= XM_2PI;
+		if (deltaYaw < -XM_PI) deltaYaw += XM_2PI;
 
-		// 누적 yaw 갱신
-		m_fYaw += deltaYaw;
-		if (m_fYaw > 180.0f) m_fYaw -= 360.0f;
-		if (m_fYaw < -180.0f) m_fYaw += 360.0f;
-
+		float angleDeg = XMConvertToDegrees(deltaYaw);
+		Rotate(0.0f, angleDeg, 0.0f);
 		UpdateTransform(nullptr);
 	}
 
@@ -420,7 +425,6 @@ void CTerrainPlayer::FireBullet(CGameObject* pLockedObject)
 		pBulletObject->bActive = true;
 		break;
 	}
-
 
 	if (pBulletObject)
 	{
@@ -451,6 +455,8 @@ void CTerrainPlayer::OnInitialize()
 
 	XMMATRIX xmmtxRotate = XMMatrixRotationY(XMConvertToRadians(-17.0f));
 	m_pTurretFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pTurretFrame->m_xmf4x4Transform);
+	m_InitialTurretFrame = m_pTurretFrame->m_xmf4x4Transform;
+	m_InitialCannonFrame = m_pCannonFrame->m_xmf4x4Transform;
 }
 
 void CTerrainPlayer::Rotate(float x, float y, float z)
