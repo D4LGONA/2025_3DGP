@@ -790,13 +790,34 @@ void CTankObject::OnInitialize()
 	m_pCannonFrame = FindFrame("cannon");
 	m_pBodyFrame = FindFrame("BODY");
 
+	// 앞에 보게 초기 회전
 	XMMATRIX xmmtxRotate = XMMatrixRotationY(XMConvertToRadians(-17.0f));
 	m_pTurretFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pTurretFrame->m_xmf4x4Transform);
+	Rotate(0.0f, 180.0f, 0.0f);
+
+	float angle = RandF(0.0f, XM_2PI); 
+	m_xmf3MoveDirection = XMFLOAT3(cosf(angle), 0.0f, sinf(angle));
+	m_fSpeed = 10.0f; 
 }
 
 void CTankObject::Animate(float fElapsedTime, XMFLOAT4X4* pxmf4x4Parent)
 {
-	CExplosiveObject::Animate(fElapsedTime);
+	if (!m_bBlowingUp) 
+	{
+		XMFLOAT3 currentPos = GetPosition();
+
+		currentPos.x += m_xmf3MoveDirection.x * m_fSpeed * fElapsedTime;
+		currentPos.z += m_xmf3MoveDirection.z * m_fSpeed * fElapsedTime;
+
+		CHeightMapTerrain* pTerrain = (CHeightMapTerrain*)m_pObjectUpdatedContext;
+		float terrainHeight = pTerrain->GetHeight(currentPos.x, currentPos.z) + TANK_HEIGHT;
+		currentPos.y = terrainHeight;
+
+		SetPosition(currentPos);
+	}
+
+	CExplosiveObject::Animate(fElapsedTime, pxmf4x4Parent);
+
 }
 
 void CTankObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
@@ -826,16 +847,4 @@ int CTankObject::PickObjectByRayIntersection(XMFLOAT3& xmf3PickPosition, XMFLOAT
 		nIntersected += pChild->PickObjectByRayIntersection(xmf3PickPosition, xmf4x4View, pfHitDistance);
 	}
 	return nIntersected;
-}
-
-void CTankObject::OnObjectUpdateCallback(float fTimeElapsed)
-{
-	XMFLOAT3 xmf3PlayerPosition = GetPosition();
-	CHeightMapTerrain* pTerrain = (CHeightMapTerrain*)m_pObjectUpdatedContext;
-	float fHeight = pTerrain->GetHeight(xmf3PlayerPosition.x, xmf3PlayerPosition.z) + TANK_HEIGHT; // 플레이어가 지형 위에 있을 때 높이
-	if (xmf3PlayerPosition.y < fHeight)
-	{
-		xmf3PlayerPosition.y = fHeight;
-		SetPosition(xmf3PlayerPosition);
-	}
 }

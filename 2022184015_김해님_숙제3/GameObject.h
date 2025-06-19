@@ -233,7 +233,6 @@ public:
 	}
 	int PickObjectByRayIntersection(XMFLOAT3& xmf3PickPosition, XMFLOAT4X4& xmf4x4View, float* pfHitDistance);
 	void SetObjectUpdatedContext(LPVOID pContext) { m_pObjectUpdatedContext = pContext; }
-	void OnObjectUpdateCallback(float fTimeElapsed);
 	void OnInitialize();
 
 	void CollectBoundingBoxes(std::vector<BoundingOrientedBox>& boxes)
