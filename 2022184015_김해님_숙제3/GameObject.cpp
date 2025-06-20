@@ -590,7 +590,7 @@ void CBulletObject::Reset()
 	bActive = false;
 }
 
-void CBulletObject::Animate(float fElapsedTime)
+void CBulletObject::Animate(float fElapsedTime, CHeightMapTerrain* terrain)
 {
 	if (!bActive) return;
 	m_fElapsedTimeAfterFire += fElapsedTime;
@@ -617,6 +617,12 @@ void CBulletObject::Animate(float fElapsedTime)
 	SetPosition(xmf3Position);
 	m_fMovingDistance += fDistance;
 
+
+	if (xmf3Position.y <= terrain->GetHeight(xmf3Position.x, xmf3Position.z))
+	{
+		Reset();
+		return;
+	}
 
 	// 유효 범위 또는 생존 시간 초과 시 리셋
 	if ((m_fMovingDistance > m_fBulletEffectiveRange) || (m_fElapsedTimeAfterFire > m_fLockingTime))

@@ -79,6 +79,7 @@ void CScene::CheckEnemyByBulletCollisions()
 				if (bHit) {
 					pEnemy->StartExplosion();
 					ppBullets[j]->Reset();
+					enemycount--;
 				}
 			}
 		}

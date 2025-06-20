@@ -455,7 +455,7 @@ void CGameFramework::AnimateObjects()
 {
 	delay += m_GameTimer.GetTimeElapsed();
 	if (m_pScene) m_pScene->AnimateObjects(m_GameTimer.GetTimeElapsed());
-	m_pPlayer->Animate(m_GameTimer.GetTimeElapsed());
+	m_pPlayer->Animate(m_GameTimer.GetTimeElapsed(), m_pScene->GetTerrain());
 }
 
 void CGameFramework::WaitForGpuComplete()

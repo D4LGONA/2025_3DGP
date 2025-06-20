@@ -365,12 +365,12 @@ void CTerrainPlayer::OnPrepareRender()
 	CPlayer::OnPrepareRender();
 }
 
-void CTerrainPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
+void CTerrainPlayer::Animate(float fTimeElapsed, CHeightMapTerrain* pTerrain, XMFLOAT4X4* pxmf4x4Parent)
 {
 
 	for (int i = 0; i < BULLETS; i++)
 	{
-		m_ppBullets[i]->Animate(fTimeElapsed);
+		m_ppBullets[i]->Animate(fTimeElapsed, pTerrain);
 	}
 
 

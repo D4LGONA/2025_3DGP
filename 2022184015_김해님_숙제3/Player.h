@@ -93,7 +93,7 @@ public:
 	virtual void OnPlayerUpdateCallback(float fTimeElapsed);
 	virtual void OnCameraUpdateCallback(float fTimeElapsed);
 	void OnPrepareRender();
-	void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent = NULL);
+	void Animate(float fTimeElapsed, CHeightMapTerrain* pTerrain, XMFLOAT4X4* pxmf4x4Parent = NULL);
 	void Rotate(float x, float y, float z);
 
 	float m_fCannonPitch = 0.0f;

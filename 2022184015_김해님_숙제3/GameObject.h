@@ -153,7 +153,7 @@ public:
 	virtual ~CBulletObject();
 
 public:
-	virtual void Animate(float fElapsedTime);
+	virtual void Animate(float fElapsedTime, CHeightMapTerrain* terrrain);
 
 	float						m_fBulletEffectiveRange = 1000.0f;
 	float						m_fMovingDistance = 0.0f;
